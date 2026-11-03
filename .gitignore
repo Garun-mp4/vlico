@@ -1,0 +1,10 @@
+# Local design and browser review artifacts
+.impeccable/
+.playwright-cli/
+plex-fonts.css
+
+# Superseded local preview assets from the previous visual direction
+wireframe/assets/Inter-OFL.txt
+wireframe/assets/inter-cyrillic.woff2
+wireframe/assets/inter-latin.woff2
+wireframe/assets/vlico-office-concept.webp

@@ -1,339 +1,244 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" class="js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#14231e" />
-    <meta
-      name="description"
-      content="Потолки и освещение для квартир и домов в Калининграде и области. Замер, подбор системы и согласованная смета до монтажа."
-    />
-    <title>VLICO — потолок и свет в одном проекте</title>
+    <meta name="theme-color" content="#f2f1e9" />
+    <meta name="description" content="Натяжные потолки и интегрированное освещение для квартир, домов и коммерческих объектов в Калининграде и области." />
+    <title>VLICO · Потолки и свет</title>
     <link rel="icon" href="assets/vlico-logo.svg" type="image/svg+xml" />
-    <link rel="preload" as="image" href="assets/vlico-office-hero.jpg" fetchpriority="high" />
-    <link rel="preload" as="font" href="assets/archivo-500.ttf" type="font/ttf" crossorigin />
+    <link rel="preload" as="image" href="assets/hero-ceiling-base.jpg" fetchpriority="high" />
+    <link rel="preload" as="font" href="assets/fonts/ibm-plex-mono-cyrillic-400.woff2" type="font/woff2" crossorigin />
+    <link rel="preload" as="font" href="assets/fonts/ibm-plex-mono-latin-400.woff2" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="styles.css" />
+    <script defer src="main.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Перейти к содержимому</a>
 
+    <div class="loader" aria-hidden="true">
+      <div class="loader-mark"><span>VLICO</span><i></i></div>
+      <span class="loader-caption">ПОТОЛКИ · СВЕТ · КАЛИНИНГРАД</span>
+      <div class="loader-line"><i></i></div>
+    </div>
+
+    <div class="grid-overlay" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <header class="site-header">
+      <div class="header-inner page-gutter">
+        <a class="brand" href="#top" aria-label="VLICO, на главную">
+          <img src="assets/vlico-logo.svg" alt="ВЛИКО" width="2172" height="724" />
+        </a>
+
+        <nav class="desktop-nav" aria-label="Основная навигация">
+          <a href="#about">О компании</a>
+          <a href="#projects">Проекты</a>
+          <a href="#approach">Подход</a>
+        </nav>
+
+        <a class="header-cta" href="#contact"><span class="header-cta-long">Обсудить проект</span><span class="header-cta-short">Связаться</span><span aria-hidden="true">↗</span></a>
+
+        <details class="mobile-nav">
+          <summary aria-label="Открыть меню"><span></span><span></span></summary>
+          <nav aria-label="Мобильная навигация">
+            <a href="#about">О компании</a>
+            <a href="#projects">Проекты</a>
+            <a href="#approach">Подход</a>
+            <a href="#contact">Обсудить проект</a>
+          </nav>
+        </details>
+      </div>
+    </header>
+
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
-        <div class="hero-media">
-          <picture>
-            <source media="(max-width: 760px)" srcset="assets/vlico-office-hero-mobile.jpg" />
-            <img
-              src="assets/vlico-office-hero.jpg"
-              alt="Фасад VLICO и фирменные автомобили у офиса"
-              width="1280"
-              height="802"
-              fetchpriority="high"
-            />
-          </picture>
-        </div>
+        <img class="hero-image" src="assets/hero-ceiling-base.jpg" alt="" width="1280" height="960" fetchpriority="high" />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-grain" aria-hidden="true"></div>
 
-        <header class="site-header">
-          <div class="header-inner">
-            <a class="brand" href="#top" aria-label="VLICO — на главную">
-              <img src="assets/vlico-logo-on-dark.svg" alt="VLICO" width="2172" height="724" />
-            </a>
+        <div class="hero-content page-gutter">
+          <p class="hero-kicker reveal">НАТЯЖНЫЕ ПОТОЛКИ · КАЛИНИНГРАД И ОБЛАСТЬ</p>
+          <div class="hero-wordmark" aria-hidden="true">VLICO</div>
 
-            <nav class="main-nav" aria-label="Основная навигация">
-              <a href="#solutions">Решения</a>
-              <a href="#proof">Опыт</a>
-              <a href="#process">Этапы работы</a>
-            </nav>
+          <div class="hero-bottom">
+            <div class="hero-offer reveal">
+              <h1 id="hero-title">Потолки и свет, продуманные вместе.</h1>
+              <p>Подберём систему под интерьер и спланируем освещение. Стоимость рассчитаем после замера, сроки согласуем до монтажа. Замер в Калининграде бесплатный.</p>
+              <div class="hero-actions">
+                <a class="text-link text-link-light" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+                <a class="text-link text-link-light" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
+              </div>
+            </div>
 
-            <a class="header-link" href="#lead">
-              Рассчитать проект
-              <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </a>
+            <div class="hero-side reveal">
+              <p class="hero-side-label">УСЛОВИЯ ПРОЕКТА</p>
+              <dl>
+                <div><dt>Стоимость</dt><dd>Расчёт после замера</dd></div>
+                <div><dt>Сроки</dt><dd>Согласуем до работ</dd></div>
+                <div><dt>Регион</dt><dd>Калининград · область</dd></div>
+              </dl>
+              <p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
+            </div>
           </div>
-        </header>
 
-        <div class="hero-content section-shell">
-          <div class="hero-copy">
-            <p class="eyebrow hero-enter" style="--enter-order: 0">
-              <span class="eyebrow-mark" aria-hidden="true"></span>
-              Натяжные потолки · освещение · монтаж
-            </p>
-            <h1 id="hero-title">
-              <span class="hero-title-line"><span>Потолок и свет —</span></span>
-              <span class="hero-title-line hero-title-accent"><span>в одном проекте.</span></span>
-            </h1>
-            <p class="hero-description hero-enter" style="--enter-order: 2">
-              Подберём систему под вашу комнату, рассчитаем стоимость и согласуем смету до монтажа.
-            </p>
-
-            <form class="lead-form hero-enter" id="lead" novalidate style="--enter-order: 3">
-              <label class="visually-hidden" for="lead-phone">Номер телефона для расчёта</label>
-              <input
-                id="lead-phone"
-                name="phone"
-                type="tel"
-                inputmode="tel"
-                autocomplete="tel"
-                maxlength="30"
-                spellcheck="false"
-                placeholder="Ваш номер телефона"
-                aria-describedby="lead-note lead-error lead-feedback"
-                required
-              />
-              <input id="lead-interest" name="interest" type="hidden" value="" />
-              <button class="button button-primary" type="submit">
-                Запросить расчёт
-                <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18">
-                  <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-            </form>
-            <p class="form-note hero-enter" id="lead-note" style="--enter-order: 4">
-              Смета зависит от площади, выбранной системы и освещения.
-            </p>
-            <p class="form-error" id="lead-error" role="alert" hidden>Проверьте номер: введите не менее 7 цифр.</p>
-            <p class="form-feedback" id="lead-feedback" role="status" aria-live="polite" hidden></p>
-            <p class="interest-note" id="interest-note" hidden></p>
-
-            <a class="hero-work-link hero-enter" href="#solutions" style="--enter-order: 5">
-              Сначала посмотреть решения
-              <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </a>
-          </div>
+          <a class="scroll-cue" href="#about" aria-label="Листать вниз"><span>ЛИСТАТЬ</span><i aria-hidden="true">↓</i></a>
         </div>
+      </section>
 
-        <div class="hero-footer section-shell">
-          <p class="service-area hero-enter" style="--enter-order: 6">
-            <strong>Калининград и область</strong>
-            Бесплатный замер — в Калининграде.
-          </p>
-          <div class="hero-highlight hero-enter" style="--enter-order: 7" aria-label="Условия проекта">
-            <span class="highlight-mark" aria-hidden="true"></span>
-            <span>
-              <small>До начала работ</small>
-              <strong>Согласуем смету и сроки</strong>
-            </span>
+      <section class="about section-dark" id="about" aria-labelledby="about-title">
+        <div class="about-grid page-gutter">
+          <figure class="about-image reveal">
+            <img src="assets/light-lines.jpg" alt="Световая линия, встроенная в геометрию натяжного потолка" width="1280" height="960" loading="lazy" />
+            <figcaption>СВЕТ КАК ЧАСТЬ ПОТОЛКА</figcaption>
+          </figure>
+
+          <div class="about-copy">
+            <p class="eyebrow reveal">ПОДХОД VLICO</p>
+            <h2 class="display-heading reveal" id="about-title">ХОРОШИЙ СВЕТ НАЧИНАЕТСЯ С ПЛАНА ПОТОЛКА.</h2>
+            <div class="about-text reveal">
+              <p>Сначала разбираемся в помещении и сценариях освещения. Затем согласуем профили, светильники, треки и карнизы, чтобы все элементы точно встретились при монтаже.</p>
+            <p>Потолок, освещение, карнизы и оборудование собираются в одну согласованную систему.</p>
+            </div>
+            <a class="text-link text-link-light about-link reveal" href="#solutions">Как устроены решения <span aria-hidden="true">↓</span></a>
           </div>
         </div>
       </section>
 
-      <section class="proof-strip" id="proof" aria-label="Опыт VLICO">
-        <div class="proof-inner section-shell">
-          <p class="proof-label" data-reveal>Опыт, который видно в деталях</p>
-          <ul class="proof-list">
-            <li data-reveal style="--reveal-order: 0">
-              <strong>С 2009 года</strong>
-              <span>устанавливаем потолки и освещение</span>
-            </li>
-            <li data-reveal style="--reveal-order: 1">
-              <strong>10 000+</strong>
-              <span>объектов в портфеле компании</span>
-            </li>
-            <li data-reveal style="--reveal-order: 2">
-              <strong>500 000+ м²</strong>
-              <span>смонтированных потолков</span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="solutions section-shell" id="solutions" aria-labelledby="solutions-title">
-        <div class="section-heading">
-          <div data-reveal>
-            <p class="section-kicker">Потолок + свет</p>
-            <h2 id="solutions-title">Система, собранная под ваш интерьер</h2>
-            <p>
-              Выберите направление — подскажем, что подойдёт помещению, и рассчитаем состав работ до монтажа.
-            </p>
+      <section class="projects section-light" id="projects" aria-labelledby="projects-title">
+        <div class="projects-intro page-gutter">
+          <div class="projects-heading reveal">
+            <p class="eyebrow">ВЫБРАННЫЕ РАБОТЫ</p>
+            <h2 class="display-heading" id="projects-title">ПОТОЛКИ В РЕАЛЬНЫХ ИНТЕРЬЕРАХ.</h2>
+            <p>Частные интерьеры и коммерческие объекты. В каждом проекте потолок согласован с освещением и деталями помещения.</p>
+            <a class="text-link" href="#contact">Обсудить похожий проект <span aria-hidden="true">↗</span></a>
           </div>
-          <a class="text-link" href="#lead">
-            Обсудить проект
-            <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18">
-              <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </a>
+
+          <article class="featured-project reveal">
+            <figure class="project-image">
+              <img src="assets/penthouse-chandelier.jpg" alt="Дизайнерские подвесные светильники и чёрный мрамор в пентхаусе" width="1280" height="960" loading="lazy" />
+              <figcaption>ПЕНТХАУС · КАЛИНИНГРАД</figcaption>
+            </figure>
+            <div class="project-copy">
+              <h3>Пентхаус на Румянцева, 11</h3>
+              <p>Натяжные и тканевые потолки, дизайнерский свет, подвесные люстры и электрокарнизы. Инженерные элементы встроены в интерьер с точной подгонкой узлов.</p>
+              <dl class="project-meta">
+                <div><dt>Объект</dt><dd>Премиальный жилой интерьер</dd></div>
+                <div><dt>Локация</dt><dd>Калининград</dd></div>
+              </dl>
+              <a class="text-link" href="#contact" data-interest="Пентхаус на Румянцева, 11">Обсудить похожий проект <span aria-hidden="true">↗</span></a>
+            </div>
+          </article>
         </div>
 
-        <div class="solutions-grid">
-          <a class="solution-card solution-card-feature" href="#lead" data-service="Теневые и парящие потолки" data-reveal style="--reveal-order: 0">
-            <img src="assets/shadow-ceiling.jpg" alt="Теневой потолок с аккуратным примыканием к стене" width="1280" height="960" loading="lazy" />
-            <span class="solution-copy">
-              <strong>Теневые и парящие потолки</strong>
-              <span>Чёткий контур или мягкий световой акцент по периметру.</span>
-            </span>
-            <span class="card-arrow" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="20" height="20">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
-
-          <a class="solution-card" href="#lead" data-service="Световые линии" data-reveal style="--reveal-order: 1">
-            <img src="assets/light-lines.jpg" alt="Линейное освещение на потолке жилой комнаты" width="1280" height="960" loading="lazy" />
-            <span class="solution-copy">
-              <strong>Световые линии</strong>
-              <span>Геометрия света, увязанная с планировкой комнаты.</span>
-            </span>
-            <span class="card-arrow" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="20" height="20">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
-
-          <a class="solution-card" href="#lead" data-service="Магнитные треки" data-reveal style="--reveal-order: 2">
-            <img src="assets/magnetic-tracks.jpg" alt="Магнитная трековая система в интерьере" width="1280" height="960" loading="lazy" />
-            <span class="solution-copy">
-              <strong>Магнитные треки</strong>
-              <span>Расположение шин и светильников под задачи помещения.</span>
-            </span>
-            <span class="card-arrow" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="20" height="20">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
-
-          <a class="solution-card" href="#lead" data-service="Тканевые полотна BAUF" data-reveal style="--reveal-order: 3">
-            <img src="assets/fabric-bauf.jpg" alt="Матовый тканевый потолок в жилом интерьере" width="1280" height="960" loading="lazy" />
-            <span class="solution-copy">
-              <strong>Тканевые полотна BAUF</strong>
-              <span>Спокойная матовая фактура для цельного интерьера.</span>
-            </span>
-            <span class="card-arrow" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="20" height="20">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
-
-          <a class="solution-card" href="#lead" data-service="Скрытые карнизы" data-reveal style="--reveal-order: 4">
-            <img src="assets/cornice.jpg" alt="Скрытая ниша для карниза у окна" width="1280" height="960" loading="lazy" />
-            <span class="solution-copy">
-              <strong>Скрытые карнизы</strong>
-              <span>Заранее учитываем нишу и расположение штор.</span>
-            </span>
-            <span class="card-arrow" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="20" height="20">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
+        <div class="work-gallery page-gutter" aria-label="Примеры потолочных решений">
+          <figure class="work-tile reveal">
+            <div class="work-tile-image"><img src="assets/shadow-ceiling.jpg" alt="Теневой профиль вдоль стены" width="1280" height="960" loading="lazy" /></div>
+            <figcaption><span>01</span> ТЕНЕВОЕ ПРИМЫКАНИЕ</figcaption>
+          </figure>
+          <figure class="work-tile reveal">
+            <div class="work-tile-image"><img src="assets/magnetic-tracks.jpg" alt="Магнитная трековая система в интерьере" width="1280" height="960" loading="lazy" /></div>
+            <figcaption><span>02</span> МАГНИТНЫЕ ТРЕКИ</figcaption>
+          </figure>
+          <figure class="work-tile reveal">
+            <div class="work-tile-image"><img src="assets/fabric-bauf.jpg" alt="Матовая фактура тканевого потолка BAUF в жилом интерьере" width="1280" height="960" loading="lazy" /></div>
+            <figcaption><span>03</span> ТКАНЕВЫЕ ПОЛОТНА BAUF</figcaption>
+          </figure>
         </div>
+
+        <article class="commercial-case page-gutter reveal" aria-labelledby="commercial-title">
+          <div class="commercial-copy">
+            <p class="eyebrow">КОММЕРЧЕСКИЙ ОБЪЕКТ · ЗЕЛЕНОГРАДСК</p>
+            <h3 id="commercial-title">Гостиничный комплекс «Подлесная»</h3>
+            <p>Потолочные решения для гостиницы, где важны точность монтажа и организация работ на каждом этаже.</p>
+          </div>
+          <dl class="commercial-facts">
+            <div><dt>Масштаб</dt><dd>10 этажей</dd></div>
+            <div><dt>Площадь решений</dt><dd>5 500 м²</dd></div>
+            <div><dt>Номера</dt><dd>49</dd></div>
+          </dl>
+        </article>
       </section>
 
-      <section class="process" id="process" aria-labelledby="process-title">
-        <div class="process-inner section-shell">
-          <div class="process-intro" data-reveal>
-            <p class="section-kicker">Без сюрпризов на монтаже</p>
-            <h2 id="process-title">Сначала ясная смета. Затем работа.</h2>
-            <p>
-              Итоговая стоимость зависит от площади, выбранной системы и освещения. До монтажа согласуем комплектацию, цену и сроки.
-            </p>
-            <a class="button button-light" href="#lead">
-              Запросить расчёт
-              <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18">
-                <path d="M4 10h11M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+      <section class="solutions section-sand" id="solutions" aria-labelledby="solutions-title">
+        <div class="solutions-layout page-gutter">
+          <div class="solutions-intro reveal">
+            <p class="eyebrow">ПОТОЛОЧНЫЕ СИСТЕМЫ</p>
+            <h2 class="display-heading" id="solutions-title">ПОТОЛОК И ОСВЕЩЕНИЕ РАБОТАЮТ ВМЕСТЕ.</h2>
+            <p>Подбираем систему под задачу комнаты и заранее учитываем свет, карнизы и оборудование.</p>
+          </div>
+
+          <div class="solution-list">
+            <a class="solution-row reveal" href="#contact" data-interest="Теневые и парящие потолки">
+              <span class="solution-index">01</span><span class="solution-name">Теневые и парящие потолки</span><span class="solution-detail">Чёткое примыкание и световой контур</span><span class="solution-arrow" aria-hidden="true">↗</span>
             </a>
-            <p class="timeline-note">Замер бесплатно в Калининграде. Для области условия выезда уточним отдельно.</p>
+            <a class="solution-row reveal" href="#contact" data-interest="Световые линии и магнитные треки">
+              <span class="solution-index">02</span><span class="solution-name">Световые линии и магнитные треки</span><span class="solution-detail">Геометрия света под помещение</span><span class="solution-arrow" aria-hidden="true">↗</span>
+            </a>
+            <a class="solution-row reveal" href="#contact" data-interest="Скрытые карнизы и тканевые полотна BAUF">
+              <span class="solution-index">03</span><span class="solution-name">Карнизы и тканевые полотна BAUF</span><span class="solution-detail">Продуманные узлы и аккуратная фактура</span><span class="solution-arrow" aria-hidden="true">↗</span>
+            </a>
           </div>
+        </div>
+      </section>
 
-          <ol class="process-steps">
-            <li data-reveal style="--reveal-order: 0">
-              <span class="step-number">01</span>
-              <div>
-                <strong>Уточняем задачу</strong>
-                <p>Обсуждаем помещение, желаемый потолок и сценарии освещения.</p>
-              </div>
-            </li>
-            <li data-reveal style="--reveal-order: 1">
-              <span class="step-number">02</span>
-              <div>
-                <strong>Проводим замер</strong>
-                <p>В Калининграде — бесплатно; уточняем геометрию и условия монтажа.</p>
-              </div>
-            </li>
-            <li data-reveal style="--reveal-order: 2">
-              <span class="step-number">03</span>
-              <div>
-                <strong>Согласуем проект</strong>
-                <p>Фиксируем комплектацию, стоимость и сроки до начала работ.</p>
-              </div>
-            </li>
-            <li data-reveal style="--reveal-order: 3">
-              <span class="step-number">04</span>
-              <div>
-                <strong>Устанавливаем потолок и свет</strong>
-                <p>Выполняем монтаж по согласованному решению.</p>
-              </div>
-            </li>
+      <section class="approach section-dark" id="approach" aria-labelledby="approach-title">
+        <img class="approach-image" src="assets/installation-process.jpg" alt="" width="720" height="1280" loading="lazy" />
+        <div class="approach-shade" aria-hidden="true"></div>
+        <div class="approach-layout page-gutter">
+          <div class="approach-intro reveal">
+            <p class="eyebrow">КАК МЫ РАБОТАЕМ</p>
+            <h2 class="display-heading" id="approach-title">СНАЧАЛА РЕШЕНИЕ. ПОТОМ МОНТАЖ.</h2>
+            <p>Обсуждаем помещение, подбираем комплектацию, согласуем смету и сроки. К монтажу приступаем, когда все детали понятны.</p>
+            <a class="text-link text-link-light" href="#contact">Обсудить задачу <span aria-hidden="true">↗</span></a>
+          </div>
+          <ol class="approach-steps">
+            <li class="approach-step reveal"><span>01</span><div><h3>Замер и задача</h3><p>Уточняем размеры, пожелания к свету и особенности помещения. Замер в Калининграде бесплатный.</p></div></li>
+            <li class="approach-step reveal"><span>02</span><div><h3>Смета и сроки</h3><p>Подбираем систему, составляем смету и фиксируем график работ до начала монтажа.</p></div></li>
+            <li class="approach-step reveal"><span>03</span><div><h3>Монтаж и настройка</h3><p>Устанавливаем потолок, интегрируем освещение и проверяем согласованные решения.</p></div></li>
           </ol>
+        </div>
+      </section>
+
+      <section class="contact section-light" id="contact" aria-labelledby="contact-title">
+        <div class="contact-layout page-gutter">
+          <div class="contact-heading reveal">
+            <p class="eyebrow">СВЯЗАТЬСЯ</p>
+            <h2 class="display-heading" id="contact-title">ОБСУДИМ ПОТОЛОК И СВЕТ В ВАШЕМ ПОМЕЩЕНИИ.</h2>
+            <p>Расскажите, что за помещение и каким вы хотите видеть свет. Подскажем, с чего начать расчёт.</p>
+          </div>
+
+          <form class="contact-form reveal" id="contact-form" novalidate>
+            <label for="contact-name">Как к вам обращаться</label>
+            <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Имя" required />
+            <label for="contact-phone">Телефон</label>
+            <input id="contact-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" aria-describedby="contact-help contact-error contact-status" required />
+            <input id="contact-interest" name="interest" type="hidden" value="" />
+            <p id="contact-help" class="form-help">Замер в Калининграде бесплатный. Выезд по области обсудим отдельно.</p>
+            <p id="contact-error" class="form-error" role="alert" hidden>Укажите имя и проверьте номер телефона.</p>
+            <p id="contact-status" class="form-status" role="status" aria-live="polite" hidden></p>
+            <button class="text-link form-submit" type="submit">Запросить консультацию <span aria-hidden="true">↗</span></button>
+            <p class="form-disclaimer">Демонстрационная форма. В этом макете данные не отправляются и не сохраняются.</p>
+          </form>
         </div>
       </section>
     </main>
 
-    <script>
-      const form = document.querySelector("#lead");
-      const phone = document.querySelector("#lead-phone");
-      const error = document.querySelector("#lead-error");
-      const feedback = document.querySelector("#lead-feedback");
-      const interest = document.querySelector("#lead-interest");
-      const interestNote = document.querySelector("#interest-note");
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const value = phone.value.trim();
-        const digits = value.replace(/\D/g, "");
-
-        if (digits.length < 7 || !/^[+()\d\s.-]+$/.test(value)) {
-          error.hidden = false;
-          feedback.hidden = true;
-          phone.setAttribute("aria-invalid", "true");
-          phone.focus();
-          return;
-        }
-
-        error.hidden = true;
-        phone.removeAttribute("aria-invalid");
-        feedback.textContent = "Это демонстрационный прототип: номер не отправлен и не сохранён.";
-        feedback.hidden = false;
-      });
-
-      phone.addEventListener("input", () => {
-        error.hidden = true;
-        feedback.hidden = true;
-        phone.removeAttribute("aria-invalid");
-      });
-
-      document.querySelectorAll("[data-service]").forEach((card) => {
-        card.addEventListener("click", () => {
-          interest.value = card.dataset.service;
-          interestNote.textContent = `Подберём решение: ${card.dataset.service}.`;
-          interestNote.hidden = false;
-        });
-      });
-
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
-        document.documentElement.classList.add("motion-ready");
-        const revealObserver = new IntersectionObserver(
-          (entries, observer) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                observer.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.12, rootMargin: "0px 0px -36px 0px" },
-        );
-
-        document.querySelectorAll("[data-reveal]").forEach((element) => revealObserver.observe(element));
-      }
-    </script>
+    <footer class="site-footer section-light">
+      <div class="footer-top page-gutter">
+        <a class="footer-brand" href="#top" aria-label="VLICO, наверх"><img src="assets/vlico-logo.svg" alt="ВЛИКО" width="2172" height="724" loading="lazy" /></a>
+        <p>Натяжные потолки и свет<br />Калининград · область</p>
+        <a class="text-link" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="footer-wordmark" aria-hidden="true">VLICO</div>
+      <div class="footer-bottom page-gutter">
+        <span>© VLICO · Калининград</span>
+        <a href="#top">Наверх ↑</a>
+        <span>ПОТОЛКИ · СВЕТ · ИНТЕРЬЕР</span>
+      </div>
+    </footer>
   </body>
 </html>

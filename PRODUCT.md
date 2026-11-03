@@ -1,39 +1,42 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
-
 ## Platform
-web
+Web
 
 ## Stack
-delegated: plain static HTML and CSS in the wireframe directory for a reviewable Vercel preview.
+Static HTML, CSS and JavaScript in `wireframe/`, published as an isolated Vercel preview.
 
 ## Users
-Primary audience for this concept: homeowners in Kaliningrad and the surrounding region planning ceiling and lighting work. Commercial clients remain a secondary audience.
+Homeowners in Kaliningrad and the surrounding region are the primary audience. Commercial clients are a secondary audience.
 
-## Product Purpose
-Present VLICO's ceiling and integrated lighting services clearly and help prospective clients request a project estimate or free measurement in Kaliningrad.
+## Product purpose
+Show how VLICO combines ceiling systems and lighting, explain how price and timing are agreed, and help a visitor start a project conversation.
 
 ## Positioning
-VLICO plans ceiling systems and lighting as one coordinated solution, agrees the estimate before installation, and completes the installation.
+VLICO plans and installs stretched ceilings with integrated lighting for homes and commercial properties. The scope and estimate are agreed before installation.
 
-## Operating Context
-The homepage preview contains four blocks: a full-screen photographic hero with a local-only phone form, company proof, ceiling and lighting solutions, and the estimate and installation process. The preview form validates a phone number but does not send or store it.
+## Page structure
+- Full-screen, photo-led offer with a large VLICO wordmark.
+- Editorial company statement about planning ceiling and lighting as one system.
+- Selected work, including the documented Rumyantseva penthouse and Podlesnaya hotel project.
+- A concise list of ceiling and lighting systems.
+- A photo-led section explaining the project sequence.
+- Contact form and oversized wordmark footer.
 
-## Capabilities and Constraints
-- The page is a static preview. Its one-field phone form demonstrates the local interaction only; no data is sent to another site, a backend, or stored by the page.
-- Do not publish a fixed price or installation duration: neither was supplied. Explain that the estimate depends on the room and selected system, and that the estimate and schedule are agreed before installation.
-- State free measurement only for Kaliningrad.
-- Do not reuse the unconfirmed promotion from the supplied mockup.
+## Capabilities and constraints
+- The hero contains no contact input. Its links stay within this page.
+- The contact form is an interaction-only prototype. It validates fields locally and does not transmit or store submitted data.
+- Do not invent a fixed price or installation duration. Explain that the estimate follows the measurement and selected system, and timing is agreed before work begins.
+- State free measurement only for Kaliningrad. Discuss travel elsewhere in the region separately.
+- Do not reuse the unconfirmed promotion in the supplied mockups.
+- Keep the preview `noindex` and publish only the `wireframe/` directory. Do not expose the rest of `from-client/`.
 
-## Brand Commitments
-Use the supplied VLICO vector logo and green mark. Use client-supplied photography, retain a calm premium tone, and keep preview status in project documentation rather than visible page copy.
+## Evidence
+Client materials state that VLICO has worked since 2009, completed more than 10,000 objects, and installed more than 500,000 m² of ceilings. These figures still need confirmation before publication. The client brief documents a penthouse at Rumyantseva 11 and the Podlesnaya hotel in Zelenogradsk. The hotel brief gives 10 floors, 49 rooms, and 5,500 m² of ceiling work, and says not to publish the price. No local case video was found.
 
-## Evidence on Hand
-Client-supplied copy states work since 2009, more than 10,000 projects, and more than 500,000 m² of ceilings. These figures appear on the preview and must be confirmed before final publication. The asset folder has original photographs, review graphics, the logo, and two case briefs; no local video file was found. Do not represent composites or unverified renders as completed projects.
-
-## Product Principles
-- Explain the service, cost-estimate process, and next step immediately.
-- Use only supplied facts and client-provided images.
-- Keep the first screen focused on private clients while preserving commercial proof for later sections.
-- Adapt Fitosauna's full-screen photographic hero and Farm Minerals' varied card rhythm without copying their branding, assets, or scripts.
+## Product principles
+- Make the service, pricing method, timing, region, and next step clear in the first screen.
+- Use client photography for real projects and keep each case tied to its supplied brief.
+- Keep the first screen focused on homeowners while showing commercial experience below.
+- Agree the scope, estimate, and schedule before installation.
+- Follow the VLICO-specific editorial system in `DESIGN.md`.
