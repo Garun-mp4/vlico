@@ -434,7 +434,7 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
 .image-frame-dark .image-reveal-cover span { background: var(--night); }
 .image-reveal-cover { position: absolute; z-index: 1; inset: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); visibility: hidden; pointer-events: none; }
 .image-reveal-cover span { display: block; transform: translateY(0); background: var(--canvas); }
-.motion-ready [data-image-frame].is-image-revealing .image-reveal-cover { visibility: visible; }
+.motion-ready [data-image-frame] .image-reveal-cover { visibility: visible; }
 .motion-ready [data-image-frame].is-image-revealed img { transform: scale(1); transition: transform 1150ms var(--ease-loader); }
 .motion-ready [data-image-frame].is-image-revealing:not(.is-image-revealed) img { transform: scale(1.045); }
 .motion-ready [data-image-frame].is-image-revealed .image-reveal-cover span { animation: image-panel-out 800ms var(--ease-loader) both; }
