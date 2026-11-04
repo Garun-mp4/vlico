@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST, require_http_methods, req
 from .lead_forms import LeadForm, KINDS
 from .lead_service import save_submission, throttle, SubmissionError
 from .models import Project, Service, PricingVersion
-from .pricing import CalculationForm, calculate, EXCLUSIONS
+from .configurator import calculation_form as answer_form, calculate_answers, configurator_context
 
 
 def initial_lead_form(request, kind="consultation"):
@@ -60,7 +60,7 @@ def request_form(request, kind="consultation"):
 def calculator(request):
     version = get_object_or_404(PricingVersion, active=True)
     quote, errors = None, {}
-    calculation_form = CalculationForm(request.POST or None)
+    calculation_form = answer_form(request.POST or None)
     lead_form = initial_lead_form(request, "calculator")
     if request.method == "POST":
         preserved = {name: request.POST.get(name, "") for name in lead_form.fields}
@@ -68,26 +68,28 @@ def calculator(request):
         lead_form = LeadForm(initial=preserved)
         if request.POST.get("action") == "quote":
             if calculation_form.is_valid():
-                quote = calculate(calculation_form.cleaned_data, version)
+                quote = calculate_answers(calculation_form.cleaned_data, version)
         else:
             body, status = accept(request)
             if body.get("ok"):
                 return render(request, "site/lead-success.html", body)
             errors = body["errors"]
             if calculation_form.is_valid():
-                quote = calculate(calculation_form.cleaned_data, version)
+                quote = calculate_answers(calculation_form.cleaned_data, version)
     lead_form.initial["pricing_version"] = version.pk
-    return render(request, "site/calculator.html", {"lead_form": lead_form, "calculation_form": calculation_form, "quote": quote, "pricing_version": version.pk, "exclusions": EXCLUSIONS, "submission_errors": errors})
+    from .configurator import ConfiguratorForm
+    context = configurator_context(request, form=calculation_form if isinstance(calculation_form, ConfiguratorForm) else None, lead_form=lead_form, quote=quote, errors=errors)
+    return render(request, "site/calculator.html", context)
 
 
 @never_cache
 @require_POST
 def estimate(request):
-    form = CalculationForm(request.POST)
+    form = answer_form(request.POST)
     if not form.is_valid():
         return JsonResponse({"ok": False, "errors": dict(form.errors)}, status=400)
     version = get_object_or_404(PricingVersion, active=True)
-    return JsonResponse({"ok": True, "quote": calculate(form.cleaned_data, version)})
+    return JsonResponse({"ok": True, "quote": calculate_answers(form.cleaned_data, version)})
 
 
 @require_safe

@@ -17,16 +17,12 @@
       localStorage.setItem('vlico-attribution', JSON.stringify({ data: attribution, expires: Date.now() + ttl }));
     }
   } catch { /* Server-side session attribution remains available when storage is blocked. */ }
-  const money = value => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(value)) + ' ₽';
-
   document.querySelectorAll('[data-lead-form]').forEach(form => {
     const errors = form.querySelector('[data-lead-errors]'), status = form.querySelector('[data-lead-status]');
     const progress = form.querySelector('[data-upload-progress]');
     const submit = form.querySelector('button[type="submit"]:not([data-calculate])');
-    const calculateButton = form.querySelector('[data-calculate]');
-    const calculator = form.hasAttribute('data-calculator'), quoteContent = document.querySelector('[data-quote-content]');
     const files = form.querySelector('[name=attachments]');
-    let busy = false, quoteFresh = Boolean(quoteContent?.querySelector('.quote-total')), quoteController;
+    let busy = false;
 
     function showErrors(items) {
       errors.replaceChildren();
@@ -50,49 +46,6 @@
       form.querySelector('[aria-invalid=true]')?.focus();
     }
 
-    function renderQuote(quote) {
-      quoteContent.replaceChildren();
-      const label = document.createElement('p'); label.className = 'quote-label';
-      label.textContent = quote.complete ? 'Предварительная стоимость' : 'Неполный предварительный расчёт';
-      const total = document.createElement('p'); total.className = 'quote-total'; total.textContent = money(quote.total);
-      quoteContent.append(label, total);
-      if (!quote.complete) {
-        const warning = document.createElement('p'); warning.className = 'quote-warning';
-        warning.textContent = 'Периметр неизвестен. Стоимость примыкания не включена в сумму.'; quoteContent.append(warning);
-      }
-      const lines = document.createElement('dl'); lines.className = 'quote-lines';
-      for (const item of quote.items) {
-        const row = document.createElement('div'), title = document.createElement('dt'), detail = document.createElement('small'), value = document.createElement('dd');
-        title.textContent = item.title; detail.textContent = `${item.quantity} ${item.unit} × ${money(item.unit_price)}`;
-        value.textContent = money(item.total); title.append(detail); row.append(title, value); lines.append(row);
-      }
-      quoteContent.append(lines); form.elements.namedItem('pricing_version').value = quote.version; quoteFresh = true;
-    }
-
-    async function estimate() {
-      quoteController?.abort(); quoteController = new AbortController();
-      const data = new FormData(); data.set('csrfmiddlewaretoken', form.elements.namedItem('csrfmiddlewaretoken').value);
-      form.querySelectorAll('.calculation-fields [name]').forEach(input => data.set(input.name, input.value));
-      calculateButton.disabled = true; calculateButton.textContent = 'Считаем…'; errors.hidden = true;
-      try {
-        const response = await fetch(form.dataset.estimateApi, { method: 'POST', body: data, signal: quoteController.signal, headers: { Accept: 'application/json' } });
-        const result = await response.json();
-        if (!response.ok) { showErrors(result.errors || { __all__: ['Не удалось рассчитать. Попробуйте ещё раз.'] }); return false; }
-        renderQuote(result.quote);
-        if (matchMedia('(max-width: 800px)').matches) quoteContent.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-        return true;
-      } catch (error) {
-        if (error.name !== 'AbortError') showErrors({ __all__: ['Не удалось получить расчёт. Проверьте соединение и попробуйте снова.'] });
-        return false;
-      } finally { calculateButton.disabled = false; calculateButton.textContent = 'Рассчитать'; }
-    }
-    calculateButton?.addEventListener('click', event => { event.preventDefault(); estimate(); });
-    form.querySelectorAll('.calculation-fields [name]').forEach(input => input.addEventListener('input', () => {
-      quoteController?.abort(); quoteFresh = false;
-      if (!quoteContent.querySelector('.quote-dirty')) {
-        const note = document.createElement('p'); note.className = 'quote-dirty'; note.textContent = 'Параметры изменены. Нажмите «Рассчитать», чтобы обновить сумму.'; quoteContent.append(note);
-      }
-    }));
     files?.addEventListener('change', () => { form.querySelector('[data-selected-files]').textContent = [...files.files].map(file => file.name).join(', '); });
     const setFileRequired = () => { if (files) files.required = form.elements.namedItem('kind').value === 'project'; };
     form.querySelector('[name=kind]')?.addEventListener('change', setFileRequired); setFileRequired();
@@ -101,10 +54,6 @@
     form.addEventListener('submit', async event => {
       event.preventDefault();
       if (busy || form.dataset.submitted === 'true') return;
-      if (calculator && !quoteFresh) {
-        if (await estimate()) showErrors({ __all__: ['Расчёт обновлён. Проверьте сумму и нажмите «Отправить расчёт специалисту».'] });
-        return;
-      }
       const selected = [...(files?.files || [])];
       if (selected.length > 3 || selected.some(file => file.size > 8 * 1024 * 1024)) { showErrors({ attachments: ['Можно выбрать до 3 файлов, каждый не больше 8 МБ.'] }); return; }
       const data = new FormData(form); data.set('source_page', location.pathname); data.set('attribution', JSON.stringify(attribution));
@@ -119,7 +68,7 @@
           form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
           document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind } }));
         } else {
-          status.hidden = true; if (result.quote && calculator) renderQuote(result.quote);
+          status.hidden = true;
           showErrors(result.errors || { __all__: [xhr.status === 403 ? 'Сессия формы устарела. Сохраните введённое и обновите страницу.' : 'Сервис временно недоступен. Данные остались в форме; попробуйте отправить снова.'] });
         }
         finish();

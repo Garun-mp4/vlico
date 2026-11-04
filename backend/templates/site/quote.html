@@ -1,6 +1,6 @@
 <div data-quote-content>
-{% if quote %}<p class="quote-label">{% if quote.complete %}Предварительная стоимость{% else %}Неполный предварительный расчёт{% endif %}</p><p class="quote-total">{{ quote.total }} ₽</p>
-{% if not quote.complete %}<p class="quote-warning">Периметр неизвестен. Стоимость примыкания не включена в сумму.</p>{% endif %}
+{% if quote %}<p class="quote-label">{% if quote.complete %}Предварительная стоимость{% else %}Неполный предварительный расчёт{% endif %}</p><p class="quote-total">{% if quote.total != None %}{{ quote.total }} ₽{% else %}Индивидуальный расчёт{% endif %}</p>
+{% if quote.warnings %}<ul class="config-warnings">{% for warning in quote.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>{% elif not quote.complete %}<p class="quote-warning">Периметр неизвестен. Стоимость примыкания не включена в сумму.</p>{% endif %}
 <dl class="quote-lines">{% for item in quote.items %}<div><dt>{{ item.title }}<small>{{ item.quantity }} {{ item.unit }} × {{ item.unit_price }} ₽</small></dt><dd>{{ item.total }} ₽</dd></div>{% endfor %}</dl>
-{% else %}<p>Укажите площадь и выбранные решения, затем нажмите «Рассчитать».</p>{% endif %}
+<dl class="config-summary">{% for item in quote.configuration %}<div><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div>{% endfor %}</dl>{% else %}<p>Укажите площадь и выбранные решения, затем нажмите «Рассчитать».</p>{% endif %}
 </div>

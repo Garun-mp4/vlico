@@ -97,9 +97,12 @@ def message_parts(lead):
         if value:
             lines.append(f"{label}: {value}")
     if quote:
-        lines += ["", f"Предварительный расчёт: {quote['total']} ₽", f"Тарифы: {quote['version_title']} (#{quote['version']})"]
+        lines += ["", (f"Предварительный расчёт: {quote['total']} ₽" if quote["total"] is not None else "Индивидуальный расчёт: размеры или материал неизвестны"), f"Тарифы: {quote['version_title']} (#{quote['version']})"]
         lines += [f"{item['title']}: {item['quantity']} {item['unit']} × {item['unit_price']} ₽ = {item['total']} ₽" for item in quote["items"]]
-        if not quote["complete"]:
+        if quote.get("schema") == "v2":
+            lines += quote["warnings"]
+            lines += [f"{row['label']}: {row['value']}" for row in quote["configuration"]]
+        elif not quote["complete"]:
             lines.append("Периметр неизвестен: примыкание не включено в сумму.")
         lines.append(quote["exclusions"])
     lines += ["", "Страница: " + lead.source_page]

@@ -1,0 +1,36 @@
+async page => {
+ const root=page.locator('[data-configurator]');
+ const checks=[];
+ const browser=page.context().browser();
+ const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});
+ const fallback=await context.newPage();await fallback.goto('http://127.0.0.1:8000/calculator/');
+ const form=fallback.locator('[data-configurator]');
+ for(const [name,value] of Object.entries({room:'living',size_mode:'dimensions',shape:'rectangle',material:'pvc',edge:'standard',cornice:'none',location:'city'}))await form.locator(`input[name=${name}][value=${value}]`).check();
+ for(const name of ['lights','features'])await form.locator(`input[name=${name}][value=none]`).check();
+ await form.locator('[name=length]').fill('5,5');await form.locator('[name=width]').fill('4');
+ await form.getByRole('button',{name:'Рассчитать',exact:true}).press('Enter');
+ await form.locator('[data-config-result]').waitFor({state:'visible'});
+ if(!/17720/.test(await form.locator('[data-config-result]').innerText()))throw Error('No-JS quote missing');
+ await context.close();checks.push('no-JS POST with comma: 17720');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('http://127.0.0.1:8000/calculator/');
+ await page.evaluate(()=>sessionStorage.setItem('vlico-calculator-v2',JSON.stringify({schema:'v2',room:'living',size_mode:'unknown',shape:'unknown',material:'unknown',edge:'unknown',lights:['unknown'],cornice:'unknown',features:['unknown'],location:'city'})));
+ await page.reload();
+ for(let i=0;i<7;i++)await root.locator('[data-config-next]').click();
+ await page.route('**/api/calculate/',route=>route.abort());
+ await root.locator('[data-config-next]').click();await root.locator('[data-config-error]').waitFor({state:'visible'});
+ await page.unroute('**/api/calculate/');checks.push('estimate network error retains draft');
+ await root.locator('[data-config-next]').click();await root.locator('[data-config-result]').waitFor({state:'visible'});
+ if(!(await root.locator('.quote-total').innerText()).includes('Индивидуальный'))throw Error('Unknown base got a price');
+ await root.locator('[data-config-contact]').click();
+ await root.locator('[name=name]').fill('Тест интерфейса');await root.locator('[name=contact]').fill('ui-test@example.invalid');await root.locator('[name=consent]').check();
+ let submits=0;
+ await page.route('**/api/leads/',async route=>{submits++;await route.fulfill({status:submits===1?400:201,contentType:'application/json',body:JSON.stringify(submits===1?{ok:false,errors:{contact:['Тест ошибки контакта']}}:{ok:true,message:'Тестовое подтверждение интерфейса',reference:'ui-mocked',kind:'calculator'})});});
+ await root.locator('[data-config-submit]').click();await root.locator('[data-config-submit-errors]').waitFor({state:'visible'});
+ if(await root.locator('[name=contact]').inputValue()!=='ui-test@example.invalid')throw Error('Contact lost on retry');
+ await root.locator('[data-config-submit]').click();await page.waitForFunction(()=>document.querySelector('[data-configurator]').dataset.submitted==='true');
+ if(submits!==2)throw Error('Duplicate submit');
+ await page.unroute('**/api/leads/');checks.push('mocked submit error, retry and confirmed UI success; no external notification sent');
+ await page.setViewportSize({width:320,height:900});if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Result/contact overflow');
+ return checks;
+}

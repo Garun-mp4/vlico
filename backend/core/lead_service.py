@@ -9,7 +9,7 @@ from django.utils import timezone
 from .attribution import safe_path, submission_attribution
 from .lead_uploads import prepare_attachments
 from .models import Lead, LeadAttachment, Delivery, SubmissionBucket, PricingVersion
-from .pricing import CalculationForm, calculate
+from .configurator import calculation_form, calculate_answers
 
 
 class SubmissionError(Exception):
@@ -43,16 +43,16 @@ def save_submission(request, form):
         attachments = prepare_attachments(files)
     except ValidationError as exc:
         raise SubmissionError({"attachments": exc.messages})
-    calculation_form = CalculationForm(request.POST) if data["kind"] == "calculator" else None
-    if calculation_form and not calculation_form.is_valid():
-        raise SubmissionError(dict(calculation_form.errors))
+    answers = calculation_form(request.POST) if data["kind"] == "calculator" else None
+    if answers and not answers.is_valid():
+        raise SubmissionError(dict(answers.errors))
     project, service = data.get("project"), data.get("service")
     context = {"interest": data.get("interest", ""), "project_title": project.title if project else "", "service_title": service.title if service else ""}
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
     payload.update(project=project.pk if project else None, service=service.pk if service else None)
     payload["files"] = [item["digest"] for item in attachments]
-    if calculation_form:
-        payload["inputs"] = {key: str(value) for key, value in calculation_form.cleaned_data.items()}
+    if answers:
+        payload["inputs"] = {key: str(value) for key, value in answers.cleaned_data.items()}
     digest = sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     existing = Lead.objects.filter(idempotency_key=data["idempotency_key"]).first()
     if existing:
@@ -63,12 +63,12 @@ def save_submission(request, form):
     try:
         with transaction.atomic():
             version, quote = None, {}
-            if calculation_form:
+            if answers:
                 try:
                     version = PricingVersion.objects.select_for_update().get(active=True)
                 except PricingVersion.DoesNotExist:
                     raise SubmissionError({"__all__": ["Тарифы обновились. Обновите расчёт перед отправкой."]}, 409)
-                quote = calculate(calculation_form.cleaned_data, version)
+                quote = calculate_answers(answers.cleaned_data, version)
                 if data.get("pricing_version") != version.pk:
                     raise SubmissionError({"__all__": ["Тарифы обновились. Проверьте новый расчёт и отправьте заявку ещё раз."]}, 409, quote)
             lead = Lead.objects.create(idempotency_key=data["idempotency_key"], payload_hash=digest, kind=data["kind"], name=data["name"], contact=data["contact"],

@@ -50,7 +50,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [Path(os.environ.get("STATIC_SOURCE_ROOT", "/app/public")), BASE_DIR / "static"]
 STORAGES = {"default": {"BACKEND": "core.storage.PublicMediaStorage"},
-            "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}}
+            "staticfiles": {"BACKEND": "core.static_storage.ModuleStaticFilesStorage"}}
 MEDIA_ROOT = Path(os.environ.get("PUBLIC_MEDIA_ROOT", "/data/public"))
 MEDIA_URL = "/media/"
 PRIVATE_MEDIA_ROOT = Path(os.environ.get("PRIVATE_MEDIA_ROOT", "/data/private"))

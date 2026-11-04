@@ -7,7 +7,8 @@ from django.views.decorators.http import require_safe
 def home(request):
     from .portfolio import published_projects
     from .lead_views import initial_lead_form
-    return render(request, "site/home.html", {"homepage_projects": published_projects(), "lead_form": initial_lead_form(request)})
+    from .configurator import configurator_context
+    return render(request, "site/home.html", {"homepage_projects": published_projects(), "lead_form": initial_lead_form(request), **configurator_context(request)})
 
 @require_safe
 def health(request):
