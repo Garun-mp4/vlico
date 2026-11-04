@@ -8,3 +8,15 @@ wireframe/assets/Inter-OFL.txt
 wireframe/assets/inter-cyrillic.woff2
 wireframe/assets/inter-latin.woff2
 wireframe/assets/vlico-office-concept.webp
+
+# Runtime, secrets and client originals
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+/data/
+/staticfiles/
+/backups/
+фото-работ/

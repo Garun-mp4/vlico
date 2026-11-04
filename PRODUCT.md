@@ -4,7 +4,7 @@
 Web
 
 ## Stack
-Static HTML, CSS and JavaScript in `wireframe/`, published as an isolated Vercel preview.
+Django 5.2 LTS with server-rendered HTML, PostgreSQL and Docker Compose for local development. The existing static `wireframe/` remains an isolated Vercel preview.
 
 ## Users
 Homeowners in Kaliningrad and the surrounding region are the primary audience. Commercial clients are a secondary audience.
@@ -40,3 +40,9 @@ Client materials state that VLICO has worked since 2009, completed more than 10,
 - Keep the first screen focused on homeowners while showing commercial experience below.
 - Agree the scope, estimate, and schedule before installation.
 - Follow the VLICO-specific editorial system in `DESIGN.md`.
+
+## Delivery stages
+
+Milestone 1 establishes the server, database, migrations and durable public/private storage while preserving the homepage. The form remains explicitly demonstrational until milestone 3. Milestone 2 adds the custom portfolio cabinet; milestone 3 adds stored leads, Telegram delivery and a numeric calculator with editable provisional rates; milestone 4 adds six service pages, cooperation, Yandex reviews, analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
+
+The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.

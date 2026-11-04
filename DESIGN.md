@@ -68,9 +68,13 @@ Major sections receive generous top and bottom space. Use hairline rules for pro
 - Hero shows a full-bleed ceiling photograph, dark warm overlay for legibility, large VLICO wordmark, offer copy, and same-page links. Do not put a phone field in the hero.
 - Project entries use real VLICO photos and only case facts present in the supplied brief. Avoid promo graphics and generated imagery presented as documented work.
 - Solution rows remain open and text-led. Hover shifts the row slightly and moves its arrow.
-- The contact form appears at the end of the page. Its prototype behavior is local only and says that it does not transmit or store data.
+- The contact form appears at the end of the page. Milestone 1 preserves its explicit demonstration state; milestone 3 replaces this with server submission and truthful loading, success and error states.
 - Use a brief page cover, subtle image settling, once-only scroll reveals, and small arrow transitions. Keep motion on opacity and transforms; respect `prefers-reduced-motion`.
 
 ## Copy rules
 
 Name the service plainly. Explain that price follows measurement and selected system, and that the schedule is agreed before installation. Say that free measurement applies only in Kaliningrad. Keep copy concise and grounded in the client materials. Avoid long dash punctuation, exaggerated promises, and claims that the briefs do not support.
+
+## Server migration
+
+The homepage HTML now lives in `backend/templates/site/home.html`. CSS, JavaScript, fonts and prepared imagery are shared with `wireframe/`. Preserve this visual system as service, case and cooperation pages are added. The custom administration interface prioritizes readable forms and task completion.

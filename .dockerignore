@@ -1,0 +1,14 @@
+*
+!backend/
+!backend/**
+!wireframe/
+!wireframe/assets/
+!wireframe/assets/**
+!wireframe/styles.css
+!wireframe/main.js
+!requirements.txt
+!Dockerfile
+!scripts/
+!scripts/container-entrypoint.sh
+**/__pycache__/
+**/*.pyc
