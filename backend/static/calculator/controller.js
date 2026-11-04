@@ -8,6 +8,8 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   const next = find('next'), back = find('back'), error = find('error'), status = find('status'), submitErrors = find('submit-errors');
   const fallback = find('fallback'), fields = schema.fields;
   let answers = restore(schema), step = 0, quote = null, busy = false;
+  let lightPreview = null;
+  const lightTypes = ['spots', 'light_lines', 'tracks', 'chandeliers', 'led'];
   const imageDialog = el('dialog', 'config-preview-dialog');
   const dialogHeading = el('h3'); dialogHeading.id = 'config-preview-dialog-title';
   imageDialog.setAttribute('aria-labelledby', dialogHeading.id);
@@ -21,6 +23,10 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   function previewChoice() {
     if (step === 2) return { field: 'material', value: previewSurface() };
     if (step === 3 && answers.edge !== 'unknown') return { field: 'edge', value: answers.edge || 'standard' };
+    if (step === 4) {
+      const value = answers.lights.includes(lightPreview) ? lightPreview : answers.lights.find(code => lightTypes.includes(code)) || (answers.lights.length ? null : 'spots');
+      if (value) return { field: 'lights', value };
+    }
     return null;
   }
   function openSolutionPreview() {
@@ -53,8 +59,21 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       const key = choice ? `${choice.field}:${choice.value}` : { 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
       const m = key && media(key, form.dataset.assets, answers);
       if (choice) visual.append(el('p', 'config-preview-name', `Предпросмотр: ${fields[choice.field].choices.find(([code]) => code === choice.value)[1]}`));
-      if (m) { visual.append(m); visual.append(el('p', 'lead-help', (key.startsWith('material:') || key.startsWith('edge:') || key === 'lights:spots') ? 'Иллюстрация решения · создано с помощью ИИ' : m.tagName.toLowerCase() === 'svg' ? 'Схема принципа устройства. Конкретный узел подберём после замера.' : 'Иллюстративный материал сайта. Комплектация вашего потолка может отличаться.')); }
+      if (m) { visual.append(m); visual.append(el('p', 'lead-help', ['material:', 'edge:', 'lights:'].some(prefix => key.startsWith(prefix)) ? 'Иллюстрация решения · создано с помощью ИИ' : m.tagName.toLowerCase() === 'svg' ? 'Схема принципа устройства. Конкретный узел подберём после замера.' : 'Иллюстративный материал сайта. Комплектация вашего потолка может отличаться.')); }
       if (choice && m) { const zoom = el('button', 'config-back config-preview-zoom', 'Рассмотреть крупнее ↗'); zoom.type = 'button'; zoom.addEventListener('click', openSolutionPreview); visual.append(zoom); }
+      if (step === 4 && choice) {
+        visual.append(el('p', 'lead-help', 'В предпросмотре один вид освещения. Выбранные решения можно сочетать; общую схему разработаем отдельно.'));
+        const selected = answers.lights.filter(code => lightTypes.includes(code));
+        if (selected.length > 1) {
+          const choices = el('div', 'config-light-preview-choices'); choices.setAttribute('role', 'group'); choices.setAttribute('aria-label', 'Рассмотреть выбранное освещение');
+          for (const code of selected) {
+            const button = el('button', '', fields.lights.choices.find(([value]) => value === code)[1]); button.type = 'button'; button.dataset.lightPreview = code; button.setAttribute('aria-pressed', String(choice.value === code));
+            button.addEventListener('click', () => { lightPreview = code; updateVisual(); visual.querySelector(`[data-light-preview="${code}"]`)?.focus({ preventScroll: true }); });
+            choices.append(button);
+          }
+          visual.append(choices);
+        }
+      }
       if (step === 3 && answers.edge === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём примыкание вместе.'), el('p', 'lead-help', 'Покажем образцы профилей и предложим решение под ваш интерьер.'));
       if (step === 0 && !answers.room) { visual.append(el('p', 'config-visual-title', 'Начнём с вашей комнаты.'), el('p', 'lead-help', 'Сначала пространство, затем детали. Контакты понадобятся только если вы захотите обсудить результат.')); }
       else visual.append(summaryView(answers, schema));
@@ -124,12 +143,11 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     finally { clearTimeout(timer); setBusy(false); next.textContent = step === 7 ? 'Рассчитать стоимость →' : 'Продолжить →'; }
   }
   panel.addEventListener('change', event => {
-    const input = event.target; if (!input.name || busy) return;
+    const input = event.target; if (!input.name || busy || !['radio', 'checkbox'].includes(input.type)) return;
     answers = change(answers, input.name, input.value, fields[input.name].kind === 'multi'); quote = null; save();
-    if (['radio', 'checkbox'].includes(input.type)) {
-      const name = input.name, value = input.value; render();
-      [...panel.querySelectorAll('input')].find(i => i.name === name && i.value === value)?.focus({ preventScroll: true });
-    } else updateVisual();
+    if (input.name === 'lights' && lightTypes.includes(input.value) && input.checked) lightPreview = input.value;
+    const name = input.name, value = input.value; render();
+    [...panel.querySelectorAll('input')].find(i => i.name === name && i.value === value)?.focus({ preventScroll: true });
   });
   panel.addEventListener('input', event => {
     const input = event.target; if (['radio', 'checkbox'].includes(input.type) || !input.name || busy) return;
@@ -137,7 +155,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   });
   next.addEventListener('click', () => { if (busy) return; const errors = validate(answers, schema.steps[step], fields); if (Object.keys(errors).length) { fieldErrors(errors); return; } if (step === 7) estimate(); else { step++; render(true); } });
   back.addEventListener('click', () => { if (!busy && step > 0) { step--; render(true); } });
-  find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); quote = null; step = 0; save(); render(true); });
+  find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); lightPreview = null; quote = null; step = 0; save(); render(true); });
   find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); } });
   find('contact').addEventListener('click', () => { if (!quote || busy) return; showContact(true); contact.querySelector('input[name=name]')?.focus(); contact.scrollIntoView({ block: 'start', behavior: 'instant' }); });
   form.querySelector('[name=attachments]').addEventListener('change', event => { form.querySelector('[data-selected-files]').textContent = [...event.target.files].map(file => file.name).join(', '); });

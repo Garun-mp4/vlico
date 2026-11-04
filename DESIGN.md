@@ -128,3 +128,8 @@ Compare matte PVC, satin PVC, gloss PVC and textile in one identical room, camer
 ## Ceiling-wall junction comparison
 
 The edge step uses three matched architectural detail images: classic white closed joint, unlit dark shadow gap, and concealed warm LED floating edge. Frame the same corner closely enough to read the junction at card size. Unknown/help answers are text-only. Reuse the image-preview dialog for both surface and edge choices, with labelled examples before selection and explicit AI provenance. No cross-section diagram appears in edge answer cards. Tariffs and selection codes remain unchanged.
+
+
+## Lighting comparison
+
+The lighting step uses five generated views of the same room at consistent dusk ambient exposure: recessed spots, integrated lines, magnetic tracks, pendant, perimeter LED. No client photographs or SVG substitutes appear in lighting answer cards. Show full 4:3 frames, explain the lighting character briefly, and reuse the enlarged-image dialog. Latest selected lighting drives the preview; a separate labelled group can inspect selected systems without changing the configuration. State clearly that each illustration shows one system, not a composite simulation of all selected lights. None/undecided answers remain text-only. Preserve quantities, exclusivity and server tariffs.

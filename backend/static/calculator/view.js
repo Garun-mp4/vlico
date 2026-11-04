@@ -2,8 +2,9 @@ import { visible, numeric } from './model.js';
 export function el(tag, className, text) {
   const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node;
 }
-const images = { 'edge:standard': 'calculator/edge-classic.webp', 'edge:shadow': 'calculator/edge-shadow.webp', 'edge:floating': 'calculator/edge-floating.webp', 'lights:spots': 'calculator/spots.webp', 'material:pvc': 'calculator/room-matte.webp', 'material:pvc_satin': 'calculator/room-satin.webp', 'material:pvc_gloss': 'calculator/room-gloss.webp', 'material:fabric': 'calculator/room-fabric.webp', 'lights:light_lines': 'light-lines.jpg', 'lights:tracks': 'magnetic-tracks.jpg', 'lights:chandeliers': 'penthouse-chandelier.jpg', 'cornice:hidden': 'cornice.jpg' };
+const images = { 'edge:standard': 'calculator/edge-classic.webp', 'edge:shadow': 'calculator/edge-shadow.webp', 'edge:floating': 'calculator/edge-floating.webp', 'lights:spots': 'calculator/light-spots.webp', 'material:pvc': 'calculator/room-matte.webp', 'material:pvc_satin': 'calculator/room-satin.webp', 'material:pvc_gloss': 'calculator/room-gloss.webp', 'material:fabric': 'calculator/room-fabric.webp', 'lights:light_lines': 'calculator/light-lines.webp', 'lights:tracks': 'calculator/light-tracks.webp', 'lights:chandeliers': 'calculator/light-pendant.webp', 'lights:led': 'calculator/light-contour.webp', 'cornice:hidden': 'cornice.jpg' };
 const descriptions = { 'material:pvc': 'Спокойная ровная поверхность. Не отражает интерьер.', 'material:pvc_satin': 'Мягкий перламутровый отсвет. Без зеркальных отражений.', 'material:pvc_gloss': 'Зеркальный блеск. Отражает окна и обстановку комнаты.', 'material:fabric': 'Матовая текстильная поверхность с тонкой фактурой.', 'edge:standard': 'Аккуратный закрытый стык. Белая вставка соединяет потолок со стеной.', 'edge:shadow': 'Тонкий тёмный зазор по периметру. Без подсветки.', 'edge:floating': 'Мягкая подсветка вдоль стены создаёт ощущение парящего потолка.', 'cornice:standard': 'Карниз виден под потолком', 'cornice:hidden': 'Шторы выходят из ниши' };
+Object.assign(descriptions, { 'lights:spots': 'Небольшие светильники, равномерно распределённые по потолку.', 'lights:light_lines': 'Непрерывные линии света, встроенные в плоскость потолка.', 'lights:tracks': 'Тонкие треки с направленными световыми модулями.', 'lights:chandeliers': 'Подвесной светильник как акцент над зоной отдыха.', 'lights:led': 'Мягкий свет по периметру потолка.' });
 const NS = 'http://www.w3.org/2000/svg';
 function svgNode(tag, attrs) { const node = document.createElementNS(NS, tag); for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value); return node; }
 export function diagram(type, label, a = {}) {
@@ -15,10 +16,6 @@ export function diagram(type, label, a = {}) {
     line('path', { d: hidden ? 'M45 210V40H315M315 95H140V65H90' : 'M45 210V40H315M50 95H315', 'stroke-width': 4 });
     line('path', { d: hidden ? 'M65 70H110M75 75V220M95 75V220' : 'M65 105H125M80 110V220M105 110V220' });
     text(238, 185, hidden ? 'Ниша' : 'Открытый карниз');
-  } else if (type === 'lights:spots') {
-    for (const [x,y] of [[100,70],[250,70],[100,170],[250,170]]) { line('circle', {cx:x,cy:y,r:15}); line('circle',{cx:x,cy:y,r:7}); }
-  } else if (type === 'lights:led') {
-    line('rect', {x:50,y:35,width:260,height:170}); line('rect', {x:60,y:45,width:240,height:150,stroke:'#a77829','stroke-width':5});
   } else {
     const shape = a.shape || type;
     const l = numeric(a.length), w = numeric(a.width), known = a.size_mode === 'dimensions' && shape === 'rectangle' && l > 0 && w > 0;
@@ -34,9 +31,9 @@ export function diagram(type, label, a = {}) {
   return svg;
 }
 export function media(key, assets, a) {
-  const comparison = key.startsWith('material:') || key.startsWith('edge:');
-  if (images[key]) { const img = el('img'); img.src = assets + images[key]; img.alt = descriptions[key] || ({'lights:spots':'Встроенные точечные светильники','lights:light_lines':'Световая линия в потолке','lights:tracks':'Встроенный магнитный трек','lights:chandeliers':'Подвесная люстра в интерьере'}[key]) || 'Пример потолочного решения'; img.width = 480; img.height = comparison ? 360 : 320; img.loading = 'lazy'; if (comparison) { img.srcset = `${assets + images[key].replace('.webp', '-small.webp')} 480w, ${img.src} 1440w`; img.sizes = '(max-width: 767px) 90vw, 40vw'; } return img; }
-  if (['cornice:standard', 'lights:led'].includes(key)) return diagram(key, descriptions[key] || 'Схема освещения', a);
+  const comparison = ['material:', 'edge:', 'lights:'].some(prefix => key.startsWith(prefix));
+  if (images[key]) { const img = el('img'); img.src = assets + images[key]; img.alt = descriptions[key] || 'Пример потолочного решения'; img.width = 480; img.height = comparison ? 360 : 320; img.loading = 'lazy'; if (comparison) { img.srcset = `${assets + images[key].replace('.webp', '-small.webp')} 480w, ${img.src} 1440w`; img.sizes = '(max-width: 767px) 90vw, 40vw'; } return img; }
+  if (key === 'cornice:standard') return diagram(key, descriptions[key], a);
   return null;
 }
 export function fieldView(name, spec, a, assets) {
@@ -49,7 +46,7 @@ export function fieldView(name, spec, a, assets) {
       const input = el('input'); input.type = spec.kind === 'multi' ? 'checkbox' : 'radio'; input.name = name; input.value = value;
       input.setAttribute('aria-label', title);
       input.checked = spec.kind === 'multi' ? (a[name] || []).includes(value) : a[name] === value;
-      const m = media(`${name}:${value}`, assets, a); if (m) { if (['material', 'edge'].includes(name)) m.sizes = '(max-width: 767px) 42vw, 24vw'; label.classList.add('config-option-visual'); label.append(m); }
+      const m = media(`${name}:${value}`, assets, a); if (m) { if (['material', 'edge', 'lights'].includes(name)) m.sizes = '(max-width: 767px) 42vw, 24vw'; label.classList.add('config-option-visual'); label.append(m); }
       if (name === 'shape' && value !== 'unknown') label.append(diagram(value, title, { shape: value }));
       const caption = el('span', 'config-option-caption'); caption.append(input, el('span', '', title)); label.append(caption);
       const description = descriptions[`${name}:${value}`]; if (description) label.append(el('small', '', description));
