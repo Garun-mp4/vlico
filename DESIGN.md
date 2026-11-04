@@ -92,3 +92,14 @@ The cabinet uses a native dialog for protected image preparation. A live 4:3 can
 ## Project category navigation
 
 Category controls remain text-led: simple flat rows in the cabinet, standard checkboxes in the project form, wrapping underlined filters and compact linked labels on public cards. Multiple categories are supported without nesting dropdowns or adding decorative badges. Destructive removal uses a dedicated confirmation page explaining what remains intact. Navigation wraps on small screens and long category names wrap without horizontal overflow.
+
+
+## Cabinet workspace redesign
+
+The admin is an Operate surface for a nontechnical editor. Preserve the warm VLICO canvas and mono wordmark; use system sans for work. The Notion reference library informs neutral surfaces, hairlines, density and predictable controls, without importing its marketing palette or layout. Use 29px page headings, 19px sections, 15px inputs, 12–13px supporting copy and 44px main controls. Cabinet tokens live in `body.cabinet` in `cabinet.css`; small 4–6px radii distinguish work controls from the public editorial pages. Secondary neutral surfaces: header `#fbfaf6`, upload `#faf9f5`, panel `#efeee6`, row hover `#f0efe8`, muted bands `#eae8df`. Button hover `#30332f`, destructive border `#c9a4a0`; supporting text `#55544c`, `#51514e`, placeholder `#737268`, placeholder icon `#77766b`.
+
+Projects use horizontal rows with uniform 80×64 thumbnails, date, status and a disclosure menu. Search, category, status and sort compose on the server; client enhancement replaces only results, cancels stale requests and retains the list on network errors. Counts reflect the current search/category across statuses.
+
+The editor uses a main work column and 300px publication rail, separated by 40px. Sections: basic information, gallery, description, characteristics/categories, display settings and private notes. Fields belong to one project form; photo forms remain independent. Text changes save explicitly with visible dirty/saving/saved/error states. Saved data is the publication and preview source. Never publish while text is dirty. On narrow screens the rail enters the document flow and the same save control stays fixed at the bottom, with reserved content padding.
+
+The gallery uses three thumbnail columns, then two where space is constrained. Clicking a photo opens a native dialog styled as a side panel for accessible descriptions, captions and gallery group. Cropping/rotation keep the existing dedicated image editor and sequential queue. All controls are available without hover. Native dialogs retain focus, Escape and discard confirmation. Drag reorder commits one complete order with a project revision; failure restores the prior order. Up/down actions remain available for keyboard/touch. Motion stays limited to brief control feedback and respects reduced motion. No decorative screen entrance animation.

@@ -1,12 +1,3 @@
-let changed = false;
-document.querySelectorAll('[data-unsaved]').forEach(form => {
-  form.addEventListener('input', () => { changed = true; });
-  form.addEventListener('submit', () => { changed = false; });
-});
-window.addEventListener('beforeunload', event => {
-  if (changed) { event.preventDefault(); event.returnValue = ''; }
-});
-
 const editor = document.querySelector('[data-image-editor]');
 const uploadForm = document.querySelector('[data-upload]');
 if (editor && typeof editor.showModal === 'function') {
@@ -17,11 +8,24 @@ if (editor && typeof editor.showModal === 'function') {
   const canvas = editor.querySelector('canvas');
   const context = canvas.getContext('2d');
   const skip = editor.querySelector('[data-editor-skip]');
+  let baseline = null;
   let queue = [], index = 0, current, image, objectURL, rotation = 0, busy = false, saved = 0, opener, generation = 0;
   const message = (text, error = false) => {
     status.textContent = text;
     status.dataset.error = String(error);
+    if (current?.file && error) { current.state = 'Ошибка — повторите сохранение или пропустите'; renderQueue(); }
   };
+  function renderQueue() {
+    const list = editor.querySelector('[data-upload-queue]');
+    list.replaceChildren(); list.hidden = !queue.some(item => item.file);
+    queue.forEach((item, i) => {
+      if (!item.file) return;
+      const row = document.createElement('li');
+      row.textContent = `${item.file.name} · ${item.state || (i === index ? 'Подготовка' : 'В очереди')}`;
+      if (i === index) row.setAttribute('aria-current','step');
+      list.append(row);
+    });
+  }
   const settings = () => ({
     mode: field('mode').value, zoom: Number(field('zoom').value), x: Number(field('x').value), y: Number(field('y').value), rotation,
     alt: field('alt').value, caption: field('caption').value, section: field('section').value, cover: field('cover').checked
@@ -29,6 +33,7 @@ if (editor && typeof editor.showModal === 'function') {
   function draw() {
     if (!image) return;
     const data = settings();
+    window.photoEditorDirty = Boolean(current?.file) || (baseline !== null && baseline !== JSON.stringify(data));
     const rotated = document.createElement('canvas');
     const swap = rotation === 90 || rotation === 270;
     rotated.width = swap ? image.naturalHeight : image.naturalWidth;
@@ -50,10 +55,11 @@ if (editor && typeof editor.showModal === 'function') {
     ['zoom', 'x', 'y'].forEach(name => { field(name).disabled = data.mode === 'fit' || busy; });
   }
   async function show() {
+    baseline = null;
     const token = ++generation;
     if (objectURL) URL.revokeObjectURL(objectURL);
     objectURL = null; image = null;
-    current = queue[index];
+    current = queue[index]; renderQueue();
     skip.hidden = !current.file;
     message('Открываем фотографию…');
     save.disabled = true;
@@ -76,17 +82,21 @@ if (editor && typeof editor.showModal === 'function') {
       if (loaded.naturalWidth * loaded.naturalHeight > 16000000 || Math.min(loaded.naturalWidth,loaded.naturalHeight) < 64) throw new Error('Размер изображения: от 64 пикселей по стороне до 16 мегапикселей.');
       image = loaded;
       editor.querySelector('[data-editor-size]').textContent = `${current.file?.name || 'Сохранённый исходник'} · ${loaded.naturalWidth} × ${loaded.naturalHeight} px`;
-      save.disabled = false; draw();
+      save.disabled = false; draw(); baseline = JSON.stringify(settings()); window.photoEditorDirty = Boolean(current.file);
       message('Настройте кадр и сохраните. При закрытии несохранённые фото не добавляются.');
     } catch (error) { if (token !== generation || !editor.open) return; message(error.message.includes('Размер') ? error.message : 'Не удалось открыть изображение. Пропустите его и выберите исправный JPEG, PNG или WebP.', true); }
   }
   function open(items, button) {
-    if (changed) { alert('Сначала сохраните изменения сведений о проекте.'); return; }
+    if (changed || saving) { panelFeedback.textContent = 'Сначала сохраните изменения сведений о проекте.'; panelFeedback.scrollIntoView({block:'center'}); return; }
     queue = items; index = 0; saved = 0; opener = button;
     editor.showModal(); show();
   }
-  function finish() {
+  async function finish() {
     if (busy) return;
+    if ((image && baseline !== JSON.stringify(settings())) || (queue[index]?.file && index < queue.length)) {
+      if (!await confirmDiscard()) return;
+    }
+    window.photoEditorDirty = false;
     generation++;
     editor.close();
     if (objectURL) URL.revokeObjectURL(objectURL);
@@ -94,11 +104,13 @@ if (editor && typeof editor.showModal === 'function') {
     if (saved) window.location.reload();
     else { uploadForm?.reset(); opener?.focus(); }
   }
-  function next() { if (++index < queue.length) show(); else finish(); }
+  function next() { baseline = null; window.photoEditorDirty = false; image = null; if (++index < queue.length) show(); else finish(); }
   function startUpload(event) {
     event?.preventDefault();
     const files = [...uploadForm.querySelector('input[type=file]').files];
     if (!files.length) return;
+    if (files.some(file => !['image/jpeg','image/png','image/webp'].includes(file.type))) { uploadForm.querySelector('[data-upload-status]').textContent = 'Поддерживаются только JPEG, PNG и WebP. Проверьте выбранные файлы.'; return; }
+    if (files.length + document.querySelectorAll('.media-item').length > 40) { uploadForm.querySelector('[data-upload-status]').textContent = 'В проекте может быть до 40 фотографий.'; return; }
     if (files.length > 8 || files.some(file => file.size > 12*1024*1024)) {
       uploadForm.querySelector('[data-upload-status]').textContent = 'Выберите до 8 файлов, не больше 12 МБ каждый.'; return;
     }
@@ -107,6 +119,10 @@ if (editor && typeof editor.showModal === 'function') {
   }
   uploadForm?.addEventListener('submit', startUpload);
   uploadForm?.querySelector('input[type=file]').addEventListener('change', startUpload);
+  const drop = uploadForm?.querySelector('[data-drop-zone]');
+  drop?.addEventListener('dragover', event => { event.preventDefault(); drop.classList.add('drag-over'); });
+  drop?.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop?.addEventListener('drop', event => { event.preventDefault(); drop.classList.remove('drag-over'); if (!event.dataTransfer.files.length) return; uploadForm.querySelector('input[type=file]').files = event.dataTransfer.files; startUpload(); });
   document.querySelectorAll('[data-image-edit]').forEach(button => button.addEventListener('click', () => {
     const card = button.closest('.media-item');
     open([{source:button.dataset.source, url:button.dataset.save, revision:button.dataset.revision,
@@ -120,13 +136,13 @@ if (editor && typeof editor.showModal === 'function') {
     rotation = 0; field('zoom').value=1; field('x').value=50; field('y').value=50; field('mode').value='crop'; draw();
   });
   editor.querySelector('[data-editor-close]').addEventListener('click', finish);
-  skip.addEventListener('click', () => { if (!busy) next(); });
+  skip.addEventListener('click', () => { if (!busy) { current.state = 'Пропущено'; next(); } });
   editor.addEventListener('cancel', event => { event.preventDefault(); finish(); });
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (busy || !image) return;
     const data = settings();
-    busy = true;
+    busy = true; window.photoEditorDirty = true;
     editor.querySelectorAll('button,input,select').forEach(control => control.disabled=true);
     const body = new FormData();
     body.append('csrfmiddlewaretoken', uploadForm.querySelector('[name=csrfmiddlewaretoken]').value);
@@ -145,7 +161,7 @@ if (editor && typeof editor.showModal === 'function') {
     };
     xhr.addEventListener('load', () => {
       unlock();
-      if (xhr.status>=200 && xhr.status<300 && xhr.response?.saved) { saved++; next(); }
+      if (xhr.status>=200 && xhr.status<300 && xhr.response?.saved) { current.state = 'Сохранено'; saved++; next(); }
       else message(xhr.response?.error || (xhr.status===403 ? 'Сессия истекла. Войдите заново; сохранённые фото останутся в проекте.' : 'Не удалось сохранить фото. Повторите или пропустите его.'),true);
     });
     xhr.addEventListener('error', () => { unlock(); message('Связь прервалась. Повторите сохранение: фотография не добавится дважды.',true); });

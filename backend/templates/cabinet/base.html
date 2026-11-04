@@ -8,6 +8,7 @@
 <link rel="icon" href="{% static 'assets/vlico-logo.svg' %}">
 <link rel="stylesheet" href="{% static 'styles.css' %}">
 <link rel="stylesheet" href="{% static 'cabinet.css' %}">
+<script src="{% static 'cabinet-workspace.js' %}" defer></script>
 <script src="{% static 'cabinet.js' %}" defer>
 </script>
 </head>
@@ -21,5 +22,6 @@
 </form>{% endif %}</nav>
 </header>
 <main id="content" class="cabinet-main">{% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main>
+<dialog class="confirm-dialog" data-discard-dialog aria-labelledby="discard-title"><h2 id="discard-title">Оставить изменения?</h2><p>Несохранённые изменения будут потеряны.</p><div class="confirm-actions"><button class="button" data-discard-cancel>Продолжить редактирование</button><button class="button danger" data-discard-yes>Не сохранять</button></div></dialog>
 </body>
 </html>

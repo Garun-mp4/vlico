@@ -1,76 +1,14 @@
-{% extends 'cabinet/base.html' %}{% block title %}{% if project.pk %}{{ project.title }}{% else %}Новый проект{% endif %}{% endblock %}{% block content %}<a class="back-link" href="{% url 'cabinet_projects' %}">К списку проектов</a>
-<div class="page-heading">
-<div>
-<h1>{% if project.pk %}{{ project.title }}{% else %}Новый проект{% endif %}</h1>
-<p class="subtle">{% if project.pk %}{{ project.get_status_display }}{% else %}Сохраните основные сведения, чтобы добавить фотографии.{% endif %}</p>
-</div>{% if project.pk %}<a class="button" href="{% url 'cabinet_preview' project.pk %}" target="_blank" rel="noopener">Предпросмотр</a>{% endif %}</div>
-<div class="editor-layout">
-<section>
-<h2>Сведения о проекте</h2><p class="subtle">Категории помогают посетителю найти нужные работы. {% if perms.core.view_projectcategory %}<a href="{% url 'cabinet_categories' %}" target="_blank" rel="noopener">Управление категориями</a>{% endif %}</p>
-<form method="post" class="editor-form" data-unsaved>{% csrf_token %}{{ form.as_div }}<div class="save-bar">
-<button class="button primary" type="submit">Сохранить проект</button>
-<span>После публикации проект автоматически появится на главной.</span>
-</div>
-</form>
-</section>
-{% if project.pk %}<aside class="publish-panel">
-<h2>Публикация</h2>
-<p>На сайт попадают только опубликованные проекты. Предпросмотр доступен редактору после входа.</p>{% if project.editor_notes %}<p class="notice">Есть сведения для уточнения. Проверьте заметки в конце формы.</p>{% endif %}<form method="post" action="{% url 'cabinet_status' project.pk %}">{% csrf_token %}{% if project.status == 'published' %}<p>
-<a href="{% url 'project' project.slug %}" target="_blank" rel="noopener">Открыть страницу на сайте</a>
-</p>
-<button class="button" name="action" value="draft">Снять с публикации</button>{% else %}<label class="check-label">
-<input type="checkbox" name="confirm" value="yes" required> Сведения и разрешение на публикацию проверены</label>
-<button class="button primary" name="action" value="publish">Опубликовать</button>{% endif %}</form>
-{% if project.status == 'archived' %}<form method="post" action="{% url 'cabinet_status' project.pk %}">{% csrf_token %}<button class="button" name="action" value="restore">Восстановить в черновик</button>
-</form>{% else %}<details class="archive-panel">
-<summary>Убрать проект в архив</summary>
-<p>Проект исчезнет с сайта. Сведения и фотографии сохранятся для восстановления.</p>
-<form method="post" action="{% url 'cabinet_status' project.pk %}">{% csrf_token %}<label class="check-label">
-<input type="checkbox" name="confirm" value="yes" required> Подтверждаю архивацию</label>
-<button class="button" name="action" value="archive">Архивировать</button>
-</form>
-</details>{% endif %}</aside>{% endif %}</div>
-{% if project.pk %}<section class="media-section" id="gallery">
-<h2>Фотографии</h2>
-<p class="subtle">JPEG, PNG или WebP. До 12 МБ и 16 мегапикселей на файл, до 8 файлов за раз, до 40 в проекте. Для сайта сохраняются оптимизированные копии без EXIF.</p>
-<form class="upload-form" method="post" enctype="multipart/form-data" action="{% url 'cabinet_upload' project.pk %}" data-upload>{% csrf_token %}<div>
-<label for="images">Выберите фотографии</label>
-<input id="images" type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple required>
-</div>
-<div>
-<label for="upload-section">Раздел</label>
-<select id="upload-section" name="section">
-<option value="result">Готовый результат</option>
-<option value="process">Процесс монтажа</option>
-</select>
-</div>
-<button class="button primary" type="submit">Загрузить фотографии</button>
-<p role="status" data-upload-status>
-</p>
-</form>
-<div class="media-grid">{% for item,media_form in media_forms %}<article class="media-item">
-<img src="{% url 'project_image' item.pk 'thumb' %}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
-<button type="button" class="button image-edit-button" data-image-edit data-source="{% url 'cabinet_image_source' project.pk item.pk %}" data-save="{% url 'cabinet_image_editor' project.pk item.pk %}" data-revision="{{ item.updated_at.isoformat }}">Редактировать изображение</button>
-{{ item.editing|json_script }}
-<div class="media-meta">
-<strong>Фото {{ forloop.counter }}</strong>{% if item.is_cover %}<span class="status published">Обложка</span>{% endif %}</div>
-<form method="post" action="{% url 'cabinet_media' project.pk item.pk %}" class="editor-form">{% csrf_token %}{% for field in media_form %}<div>
-<label for="photo-{{ item.pk }}-{{ field.name }}">{{ field.label }}</label>{% if field.name == 'section' %}<select id="photo-{{ item.pk }}-section" name="section">
-<option value="result" {% if item.section == 'result' %}selected{% endif %}>Результат</option>
-<option value="process" {% if item.section == 'process' %}selected{% endif %}>Монтаж</option>
-</select>{% else %}<input id="photo-{{ item.pk }}-{{ field.name }}" name="{{ field.name }}" value="{{ field.value|default:'' }}" maxlength="250">{% endif %}</div>{% endfor %}<button class="button" name="action" value="save">Сохранить подписи</button>
-</form>
-<form class="media-actions" method="post" action="{% url 'cabinet_media' project.pk item.pk %}">{% csrf_token %}{% if not item.is_cover %}<button class="button" name="action" value="cover">Сделать обложкой</button>{% endif %}<button class="button" name="action" value="up" aria-label="Фото {{ forloop.counter }} выше" {% if forloop.first %}disabled{% endif %}>Выше</button>
-<button class="button" name="action" value="down" aria-label="Фото {{ forloop.counter }} ниже" {% if forloop.last %}disabled{% endif %}>Ниже</button>
-</form>
-<details class="delete-photo">
-<summary>Удалить фотографию</summary>
-<form method="post" action="{% url 'cabinet_media' project.pk item.pk %}">{% csrf_token %}<label class="check-label">
-<input type="checkbox" name="confirm" value="yes" required> Удалить без восстановления</label>
-<button class="button danger" name="action" value="delete">Удалить фото</button>
-</form>
-</details>
-</article>{% empty %}<p class="empty-state">Добавьте фотографии готового результата или процесса. Первая фотография станет обложкой.</p>{% endfor %}</div>
-</section>
-{% include 'cabinet/image-editor.html' %}
-{% endif %}{% endblock %}
+{% extends 'cabinet/base.html' %}{% block title %}{% if project.pk %}{{ project.title }}{% else %}Новый проект{% endif %}{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'cabinet_projects' %}">← Все проекты</a>
+<div class="page-heading editor-heading"><div><h1 data-project-title>{% if project.pk %}{{ project.title }}{% else %}Новый проект{% endif %}</h1><div class="heading-meta"><span class="status {{ project.status }}">{{ project.get_status_display }}</span><span class="subtle" data-save-state role="status">{% if form.errors %}Проверьте поля формы{% elif project.pk %}Изменения сохранены{% else %}Начните с названия проекта{% endif %}</span></div></div></div>
+<form id="project-form" method="post" data-unsaved>{% csrf_token %}{{ form.revision }}<div data-form-errors role="alert">{{ form.non_field_errors }}</div></form>
+<div class="editor-layout"><div class="editor-main">
+<nav class="section-nav" aria-label="Разделы редактора"><a href="#basic">Сведения</a><a href="#gallery">Фотографии</a><a href="#description">Описание</a><a href="#display">Настройки</a></nav>
+<section class="editor-section" id="basic"><h2>Основная информация</h2><p class="section-intro">Название и локация будут видны посетителям сайта.</p><div class="editor-form">{% include 'cabinet/field.html' with field=form.title %}<div class="field-pair">{% include 'cabinet/field.html' with field=form.object_type %}{% include 'cabinet/field.html' with field=form.location %}</div></div></section>
+{% include 'cabinet/gallery.html' %}
+<section class="editor-section" id="description"><h2>Описание проекта</h2><p class="section-intro">Расскажите, что требовалось сделать и каким получился результат.</p><div class="editor-form">{% include 'cabinet/field.html' with field=form.task %}{% include 'cabinet/field.html' with field=form.solution %}</div></section>
+<section class="editor-section" id="characteristics"><h2>Характеристики и категории</h2><p class="section-intro">Дополнительные сведения — заполняйте, если они известны.</p><div class="editor-form">{% include 'cabinet/field.html' with field=form.materials %}<div class="field-pair">{% include 'cabinet/field.html' with field=form.area %}{% include 'cabinet/field.html' with field=form.price %}</div>{% include 'cabinet/field.html' with field=form.categories %}{% if perms.core.view_projectcategory %}<a class="subtle" href="{% url 'cabinet_categories' %}" target="_blank" rel="noopener">Управление категориями ↗</a>{% endif %}</div></section>
+<section class="editor-section" id="display"><h2>Настройки отображения</h2><p class="section-intro">Опубликованные проекты автоматически появляются на главной и в каталоге.</p><div class="editor-form">{% include 'cabinet/field.html' with field=form.slug %}{% include 'cabinet/field.html' with field=form.position %}</div></section>
+<section class="editor-section" id="notes"><h2>Внутренние заметки</h2><p class="section-intro">Эта информация видна только в кабинете и не отображается на сайте.</p><div class="editor-form">{% include 'cabinet/field.html' with field=form.editor_notes %}</div></section>
+</div>{% include 'cabinet/publication.html' %}</div>
+{% if project.pk %}{% include 'cabinet/image-editor.html' %}{% endif %}{% endblock %}

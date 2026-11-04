@@ -1,0 +1,4 @@
+<div class="field" data-field="{{ field.name }}">
+<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required" aria-label="обязательное поле"> *</span>{% endif %}</label>
+{{ field }}{% if field.help_text %}<div class="helptext" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</div>{% endif %}
+<div class="field-errors" role="alert">{{ field.errors }}</div></div>
