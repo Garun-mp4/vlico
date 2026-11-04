@@ -1,0 +1,95 @@
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST, require_http_methods, require_safe
+from .lead_forms import LeadForm, KINDS
+from .lead_service import save_submission, throttle, SubmissionError
+from .models import Project, Service, PricingVersion
+from .pricing import CalculationForm, calculate, EXCLUSIONS
+
+
+def initial_lead_form(request, kind="consultation"):
+    project = Project.objects.filter(slug=request.GET.get("project", ""), status="published").first()
+    service = Service.objects.filter(slug=request.GET.get("service", "")).first()
+    return LeadForm(initial={"kind": kind, "project": project, "service": service})
+
+
+def accept(request):
+    try:
+        if int(request.META.get("CONTENT_LENGTH") or 0) > 26 * 1024 * 1024:
+            raise SubmissionError({"attachments": ["Общий размер запроса превышает 26 МБ."]}, 413)
+        throttle(request)
+        lead, created = save_submission(request, LeadForm(request.POST))
+        return {"ok": True, "reference": str(lead.pk), "created": created, "kind": lead.kind, "message": "Заявка сохранена. Мы свяжемся с вами по указанному контакту."}, 201 if created else 200
+    except SubmissionError as exc:
+        body = {"ok": False, "errors": exc.errors}
+        if exc.quote:
+            body["quote"] = exc.quote
+        return body, exc.status
+
+
+@never_cache
+@require_POST
+def submit(request):
+    body, status = accept(request)
+    response = JsonResponse(body, status=status)
+    if status == 429:
+        response["Retry-After"] = "900"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def request_form(request, kind="consultation"):
+    if kind not in dict(KINDS):
+        return HttpResponse(status=404)
+    if kind == "calculator":
+        return redirect("calculator")
+    if request.method == "POST":
+        body, status = accept(request)
+        if body.get("ok"):
+            return render(request, "site/lead-success.html", body)
+        form = LeadForm(request.POST)
+        form.is_valid()
+        return render(request, "site/request.html", {"lead_form": form, "kind_title": dict(KINDS)[kind], "request_kind": kind, "submission_errors": body["errors"]}, status=status)
+    return render(request, "site/request.html", {"lead_form": initial_lead_form(request, kind), "kind_title": dict(KINDS)[kind], "request_kind": kind})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def calculator(request):
+    version = get_object_or_404(PricingVersion, active=True)
+    quote, errors = None, {}
+    calculation_form = CalculationForm(request.POST or None)
+    lead_form = initial_lead_form(request, "calculator")
+    if request.method == "POST":
+        preserved = {name: request.POST.get(name, "") for name in lead_form.fields}
+        preserved["kind"], preserved["pricing_version"] = "calculator", version.pk
+        lead_form = LeadForm(initial=preserved)
+        if request.POST.get("action") == "quote":
+            if calculation_form.is_valid():
+                quote = calculate(calculation_form.cleaned_data, version)
+        else:
+            body, status = accept(request)
+            if body.get("ok"):
+                return render(request, "site/lead-success.html", body)
+            errors = body["errors"]
+            if calculation_form.is_valid():
+                quote = calculate(calculation_form.cleaned_data, version)
+    lead_form.initial["pricing_version"] = version.pk
+    return render(request, "site/calculator.html", {"lead_form": lead_form, "calculation_form": calculation_form, "quote": quote, "pricing_version": version.pk, "exclusions": EXCLUSIONS, "submission_errors": errors})
+
+
+@never_cache
+@require_POST
+def estimate(request):
+    form = CalculationForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({"ok": False, "errors": dict(form.errors)}, status=400)
+    version = get_object_or_404(PricingVersion, active=True)
+    return JsonResponse({"ok": True, "quote": calculate(form.cleaned_data, version)})
+
+
+@require_safe
+def privacy(request):
+    return render(request, "site/privacy.html")

@@ -12,7 +12,9 @@ class FoundationTests(TestCase):
     def test_home_preserves_content_and_resolves_static(self):
         response = self.client.get("/")
         self.assertContains(response, "Потолки и свет, продуманные вместе.")
-        self.assertContains(response, "Демонстрационная форма")
+        self.assertNotContains(response, "Демонстрационная форма")
+        self.assertContains(response, 'data-api="/api/leads/"')
+        self.assertContains(response, 'name="csrfmiddlewaretoken"')
         self.assertContains(response, "/static/assets/hero-luxurious-geometric.")
         self.assertNotContains(response, "{%")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")

@@ -111,7 +111,7 @@ class PricingVersion(Timestamped):
 class Lead(Timestamped):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     idempotency_key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    kind = models.CharField(max_length=20, choices=[(x, x) for x in ("consultation", "measurement", "project", "calculator", "partner")])
+    kind = models.CharField(max_length=20, choices=[("consultation", "Консультация"), ("measurement", "Запись на замер"), ("project", "Отправка проекта"), ("calculator", "Предварительный расчёт"), ("partner", "Сотрудничество")])
     name = models.CharField(max_length=160)
     contact = models.CharField(max_length=250)
     service = models.ForeignKey(Service, null=True, blank=True, on_delete=models.SET_NULL)
@@ -122,12 +122,17 @@ class Lead(Timestamped):
     calculation = models.JSONField(default=dict)
     pricing_version = models.ForeignKey(PricingVersion, null=True, blank=True, on_delete=models.PROTECT)
     consent_at = models.DateTimeField(null=True, blank=True)
+    payload_hash = models.CharField(max_length=64, blank=True)
+    context = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=12, choices=[("new", "Новая"), ("contacted", "В работе"), ("closed", "Закрыта")], default="new")
 
 
 class LeadAttachment(Timestamped):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="attachments")
     file = models.FileField(upload_to=attachment_path, storage=PrivateMediaStorage())
     original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=80, blank=True)
+    size = models.PositiveIntegerField(default=0)
 
 
 class Delivery(Timestamped):
@@ -139,12 +144,21 @@ class Delivery(Timestamped):
     sent_at = models.DateTimeField(null=True, blank=True)
     external_id = models.CharField(max_length=100, blank=True)
     error_code = models.CharField(max_length=100, blank=True)
+    progress = models.JSONField(default=dict, blank=True)
+    lease_token = models.UUIDField(null=True, blank=True)
+    locked_until = models.DateTimeField(null=True, blank=True)
     class Meta:
         constraints = [models.UniqueConstraint(fields=["lead", "channel"], name="one_delivery_per_channel")]
         indexes = [models.Index(fields=["status", "next_attempt_at"])]
 
 
 class LoginBucket(models.Model):
+    key = models.CharField(max_length=64, primary_key=True)
+    attempts = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField()
+
+
+class SubmissionBucket(models.Model):
     key = models.CharField(max_length=64, primary_key=True)
     attempts = models.PositiveIntegerField(default=0)
     expires_at = models.DateTimeField()

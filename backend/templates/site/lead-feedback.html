@@ -1,0 +1,4 @@
+{% if submission_errors %}<div class="lead-errors" role="alert">{% for field, errors in submission_errors.items %}{% for error in errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}</div>{% endif %}
+<div class="lead-errors" data-lead-errors role="alert" hidden></div>
+<progress data-upload-progress max="100" value="0" aria-label="Загрузка файлов" hidden></progress>
+<p class="lead-feedback" data-lead-status role="status" aria-live="polite" hidden></p>

@@ -1,9 +1,21 @@
 from django.urls import path
 from core import views, cabinet, project_views, category_views
+from core import lead_views, lead_cabinet
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import ProjectSitemap
 urlpatterns = [
     path("", views.home, name="home"),
+    path("request/<str:kind>/", lead_views.request_form, name="request_form"),
+    path("calculator/", lead_views.calculator, name="calculator"),
+    path("privacy/", lead_views.privacy, name="privacy"),
+    path("api/leads/", lead_views.submit, name="lead_submit"),
+    path("api/calculate/", lead_views.estimate, name="estimate"),
+    path("cabinet/leads/", lead_cabinet.leads, name="cabinet_leads"),
+    path("cabinet/leads/<uuid:pk>/", lead_cabinet.detail, name="cabinet_lead"),
+    path("cabinet/leads/<uuid:pk>/status/", lead_cabinet.status, name="cabinet_lead_status"),
+    path("cabinet/leads/<uuid:pk>/delivery/<int:delivery_pk>/retry/", lead_cabinet.retry, name="cabinet_delivery_retry"),
+    path("cabinet/leads/<uuid:pk>/files/<int:attachment_pk>/", lead_cabinet.attachment, name="cabinet_lead_attachment"),
+    path("cabinet/rates/", lead_cabinet.rates, name="cabinet_rates"),
     path("health/", views.health, name="health"),
     path("robots.txt", views.robots, name="robots"),
     path("sitemap.xml", sitemap, {"sitemaps": {"projects": ProjectSitemap}}, name="sitemap"),

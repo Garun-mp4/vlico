@@ -154,6 +154,7 @@ document.querySelectorAll("[data-interest]").forEach((link) => {
   });
 });
 
+if (!contactForm?.hasAttribute("data-lead-form")) {
 contactForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const digits = phoneInput?.value.replace(/\D/g, "") ?? "";
@@ -181,3 +182,4 @@ contactForm?.querySelectorAll("input").forEach((input) => {
     if (!formStatus.hidden) formStatus.hidden = true;
   });
 });
+}
