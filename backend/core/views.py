@@ -5,7 +5,8 @@ from django.views.decorators.http import require_safe
 
 @require_safe
 def home(request):
-    return render(request, "site/home.html")
+    from .portfolio import published_projects
+    return render(request, "site/home.html", {"featured_projects": published_projects().filter(featured=True)[:3]})
 
 @require_safe
 def health(request):

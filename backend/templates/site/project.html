@@ -1,0 +1,72 @@
+{% extends 'site/base.html' %}{% block title %}{{ project.title }}{% endblock %}{% block description %}{{ project.solution|truncatewords:24 }}{% endblock %}{% block content %}{% if preview %}<div class="preview-banner">Предпросмотр · {{ project.get_status_display }}. Неопубликованные сведения доступны только редактору. <a href="{% url 'cabinet_edit' project.pk %}">Вернуться к редактированию</a>
+</div>{% endif %}<section class="portfolio-intro case-intro">
+<p>
+<a href="{% url 'projects' %}">Проекты</a> / {{ project.title }}</p>
+<h1>{{ project.title }}</h1>
+<dl class="case-facts">{% if project.location %}<div>
+<dt>Локация</dt>
+<dd>{{ project.location }}</dd>
+</div>{% endif %}{% if project.object_type %}<div>
+<dt>Объект</dt>
+<dd>{{ project.object_type }}</dd>
+</div>{% endif %}{% if project.area %}<div>
+<dt>Площадь</dt>
+<dd>{{ project.area|floatformat:'-2' }} м²</dd>
+</div>{% endif %}{% if project.price %}<div>
+<dt>Стоимость работ</dt>
+<dd>{{ project.price|floatformat:'-2' }} ₽</dd>
+</div>{% endif %}{% if preview and not project.area %}<div>
+<dt>Площадь</dt>
+<dd>Нужно указать площадь, м²</dd>
+</div>{% endif %}{% if preview and not project.location %}<div>
+<dt>Локация</dt>
+<dd>Нужно указать город или разрешённый адрес</dd>
+</div>{% endif %}</dl>
+</section>{% if cover %}<figure class="case-cover">
+<a href="{% url 'project_image' cover.pk 'full' %}" data-gallery data-caption="{{ cover.caption }}" data-alt="{{ cover.alt }}">
+<img src="{% url 'project_image' cover.pk 'full' %}" alt="{{ cover.alt }}" width="{{ cover.width }}" height="{{ cover.height }}" fetchpriority="high">
+</a><figcaption>{{ cover.get_section_display }}{% if cover.caption %} · {{ cover.caption }}{% endif %}</figcaption></figure>{% endif %}
+<section class="case-story">
+{% if project.task or preview %}<div>
+<h2>Задача</h2>
+<div>{% if project.task %}{{ project.task|linebreaks }}{% else %}<p>Нужно описать задачу этого объекта.</p>{% endif %}</div>
+</div>{% endif %}
+{% if project.solution or preview %}<div>
+<h2>Решение</h2>
+<div>{% if project.solution %}{{ project.solution|linebreaks }}{% else %}<p>Нужно указать выполненные работы и решения.</p>{% endif %}</div>
+</div>{% endif %}
+{% if project.materials or preview %}<div>
+<h2>Материалы</h2>
+<div>{% if project.materials %}{{ project.materials|linebreaks }}{% else %}<p>Нужно указать подтверждённые материалы и системы.</p>{% endif %}</div>
+</div>{% endif %}
+{% if project.services.all %}<div>
+<h2>Применённые решения</h2>
+<ul>{% for service in project.services.all %}<li>{{ service.title }}</li>{% endfor %}</ul>
+</div>{% endif %}
+</section>
+{% if results or process %}<nav class="gallery-sections" aria-label="Разделы галереи">{% if results %}<a href="#result">Готовый результат</a>{% endif %}{% if process %}<a href="#process">Процесс реализации</a>{% endif %}</nav>{% endif %}{% if results %}<section class="case-gallery-section" id="result">
+<h2>Готовый результат</h2>
+<div class="case-gallery">{% for item in results %}{% include 'site/gallery-image.html' %}{% endfor %}</div>
+</section>{% endif %}{% if process %}<section class="case-gallery-section" id="process">
+<h2>Процесс реализации</h2>
+<div class="case-gallery">{% for item in process %}{% include 'site/gallery-image.html' %}{% endfor %}</div>
+</section>{% endif %}
+<section class="case-cta">
+<h2>Обсудим похожий проект?</h2>
+<p>Подберём потолок и освещение под ваше помещение. Стоимость уточним после замера и выбора системы.</p>
+<a class="text-link" href="{% url 'home' %}?project={{ project.slug|urlencode }}#contact">Обсудить похожий проект <span aria-hidden="true">↗</span>
+</a>
+</section>{% endblock %}{% block dialog %}<dialog class="gallery-dialog" aria-label="Просмотр фотографий">
+<div class="gallery-toolbar">
+<span data-counter aria-live="polite">
+</span>
+<button type="button" data-close>Закрыть</button>
+</div>
+<div class="gallery-stage">
+<button type="button" data-prev aria-label="Предыдущая фотография">Назад</button>
+<img alt="">
+<button type="button" data-next aria-label="Следующая фотография">Вперёд</button>
+</div>
+<p data-caption aria-live="polite">
+</p>
+</dialog>{% endblock %}

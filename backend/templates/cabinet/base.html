@@ -1,0 +1,25 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{% block title %}Проекты{% endblock %} · Кабинет VLICO</title>
+<link rel="icon" href="{% static 'assets/vlico-logo.svg' %}">
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+<link rel="stylesheet" href="{% static 'cabinet.css' %}">
+<script src="{% static 'cabinet.js' %}" defer>
+</script>
+</head>
+<body class="cabinet">
+<a class="skip-link" href="#content">Перейти к содержимому</a>
+<header class="cabinet-header">
+<a class="cabinet-brand" href="{% url 'cabinet_projects' %}">VLICO <span>Кабинет проектов</span>
+</a>
+<nav aria-label="Кабинет">
+<a href="{% url 'home' %}">Открыть сайт</a>{% if user.is_authenticated %}<form action="{% url 'cabinet_logout' %}" method="post">{% csrf_token %}<button class="plain" type="submit">Выйти</button>
+</form>{% endif %}</nav>
+</header>
+<main id="content" class="cabinet-main">{% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main>
+</body>
+</html>

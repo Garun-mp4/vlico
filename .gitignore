@@ -20,3 +20,5 @@ __pycache__/
 /staticfiles/
 /backups/
 фото-работ/
+
+.local-access.txt

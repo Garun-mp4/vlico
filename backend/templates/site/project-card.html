@@ -1,0 +1,12 @@
+<article class="portfolio-card">{% with cover=project.cover_media %}{% if cover %}<a href="{% url 'project' project.slug %}" class="portfolio-card-image">
+<img src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy">
+</a>{% endif %}{% endwith %}<div class="portfolio-card-info">
+<h2>
+<a href="{% url 'project' project.slug %}">{{ project.title }}</a>
+</h2>
+<p>{{ project.location }}{% if project.area %} · {{ project.area|floatformat:'-2' }} м²{% endif %}</p>
+<p>{{ project.solution|truncatewords:28 }}</p>
+<a class="text-link" href="{% url 'project' project.slug %}">Смотреть проект <span aria-hidden="true">↗</span>
+</a>
+</div>
+</article>

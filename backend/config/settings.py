@@ -14,7 +14,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1
 CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if x]
 INSTALLED_APPS = [
     "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.sessions",
-    "django.contrib.messages", "django.contrib.staticfiles", "core",
+    "django.contrib.messages", "django.contrib.staticfiles", "django.contrib.sitemaps", "core",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -47,7 +47,7 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [Path(os.environ.get("STATIC_SOURCE_ROOT", "/app/public"))]
+STATICFILES_DIRS = [Path(os.environ.get("STATIC_SOURCE_ROOT", "/app/public")), BASE_DIR / "static"]
 STORAGES = {"default": {"BACKEND": "core.storage.PublicMediaStorage"},
             "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}}
 MEDIA_ROOT = Path(os.environ.get("PUBLIC_MEDIA_ROOT", "/data/public"))
@@ -68,3 +68,8 @@ if APP_ENV != "local":
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
+
+LOGIN_URL = "cabinet_login"
+SESSION_COOKIE_AGE = 8 * 60 * 60
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+DATA_UPLOAD_MAX_NUMBER_FILES = 8

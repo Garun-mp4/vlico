@@ -1,0 +1,32 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="{% block description %}Реальные проекты потолков и освещения VLICO в Калининграде и области.{% endblock %}">
+<title>{% block title %}Проекты{% endblock %} · VLICO</title>
+<link rel="icon" href="{% static 'assets/vlico-logo.svg' %}">
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+<link rel="stylesheet" href="{% static 'portfolio.css' %}">
+<script src="{% static 'portfolio.js' %}" defer>
+</script>
+</head>
+<body class="portfolio-page">
+<a class="skip-link" href="#content">Перейти к содержимому</a>
+<header class="public-header">
+<a href="{% url 'home' %}" aria-label="VLICO, на главную">
+<img src="{% static 'assets/vlico-logo.svg' %}" width="140" height="47" alt="VLICO">
+</a>
+<nav aria-label="Основная навигация">
+<a href="{% url 'projects' %}">Проекты</a>
+<a href="{% url 'home' %}#contact">Обсудить проект</a>
+</nav>
+</header>
+<main id="content">{% block content %}{% endblock %}</main>
+<footer class="public-footer">
+<a href="{% url 'home' %}">VLICO</a>
+<p>Потолки и свет · Калининград и область</p>
+<a href="{% url 'home' %}#contact">Обсудить проект</a>
+</footer>{% block dialog %}{% endblock %}</body>
+</html>

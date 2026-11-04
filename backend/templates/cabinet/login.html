@@ -1,0 +1,6 @@
+{% extends 'cabinet/base.html' %}{% block title %}Вход{% endblock %}{% block content %}<div class="login-panel">
+<h1>Вход в кабинет</h1>
+<p class="subtle">Управляйте фотографиями и публикацией работ VLICO.</p>{% if limited %}<p class="notice error" role="alert">Слишком много попыток. Повторите вход через 15 минут.</p>{% endif %}<form method="post" class="editor-form">{% csrf_token %}{{ form.as_div }}<button class="button primary" type="submit">Войти</button>
+</form>
+<p class="subtle">Если доступ утрачен, обратитесь к владельцу сайта.</p>
+</div>{% endblock %}

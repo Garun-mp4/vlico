@@ -1,0 +1,4 @@
+<figure>
+<a href="{% url 'project_image' item.pk 'full' %}" data-gallery data-caption="{{ item.caption }}" data-alt="{{ item.alt }}">
+<img src="{% url 'project_image' item.pk 'thumb' %}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
+</a>{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}</figure>

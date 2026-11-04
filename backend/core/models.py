@@ -1,6 +1,5 @@
 import uuid
 from pathlib import PurePosixPath
-from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from .storage import PrivateMediaStorage
@@ -42,6 +41,7 @@ class Project(Timestamped):
     slug = models.SlugField(unique=True)
     object_type = models.CharField(max_length=120, blank=True)
     location = models.CharField(max_length=200, blank=True)
+    editor_notes = models.TextField(blank=True)
     task = models.TextField(blank=True)
     solution = models.TextField(blank=True)
     materials = models.TextField(blank=True)
@@ -53,6 +53,14 @@ class Project(Timestamped):
     position = models.PositiveIntegerField(default=0)
     published_at = models.DateTimeField(null=True, blank=True)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse("project", args=[self.slug])
+
+    @property
+    def cover_media(self):
+        return next((m for m in self.media.all() if m.is_cover), None)
+
     def __str__(self):
         return self.title
 
@@ -60,6 +68,9 @@ class Project(Timestamped):
 class ProjectMedia(Timestamped):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="media")
     image = models.ImageField(upload_to=media_path)
+    thumbnail = models.ImageField(upload_to=media_path, blank=True)
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
     alt = models.CharField(max_length=250, blank=True)
     caption = models.CharField(max_length=250, blank=True)
     section = models.CharField(max_length=12, choices=[("result", "Результат"), ("process", "Монтаж")], default="result")
@@ -114,3 +125,9 @@ class Delivery(Timestamped):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["lead", "channel"], name="one_delivery_per_channel")]
         indexes = [models.Index(fields=["status", "next_attempt_at"])]
+
+
+class LoginBucket(models.Model):
+    key = models.CharField(max_length=64, primary_key=True)
+    attempts = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField()
