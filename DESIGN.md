@@ -133,3 +133,8 @@ The edge step uses three matched architectural detail images: classic white clos
 ## Lighting comparison
 
 The lighting step uses five generated views of the same room at consistent dusk ambient exposure: recessed spots, integrated lines, magnetic tracks, pendant, perimeter LED. No client photographs or SVG substitutes appear in lighting answer cards. Show full 4:3 frames, explain the lighting character briefly, and reuse the enlarged-image dialog. Latest selected lighting drives the preview; a separate labelled group can inspect selected systems without changing the configuration. State clearly that each illustration shows one system, not a composite simulation of all selected lights. None/undecided answers remain text-only. Preserve quantities, exclusivity and server tariffs.
+
+
+## Curtain comparison
+
+Show four generated views of exactly one window and room: visible ceiling track, concealed ceiling niche, wall-mounted rod, and uncovered window without curtains. Use a closer window framing so the top fixing is readable. Keep unknown/help text-only; never illustrate it with a specific mounting system. Reuse 4:3 responsive images, selected preview and the enlarged-image dialog. Remove the old client photo and curtain cross-sections from the calculator; SVG now only explains room geometry. Preserve length-field conditions, pricing and saved selections.

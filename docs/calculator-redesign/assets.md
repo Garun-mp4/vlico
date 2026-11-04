@@ -45,3 +45,8 @@ ImageGen встроенного инструмента, 04.11.2026. Изобра
 ## Текущее освещение
 
 Шаг освещения полностью использует новую серию `light-{spots,lines,tracks,pendant,contour}.webp` и варианты `-small.webp`. Все пять изображений созданы ImageGen из одной сгенерированной комнаты. Клиентские light-lines.jpg, magnetic-tracks.jpg, penthouse-chandelier.jpg и прежняя SVG-схема LED здесь больше не используются. Старый calculator/spots.webp удалён. Полные промпты и происхождение: [lighting-comparison.md](lighting-comparison.md).
+
+
+## Текущее оформление штор
+
+Шаг 6 использует четыре новых изображения одной комнаты: `curtain-{ceiling,hidden,wall,none}.webp` и версии `-small.webp`. Все созданы ImageGen, исходное cornice.jpg и SVG-сечения здесь не используются. «Пока не определился» остаётся текстовым ответом. Промпты и происхождение: [curtain-comparison.md](curtain-comparison.md).

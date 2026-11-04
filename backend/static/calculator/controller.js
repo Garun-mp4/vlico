@@ -23,6 +23,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   function previewChoice() {
     if (step === 2) return { field: 'material', value: previewSurface() };
     if (step === 3 && answers.edge !== 'unknown') return { field: 'edge', value: answers.edge || 'standard' };
+    if (step === 5 && answers.cornice !== 'unknown') return { field: 'cornice', value: answers.cornice || 'standard' };
     if (step === 4) {
       const value = answers.lights.includes(lightPreview) ? lightPreview : answers.lights.find(code => lightTypes.includes(code)) || (answers.lights.length ? null : 'spots');
       if (value) return { field: 'lights', value };
@@ -59,7 +60,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       const key = choice ? `${choice.field}:${choice.value}` : { 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
       const m = key && media(key, form.dataset.assets, answers);
       if (choice) visual.append(el('p', 'config-preview-name', `Предпросмотр: ${fields[choice.field].choices.find(([code]) => code === choice.value)[1]}`));
-      if (m) { visual.append(m); visual.append(el('p', 'lead-help', ['material:', 'edge:', 'lights:'].some(prefix => key.startsWith(prefix)) ? 'Иллюстрация решения · создано с помощью ИИ' : m.tagName.toLowerCase() === 'svg' ? 'Схема принципа устройства. Конкретный узел подберём после замера.' : 'Иллюстративный материал сайта. Комплектация вашего потолка может отличаться.')); }
+      if (m) { visual.append(m); visual.append(el('p', 'lead-help', 'Иллюстрация решения · создано с помощью ИИ')); }
       if (choice && m) { const zoom = el('button', 'config-back config-preview-zoom', 'Рассмотреть крупнее ↗'); zoom.type = 'button'; zoom.addEventListener('click', openSolutionPreview); visual.append(zoom); }
       if (step === 4 && choice) {
         visual.append(el('p', 'lead-help', 'В предпросмотре один вид освещения. Выбранные решения можно сочетать; общую схему разработаем отдельно.'));
@@ -75,6 +76,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
         }
       }
       if (step === 3 && answers.edge === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём примыкание вместе.'), el('p', 'lead-help', 'Покажем образцы профилей и предложим решение под ваш интерьер.'));
+      if (step === 5 && answers.cornice === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём оформление штор.'), el('p', 'lead-help', 'Обсудим внешний вид, крепление и размеры окна на замере.'));
       if (step === 0 && !answers.room) { visual.append(el('p', 'config-visual-title', 'Начнём с вашей комнаты.'), el('p', 'lead-help', 'Сначала пространство, затем детали. Контакты понадобятся только если вы захотите обсудить результат.')); }
       else visual.append(summaryView(answers, schema));
     }

@@ -78,3 +78,6 @@
 .config-light-preview-choices {display:flex;flex-wrap:wrap;gap:8px;}
 .config-light-preview-choices button {min-height:44px;padding:10px;border:1px solid #a6a498;background:transparent;color:var(--ink);font:inherit;font-size:11px;line-height:1.5;text-align:left;cursor:pointer;}
 .config-light-preview-choices button[aria-pressed=true] {border-color:var(--ink);background:#ddedea;}
+
+.config-options-cornice .config-option img {aspect-ratio:4/3;max-height:none;object-fit:contain;}
+.config-options-cornice .config-option:last-child {grid-column:1/-1;}
