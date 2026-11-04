@@ -123,3 +123,8 @@ The calculator extends the public form semantics: control border `#a6a498`, sele
 ## Material comparison
 
 Compare matte PVC, satin PVC, gloss PVC and textile in one identical room, camera and daylight. Use a 2×2 grid with full 4:3 images and concise optical descriptions; help-with-choice spans the last row. Show a labelled matte preview before a choice without preselecting the answer. The native enlarged-image dialog preserves focus and closes with Escape. Large images use 1440px WebP with 480px variants for cards. Satin/gloss express a preference pending availability and price confirmation; no invented finish tariff. Store the material group and surface texture separately in calculation snapshots.
+
+
+## Ceiling-wall junction comparison
+
+The edge step uses three matched architectural detail images: classic white closed joint, unlit dark shadow gap, and concealed warm LED floating edge. Frame the same corner closely enough to read the junction at card size. Unknown/help answers are text-only. Reuse the image-preview dialog for both surface and edge choices, with labelled examples before selection and explicit AI provenance. No cross-section diagram appears in edge answer cards. Tariffs and selection codes remain unchanged.
