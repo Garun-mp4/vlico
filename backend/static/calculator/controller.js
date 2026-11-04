@@ -8,6 +8,22 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   const next = find('next'), back = find('back'), error = find('error'), status = find('status'), submitErrors = find('submit-errors');
   const fallback = find('fallback'), fields = schema.fields;
   let answers = restore(schema), step = 0, quote = null, busy = false;
+  const materialDialog = el('dialog', 'config-material-dialog');
+  const dialogHeading = el('h3'); dialogHeading.id = 'config-material-dialog-title';
+  materialDialog.setAttribute('aria-labelledby', dialogHeading.id);
+  const closePreview = el('button', 'config-back', 'Закрыть ×'); closePreview.type = 'button';
+  closePreview.addEventListener('click', () => materialDialog.close());
+  const dialogHeader = el('div', 'config-material-dialog-header'); dialogHeader.append(dialogHeading, closePreview);
+  const dialogImage = el('div');
+  materialDialog.append(dialogHeader, dialogImage, el('p', 'lead-help', 'Визуализация одной комнаты. Оттенок и фактуру уточняем по реальным образцам. Изображение создано с помощью ИИ.'));
+  form.append(materialDialog);
+  function previewSurface() { return ['pvc', 'pvc_satin', 'pvc_gloss', 'fabric'].includes(answers.material) ? answers.material : 'pvc'; }
+  function openMaterialPreview() {
+    const surface = previewSurface();
+    dialogHeading.textContent = fields.material.choices.find(([code]) => code === surface)[1];
+    const img = media(`material:${surface}`, form.dataset.assets, answers); img.sizes = '90vw'; img.loading = 'eager'; dialogImage.replaceChildren(img);
+    materialDialog.showModal();
+  }
   // Bound server answers take precedence over the optional session draft.
   if (fallback.querySelector('.errorlist') || !result.hidden) {
     const data = new FormData(form);
@@ -27,9 +43,11 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       visual.append(diagram(answers.shape, 'Схема выбранной формы помещения', answers));
       visual.append(el('p', 'lead-help', answers.size_mode === 'dimensions' && answers.shape === 'rectangle' ? 'Площадь = длина × ширина. Периметр = 2 × (длина + ширина).' : 'Из площади нельзя вывести точный периметр. Непрямоугольную геометрию уточним на замере.'));
     } else {
-      const key = { 2: `material:${answers.material}`, 3: `edge:${answers.edge}`, 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
+      const key = { 2: `material:${previewSurface()}`, 3: `edge:${answers.edge}`, 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
       const m = key && media(key, form.dataset.assets, answers);
+      if (step === 2) visual.append(el('p', 'config-material-name', `Предпросмотр: ${fields.material.choices.find(([code]) => code === previewSurface())[1]}`));
       if (m) { visual.append(m); visual.append(el('p', 'lead-help', (key.startsWith('material:') || key === 'lights:spots') ? 'Иллюстрация решения · создано с помощью ИИ' : m.tagName.toLowerCase() === 'svg' ? 'Схема принципа устройства. Конкретный узел подберём после замера.' : 'Иллюстративный материал сайта. Комплектация вашего потолка может отличаться.')); }
+      if (step === 2) { const zoom = el('button', 'config-back config-material-zoom', 'Рассмотреть крупнее ↗'); zoom.type = 'button'; zoom.addEventListener('click', openMaterialPreview); visual.append(zoom); }
       if (step === 0 && !answers.room) { visual.append(el('p', 'config-visual-title', 'Начнём с вашей комнаты.'), el('p', 'lead-help', 'Сначала пространство, затем детали. Контакты понадобятся только если вы захотите обсудить результат.')); }
       else visual.append(summaryView(answers, schema));
     }

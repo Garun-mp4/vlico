@@ -56,3 +56,15 @@
 @media(prefers-reduced-motion:reduce) {.configurator * {transition:none!important;scroll-behavior:auto!important;}}
 
 .config-counter {display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:10px;}.config-counter button {min-height:48px;border:1px solid #a6a498;background:var(--canvas-soft);font:inherit;font-size:20px;cursor:pointer;}.config-counter input {text-align:center;}
+.config-options-material .config-option img {aspect-ratio:4/3;max-height:none;object-fit:contain;}
+.config-options-material .config-option:last-child {grid-column:1/-1;}
+.config-options-material .config-material-note {margin-top:auto;color:var(--body);font-size:10px;}
+.config-material-name {font-size:14px;line-height:1.6;margin:0;}
+.config-material-zoom {align-self:flex-start;text-align:left;font-size:12px;}
+.config-material-dialog {width:min(1200px,94vw);max-width:94vw;max-height:92dvh;margin:auto;padding:24px;border:1px solid var(--rule);background:var(--canvas);color:var(--ink);overflow:auto;}
+.config-material-dialog::backdrop {background:rgb(25 25 26 / .75);}
+.config-material-dialog-header {display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px;}
+.config-material-dialog h3 {font-size:22px;font-weight:400;line-height:1.4;margin:0;}
+.config-material-dialog img {display:block;width:100%;height:auto;max-height:70dvh;object-fit:contain;}
+.config-material-dialog .config-back {min-width:80px;}
+@media(max-width:767px) {.config-options-material .config-option-caption {font-size:12px;}.config-material-dialog {padding:16px;}.config-material-dialog h3 {font-size:18px;}.config-visual:has(.config-material-name)>img {max-height:none;}}

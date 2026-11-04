@@ -35,6 +35,28 @@ class ConfiguratorTests(TestCase):
         self.assertEqual(self.quote(material="fabric")["total"], "43240.00")
         self.assertIn("Совместимость", " ".join(self.quote(material="fabric", edge="shadow")["warnings"]))
 
+    def test_surface_choice_keeps_material_and_texture_separate(self):
+        for surface, material, texture in (("pvc", "pvc", "matte"), ("pvc_satin", "pvc", "satin"), ("pvc_gloss", "pvc", "gloss"), ("fabric", "fabric", "textile")):
+            with self.subTest(surface=surface):
+                quote = self.quote(material=surface)
+                self.assertEqual(quote["inputs"]["material"], material)
+                self.assertEqual(quote["inputs"]["texture"], texture)
+                self.assertEqual(quote["inputs"]["surface"], surface)
+                if texture in {"satin", "gloss"}:
+                    self.assertIsNone(quote["total"])
+                    self.assertEqual(quote["items"], [])
+                    self.assertFalse(quote["complete"])
+                    self.assertIn("ставка", " ".join(quote["warnings"]))
+
+    def test_selected_finish_reaches_real_lead_snapshot(self):
+        response = self.client.post(reverse("lead_submit"), payload("calculator", pricing_version=self.version.pk, **answers(material="pvc_gloss")))
+        self.assertEqual(response.status_code, 201)
+        quote = Lead.objects.get().calculation
+        self.assertEqual(quote["inputs"]["material"], "pvc")
+        self.assertEqual(quote["inputs"]["texture"], "gloss")
+        self.assertIn("Глянцевый ПВХ", str(quote["configuration"]))
+        self.assertIsNone(quote["total"])
+
     def test_unknown_area_material_and_perimeter_are_honest(self):
         q = self.quote(size_mode="area", area="20", perimeter="")
         self.assertEqual(q["total"], "13000.00")

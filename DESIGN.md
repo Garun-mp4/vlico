@@ -118,3 +118,8 @@ Public errors use `#8b302b` on the canvas, inline field feedback and a readable 
 ## Configurator controls and diagrams
 
 The calculator extends the public form semantics: control border `#a6a498`, selected fill `#ddedea`, accessible focus/selection `#075f40`, errors `#8b302b`, neutral hover `#e6e5db`. Diagram wall tone `#b6b4a9` and LED amber `#b17c25` / `#a77829` distinguish physical components, never actions or text. All control text uses ink/body from the existing palette. Photos and diagrams keep explicit aspect ratios. ES module dependencies are fingerprinted by the existing static manifest pipeline.
+
+
+## Material comparison
+
+Compare matte PVC, satin PVC, gloss PVC and textile in one identical room, camera and daylight. Use a 2×2 grid with full 4:3 images and concise optical descriptions; help-with-choice spans the last row. Show a labelled matte preview before a choice without preselecting the answer. The native enlarged-image dialog preserves focus and closes with Escape. Large images use 1440px WebP with 480px variants for cards. Satin/gloss express a preference pending availability and price confirmation; no invented finish tariff. Store the material group and surface texture separately in calculation snapshots.

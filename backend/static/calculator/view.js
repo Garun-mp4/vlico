@@ -2,8 +2,8 @@ import { visible, numeric } from './model.js';
 export function el(tag, className, text) {
   const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node;
 }
-const images = { 'lights:spots': 'calculator/spots.webp', 'material:pvc': 'calculator/matte-pvc.webp', 'material:fabric': 'calculator/fabric.webp', 'lights:light_lines': 'light-lines.jpg', 'lights:tracks': 'magnetic-tracks.jpg', 'lights:chandeliers': 'penthouse-chandelier.jpg', 'cornice:hidden': 'cornice.jpg' };
-const descriptions = { 'material:pvc': 'Ровная поверхность без выраженного блеска', 'material:fabric': 'Матовая текстильная поверхность', 'edge:standard': 'Вставка закрывает стык стены и полотна', 'edge:shadow': 'Тёмный зазор подчёркивает границу', 'edge:floating': 'Световой контур вдоль стены', 'cornice:standard': 'Карниз виден под потолком', 'cornice:hidden': 'Шторы выходят из ниши' };
+const images = { 'lights:spots': 'calculator/spots.webp', 'material:pvc': 'calculator/room-matte.webp', 'material:pvc_satin': 'calculator/room-satin.webp', 'material:pvc_gloss': 'calculator/room-gloss.webp', 'material:fabric': 'calculator/room-fabric.webp', 'lights:light_lines': 'light-lines.jpg', 'lights:tracks': 'magnetic-tracks.jpg', 'lights:chandeliers': 'penthouse-chandelier.jpg', 'cornice:hidden': 'cornice.jpg' };
+const descriptions = { 'material:pvc': 'Спокойная ровная поверхность. Не отражает интерьер.', 'material:pvc_satin': 'Мягкий перламутровый отсвет. Без зеркальных отражений.', 'material:pvc_gloss': 'Зеркальный блеск. Отражает окна и обстановку комнаты.', 'material:fabric': 'Матовая текстильная поверхность с тонкой фактурой.', 'edge:standard': 'Вставка закрывает стык стены и полотна', 'edge:shadow': 'Тёмный зазор подчёркивает границу', 'edge:floating': 'Световой контур вдоль стены', 'cornice:standard': 'Карниз виден под потолком', 'cornice:hidden': 'Шторы выходят из ниши' };
 const NS = 'http://www.w3.org/2000/svg';
 function svgNode(tag, attrs) { const node = document.createElementNS(NS, tag); for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value); return node; }
 export function diagram(type, label, a = {}) {
@@ -42,7 +42,7 @@ export function diagram(type, label, a = {}) {
   return svg;
 }
 export function media(key, assets, a) {
-  if (images[key]) { const img = el('img'); img.src = assets + images[key]; img.alt = descriptions[key] || ({'lights:spots':'Встроенные точечные светильники','lights:light_lines':'Световая линия в потолке','lights:tracks':'Встроенный магнитный трек','lights:chandeliers':'Подвесная люстра в интерьере'}[key]) || 'Пример потолочного решения'; img.width = 480; img.height = 320; img.loading = 'lazy'; return img; }
+  if (images[key]) { const img = el('img'); img.src = assets + images[key]; img.alt = descriptions[key] || ({'lights:spots':'Встроенные точечные светильники','lights:light_lines':'Световая линия в потолке','lights:tracks':'Встроенный магнитный трек','lights:chandeliers':'Подвесная люстра в интерьере'}[key]) || 'Пример потолочного решения'; img.width = 480; img.height = key.startsWith('material:') ? 360 : 320; img.loading = 'lazy'; if (key.startsWith('material:')) { img.srcset = `${assets + images[key].replace('.webp', '-small.webp')} 480w, ${img.src} 1440w`; img.sizes = '(max-width: 767px) 90vw, 40vw'; } return img; }
   if (key.startsWith('edge:') || key.startsWith('cornice:') || ['lights:spots', 'lights:led'].includes(key)) return diagram(key, descriptions[key] || 'Схема освещения', a);
   return null;
 }
@@ -56,10 +56,11 @@ export function fieldView(name, spec, a, assets) {
       const input = el('input'); input.type = spec.kind === 'multi' ? 'checkbox' : 'radio'; input.name = name; input.value = value;
       input.setAttribute('aria-label', title);
       input.checked = spec.kind === 'multi' ? (a[name] || []).includes(value) : a[name] === value;
-      const m = media(`${name}:${value}`, assets, a); if (m) { label.classList.add('config-option-visual'); label.append(m); }
+      const m = media(`${name}:${value}`, assets, a); if (m) { if (name === 'material') m.sizes = '(max-width: 767px) 42vw, 24vw'; label.classList.add('config-option-visual'); label.append(m); }
       if (name === 'shape' && value !== 'unknown') label.append(diagram(value, title, { shape: value }));
       const caption = el('span', 'config-option-caption'); caption.append(input, el('span', '', title)); label.append(caption);
       const description = descriptions[`${name}:${value}`]; if (description) label.append(el('small', '', description));
+      if (name === 'material' && ['pvc_satin', 'pvc_gloss'].includes(value)) label.append(el('small', 'config-material-note', 'Доступность и стоимость уточним'));
       options.append(label);
     }
     group.append(options);
@@ -96,7 +97,7 @@ export function summaryView(a, schema) {
 export const money = value => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(value)) + ' ₽';
 export function quoteView(q) {
   const box = el('div');
-  box.append(el('p', 'quote-label', q.total === null ? 'Недостаточно данных для суммы' : q.complete ? 'Предварительная стоимость' : 'Известная часть стоимости'), el('p', 'quote-total', q.total === null ? 'Индивидуальный расчёт' : money(q.total)));
+  box.append(el('p', 'quote-label', q.total === null ? 'Стоимость уточнит специалист' : q.complete ? 'Предварительная стоимость' : 'Известная часть стоимости'), el('p', 'quote-total', q.total === null ? 'Индивидуальный расчёт' : money(q.total)));
   if (q.warnings?.length) { const ul = el('ul', 'config-warnings'); q.warnings.forEach(w => ul.append(el('li', '', w))); box.append(ul); }
   const dl = el('dl', 'quote-lines');
   for (const item of q.items) { const row = el('div'), dt = el('dt', '', item.title); dt.append(el('small', '', `${item.quantity} ${item.unit} × ${money(item.unit_price)}`)); row.append(dt, el('dd', '', money(item.total))); dl.append(row); }

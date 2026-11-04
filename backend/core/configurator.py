@@ -8,6 +8,14 @@ ROOMS = [("living", "Гостиная"), ("bedroom", "Спальня"), ("kitche
 SHAPES = [("rectangle", "Прямоугольная"), ("l", "Г-образная"), ("complex", "Сложная"), ("unknown", "Не знаю")]
 LIGHTS = [("spots", "Точечные светильники"), ("light_lines", "Световые линии"), ("tracks", "Магнитные треки"), ("chandeliers", "Люстра / подвес"), ("led", "Контурная подсветка"), ("none", "Без нового освещения"), ("unknown", "Пока не определился")]
 FEATURES = [("complex", "Дополнительные углы"), ("pipes", "Трубы через потолок"), ("vents", "Вентиляция / датчики"), ("levels", "Несколько уровней"), ("tiles", "Плитка в зоне крепления"), ("height", "Сохранить высоту"), ("none", "Ничего из перечисленного"), ("unknown", "Не знаю")]
+# Public surface choices map to material groups; a finish is not another tariff.
+SURFACES = {
+    "pvc": ("pvc", "matte", "Матовый ПВХ"),
+    "pvc_satin": ("pvc", "satin", "Сатиновый ПВХ"),
+    "pvc_gloss": ("pvc", "gloss", "Глянцевый ПВХ"),
+    "fabric": ("fabric", "textile", "Тканевый потолок"),
+    "unknown": ("unknown", "unknown", "Нужна помощь с выбором"),
+}
 
 
 def choice(label, choices):
@@ -32,7 +40,7 @@ class ConfiguratorForm(forms.Form):
     area = number("Площадь, м²", 10000)
     perimeter = number("Периметр, м", 10000)
     area_range = forms.ChoiceField(label="Примерная площадь", required=False, choices=[("", "Не знаю"), ("small", "До 10 м²"), ("medium", "10–20 м²"), ("large", "20–35 м²"), ("xl", "Более 35 м²")])
-    material = choice("Какую поверхность предпочитаете?", [("pvc", "Матовый ПВХ"), ("fabric", "Ткань BAUF"), ("unknown", "Нужна помощь с выбором")])
+    material = choice("Какую поверхность предпочитаете?", [(code, row[2]) for code, row in SURFACES.items()])
     edge = choice("Как потолок встретится со стеной?", [("standard", "Классическое примыкание"), ("shadow", "Теневое примыкание"), ("floating", "Парящий потолок"), ("unknown", "Пока не знаю")])
     lights = forms.MultipleChoiceField(label="Какое освещение планируете?", choices=LIGHTS, widget=forms.CheckboxSelectMultiple)
     spots = number("Количество светильников", integer=True)
@@ -106,6 +114,10 @@ def calculate_answers(data, version=None):
     if data.get("schema") != "v2":
         return calculate(data, version)
     warnings = []
+    material, texture, _ = SURFACES[data["material"]]
+    unpriced_finish = texture in {"satin", "gloss"}
+    if unpriced_finish:
+        warnings.append("Доступность и стоимость выбранной фактуры уточним по образцам. Отдельная ставка пока не утверждена.")
     for name, label in (("area", "Площадь неизвестна"), ("perimeter", "Периметр неизвестен")):
         if not data.get(name): warnings.append(label)
     if data["material"] == "unknown": warnings.append("Нужно выбрать материал")
@@ -113,7 +125,7 @@ def calculate_answers(data, version=None):
     if data["shape"] != "rectangle": warnings.append("Геометрия требует проверки на замере")
     if data["material"] == "fabric" and data["edge"] in {"shadow", "floating"}:
         warnings.append("Совместимость ткани и профиля подтвердит специалист")
-    normalized = {"area": data.get("area") or Decimal(0), "material": data["material"] if data["material"] != "unknown" else "pvc",
+    normalized = {"area": data.get("area") or Decimal(0), "material": material if material != "unknown" else "pvc",
                   "edge": data["edge"] if data["edge"] != "unknown" else "standard", "perimeter": data.get("perimeter") if data["edge"] != "unknown" else None}
     for code in ("spots", "light_lines", "tracks"):
         normalized[code] = data.get(code) if code in data["lights"] else 0
@@ -128,12 +140,13 @@ def calculate_answers(data, version=None):
     if set(data["features"]) - {"none", "height"}: warnings.append("Особенности монтажа: стоимость уточняется после замера")
     if data["location"] != "city": warnings.append("Выезд и возможность монтажа согласуем отдельно")
     quote = calculate(normalized, version)
-    unknown_base = not data.get("area") or data["material"] == "unknown"
+    unknown_base = not data.get("area") or material == "unknown" or unpriced_finish
     if unknown_base:
         quote["items"] = []
         quote["total"] = None
     quote.update(complete=not warnings, warnings=warnings, configuration=summary(data),
                  inputs={key: str(value) if isinstance(value, Decimal) else value for key, value in data.items()}, schema="v2")
+    quote["inputs"].update(material=material, texture=texture, surface=data["material"])
     return quote
 
 
@@ -151,7 +164,7 @@ def summary(data):
 STEP_FIELDS = [
     ("Помещение", "Для какого помещения выбираете потолок?", "Тип комнаты не меняет цену сам по себе.", ["room", "room_other"]),
     ("Размеры", "Какие размеры у помещения?", "Примерных размеров достаточно. Точные уточним на замере.", ["size_mode", "shape", "length", "width", "area", "perimeter", "area_range"]),
-    ("Поверхность", "Какую поверхность предпочитаете?", "Две группы полотна из действующего ассортимента. Образцы покажем на встрече.", ["material"]),
+    ("Поверхность", "Какую поверхность предпочитаете?", "Одна комната, один ракурс — меняется только потолок. Сравните отражения и характер поверхности.", ["material"]),
     ("Примыкание", "Как потолок встретится со стеной?", "Выберите характер границы между потолком и стеной.", ["edge"]),
     ("Освещение", "Какое освещение планируете?", "Можно сочетать несколько решений. Не знаете количество — оставьте поле пустым.", ["lights", "spots", "light_lines", "tracks", "chandeliers", "led"]),
     ("Шторы", "Как оформим шторы?", "Для потолочного и скрытого карниза укажите примерную длину, если знаете.", ["cornice", "cornices"]),
