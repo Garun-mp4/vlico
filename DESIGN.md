@@ -78,3 +78,9 @@ Name the service plainly. Explain that price follows measurement and selected sy
 ## Server migration
 
 The homepage HTML now lives in `backend/templates/site/home.html`. CSS, JavaScript, fonts and prepared imagery are shared with `wireframe/`. Preserve this visual system as service, case and cooperation pages are added. The custom administration interface prioritizes readable forms and task completion.
+
+## Portfolio and cabinet (milestone 2)
+
+The public portfolio extends the existing cream/graphite visual system, mono typography and photo-led composition. Case headers, metadata rows, project galleries and a restrained closing CTA share the same gutters. Gallery motion is limited to feedback; a native dialog supports keyboard, Escape and touch.
+
+The cabinet uses system sans at 16px for readable editing, with a mono VLICO wordmark. Dense work remains on a light canvas without entrance animations. Flat lists, standard labelled fields and explicit publication actions take priority over marketing composition. Semantic UI colors: success/focus `#075f40` on `#ddedea`, errors `#82251e` on `#f9e9e5`, destructive actions `#8c2424`, muted text `#5c5b54`, control border `#9d9c90`, canvas `#f6f5ef`, white input surfaces. The active tab underline indicates selection; it is not a decorative card accent.

@@ -46,3 +46,9 @@ Client materials state that VLICO has worked since 2009, completed more than 10,
 Milestone 1 establishes the server, database, migrations and durable public/private storage while preserving the homepage. The form remains explicitly demonstrational until milestone 3. Milestone 2 adds the custom portfolio cabinet; milestone 3 adds stored leads, Telegram delivery and a numeric calculator with editable provisional rates; milestone 4 adds six service pages, cooperation, Yandex reviews, analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
 
 The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.
+
+## Milestone 2 delivered
+
+A custom authenticated portfolio cabinet manages project text, photo uploads, ordering, cover selection, result/process groups, preview, publishing, unpublishing and archive/restore. Public project pages, the catalog and featured homepage entries read published database content. Project sitemap entries change immediately without rebuilding. Private editorial notes and missing-data placeholders are restricted to the cabinet/preview.
+
+Eight prepared drafts can be seeded with the included command; their photo grouping is provisional where source evidence is incomplete. These are not eight confirmed distinct completed orders. Published portfolios should only use confirmed records. Forms remain demonstration-only until milestone 3.
