@@ -135,3 +135,19 @@ class ConfiguratorTests(TestCase):
         response = self.client.post("/calculator/", {**answers(), "action": "quote"})
         self.assertContains(response, "16240.00")
         self.assertContains(response, "Ваш предварительный расчёт готов")
+
+    def test_bootstrap_preserves_server_quote_and_does_not_include_contact(self):
+        response = self.client.post('/calculator/', {**answers(), 'action': 'quote', 'contact': 'private@example.invalid'})
+        bootstrap = response.context['config_bootstrap']
+        self.assertTrue(bootstrap['bound'])
+        self.assertEqual(bootstrap['quote']['total'], '16240.00')
+        self.assertNotIn('private@example.invalid', str(bootstrap))
+        self.assertEqual(response.context['config_schema']['fields']['room_other']['max_length'], 100)
+
+    def test_bootstrap_keeps_invalid_bound_fields_and_errors(self):
+        response = self.client.post('/calculator/', {**answers(length=''), 'action': 'quote'})
+        bootstrap = response.context['config_bootstrap']
+        self.assertTrue(bootstrap['bound'])
+        self.assertIsNone(bootstrap['quote'])
+        self.assertIn('length', bootstrap['errors'])
+        self.assertEqual(response.context['config_form']['length'].value(), '')

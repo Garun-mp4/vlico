@@ -184,8 +184,9 @@ def configurator_context(request, form=None, lead_form=None, quote=None, errors=
     fields = {}
     for name, field in form.fields.items():
         fields[name] = {"label": field.label, "kind": "multi" if isinstance(field, forms.MultipleChoiceField) else "choice" if isinstance(field, forms.ChoiceField) else "number" if isinstance(field, (forms.DecimalField, forms.IntegerField)) else "text",
-                        "choices": list(field.choices) if hasattr(field, "choices") else [], "max": getattr(field, "max_value", None), "integer": isinstance(field, forms.IntegerField) and not isinstance(field, forms.DecimalField)}
-    # JSON contains presentation metadata only, never contact information or rates.
+                        "choices": list(field.choices) if hasattr(field, "choices") else [], "max": getattr(field, "max_value", None), "max_length": getattr(field, "max_length", None), "integer": isinstance(field, forms.IntegerField) and not isinstance(field, forms.DecimalField)}
+    # Schema is presentation metadata; bootstrap restores the quote, never lead contacts.
     return {"config_form": form, "calc_lead_form": lead_form, "calc_quote": quote, "calc_errors": errors or {}, "calculator_available": version is not None,
+            "config_bootstrap": {"bound": form.is_bound, "quote": quote, "errors": {**dict(form.errors), **(errors or {})}},
             "config_schema": {"steps": [{"name": name, "title": title, "help": help_text, "fields": names} for name, title, help_text, names in STEP_FIELDS], "fields": fields},
             "config_steps": [(title, [form[name] for name in names]) for _, title, _, names in STEP_FIELDS]}

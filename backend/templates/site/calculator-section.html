@@ -6,6 +6,7 @@
   </div>
   {% if calculator_available %}
   {{ config_schema|json_script:"config-schema" }}
+  {{ config_bootstrap|json_script:"config-bootstrap" }}
   <form method="post" action="{% url 'calculator' %}" enctype="multipart/form-data" data-configurator data-api="{% url 'lead_submit' %}" data-estimate-api="{% url 'estimate' %}" data-assets="{% static 'assets/' %}">{% csrf_token %}
     <div data-config-fallback>
       <input type="hidden" name="schema" value="v2">

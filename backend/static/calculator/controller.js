@@ -3,6 +3,7 @@ import { el, fieldView, diagram, media, summaryView, quoteView } from './view.js
 
 document.querySelectorAll('[data-configurator]').forEach(form => {
   const schema = JSON.parse(document.getElementById('config-schema').textContent);
+  const bootstrap = JSON.parse(document.getElementById('config-bootstrap').textContent);
   const find = name => form.querySelector(`[data-config-${name}]`);
   const shell = find('shell'), panel = find('question'), visual = find('visual'), result = find('result'), contact = find('contact-form');
   const next = find('next'), back = find('back'), error = find('error'), status = find('status'), submitErrors = find('submit-errors');
@@ -38,9 +39,9 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     imageDialog.showModal();
   }
   // Bound server answers take precedence over the optional session draft.
-  if (fallback.querySelector('.errorlist') || !result.hidden) {
+  if (bootstrap.bound) {
     const data = new FormData(form);
-    for (const [name, spec] of Object.entries(fields)) answers[name] = spec.kind === 'multi' ? data.getAll(name) : data.get(name) || answers[name] || '';
+    for (const [name, spec] of Object.entries(fields)) answers[name] = spec.kind === 'multi' ? data.getAll(name) : data.get(name) ?? '';
   }
   fallback.hidden = true; fallback.querySelectorAll('input, select, button').forEach(input => { input.disabled = true; });
   function showContact(open) {
@@ -95,6 +96,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   }
   function fieldErrors(errors) {
     panel.querySelectorAll('.config-field-error').forEach(n => n.remove());
+    panel.querySelectorAll('[aria-invalid]').forEach(input => { input.removeAttribute('aria-invalid'); input.removeAttribute('aria-describedby'); });
     for (const [name, message] of Object.entries(errors)) {
       const group = panel.querySelector(`[data-field="${name}"]`); if (!group) continue;
       const p = el('p', 'config-error config-field-error', Array.isArray(message) ? message.join(' ') : message); p.id = `config-error-${name}`; group.append(p);
@@ -161,12 +163,29 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); } });
   find('contact').addEventListener('click', () => { if (!quote || busy) return; showContact(true); contact.querySelector('input[name=name]')?.focus(); contact.scrollIntoView({ block: 'start', behavior: 'instant' }); });
   form.querySelector('[name=attachments]').addEventListener('change', event => { form.querySelector('[data-selected-files]').textContent = [...event.target.files].map(file => file.name).join(', '); });
+  const contactDescriptions = new Map([...contact.querySelectorAll('[aria-describedby]')].map(input => [input, input.getAttribute('aria-describedby')]));
+  function resetContactError(input) {
+    input.removeAttribute('aria-invalid');
+    if (contactDescriptions.has(input)) input.setAttribute('aria-describedby', contactDescriptions.get(input));
+    else input.removeAttribute('aria-describedby');
+  }
+  function clearContactErrors() {
+    contact.querySelectorAll('[data-submit-field-error]').forEach(node => node.remove());
+    contact.querySelectorAll('[aria-invalid]').forEach(resetContactError);
+  }
+  contact.addEventListener('input', event => {
+    const input = event.target;
+    if (!input.hasAttribute('aria-invalid')) return;
+    input.closest('.lead-field,.lead-consent')?.querySelector('[data-submit-field-error]')?.remove();
+    resetContactError(input);
+  });
   form.addEventListener('submit', event => {
     event.preventDefault(); if (busy || form.dataset.submitted) return;
     if (!quote) { next.click(); return; }
     if (!form.reportValidity()) return;
     const files = [...form.querySelector('[name=attachments]').files];
     submitErrors.hidden = true;
+    clearContactErrors();
     const showSubmitErrors = errors => {
       contact.querySelectorAll('[data-submit-field-error]').forEach(node => node.remove());
       submitErrors.replaceChildren(...Object.values(errors).flat().map(message => el('p', '', message))); submitErrors.hidden = false;
@@ -176,7 +195,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
         const group = input.closest('.lead-field') || input.closest('.lead-consent');
         if (!group) continue;
         const line = el('p', 'config-error', messages.join(' ')); line.id = `config-contact-error-${name}`; line.dataset.submitFieldError = '';
-        group.append(line); input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', line.id);
+        group.append(line); input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', [contactDescriptions.get(input), line.id].filter(Boolean).join(' '));
       }
     };
     if (files.length > 3 || files.some(file => file.size > 8 * 1024 * 1024)) { showSubmitErrors({ attachments: ['Можно приложить до 3 файлов по 8 МБ.'] }); return; }
@@ -187,6 +206,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     const finish = () => { progress.hidden = true; setBusy(false); if (!form.dataset.submitted) contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = false; }); };
     xhr.onload = () => {
       let body; try { body = JSON.parse(xhr.responseText); } catch { body = {}; }
+      if (!body || typeof body !== 'object' || Array.isArray(body)) body = {};
       if (xhr.status >= 200 && xhr.status < 300 && body.ok) {
         status.textContent = `${body.message} Номер: ${body.reference}`; form.dataset.submitted = 'true';
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Storage optional. */ }
@@ -201,5 +221,13 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     xhr.onerror = xhr.ontimeout = () => { status.hidden = true; showSubmitErrors({ __all__: ['Связь прервалась. Повторите отправку: повторная попытка не создаст вторую заявку.'] }); finish(); };
     xhr.send(data);
   });
-  render();
+  if (bootstrap.quote) {
+    showQuote(bootstrap.quote);
+    if (Object.keys(bootstrap.errors).length) showContact(true);
+  } else {
+    const target = schema.steps.findIndex(s => s.fields.some(name => bootstrap.errors[name]));
+    if (target >= 0) step = target;
+    render();
+    if (target >= 0) fieldErrors(bootstrap.errors);
+  }
 });

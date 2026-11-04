@@ -1,4 +1,4 @@
-import { visible, numeric } from './model.js';
+import { visible, numeric, validNumber } from './model.js';
 export function el(tag, className, text) {
   const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node;
 }
@@ -13,7 +13,7 @@ export function diagram(type, label, a = {}) {
   const line = (tag, attrs) => svg.append(svgNode(tag, { fill: 'none', stroke: 'currentColor', 'stroke-width': 2, ...attrs }));
   const text = (x, y, value) => { const t = svgNode('text', { x, y, 'text-anchor': 'middle', fill: 'currentColor', 'font-size': 13 }); t.textContent = value; svg.append(t); };
   const shape = a.shape || type;
-  const l = numeric(a.length), w = numeric(a.width), known = a.size_mode === 'dimensions' && shape === 'rectangle' && l > 0 && w > 0;
+  const l = numeric(a.length), w = numeric(a.width), known = a.size_mode === 'dimensions' && shape === 'rectangle' && validNumber(a.length, {max:100}) && validNumber(a.width, {max:100});
   const scale = known ? Math.min(240 / l, 145 / w) : 1;
   const rw = known ? Math.max(35, l * scale) : 230;
   const rh = known ? Math.max(25, w * scale) : 140;
@@ -49,7 +49,7 @@ export function fieldView(name, spec, a, assets) {
     group.append(options);
   } else {
     const input = el('input', 'config-input'); input.type = 'text'; input.id = `config-ui-${name}`; input.name = name; input.value = a[name] || '';
-    input.autocomplete = 'off'; input.maxLength = spec.kind === 'number' ? 12 : 120;
+    input.autocomplete = 'off'; input.maxLength = spec.kind === 'number' ? 12 : (spec.max_length || 120);
     if (spec.kind === 'number') { input.inputMode = spec.integer ? 'numeric' : 'decimal'; input.placeholder = 'Пока не знаю'; }
     const label = el('label', 'config-sr', spec.label); label.htmlFor = input.id; group.append(label);
     if (spec.integer) {

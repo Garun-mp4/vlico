@@ -12,4 +12,12 @@ assert.deepEqual(validate({...initial(),length:'1.5'},{fields:['length']},{lengt
 globalThis.sessionStorage={getItem:key=>key===STORAGE_KEY?JSON.stringify({schema:'v1',room:'living'}):null};assert.equal(restore(schema).room,'');
 globalThis.sessionStorage={getItem:()=>JSON.stringify({schema:'v2',room:'bogus',lights:['spots','hack'],contact:'private'})};
 assert.deepEqual(restore(schema).lights,['spots']);assert.equal(restore(schema).room,'');assert.equal(restore(schema).contact,undefined);
-console.log('Calculator model: conditional fields, exclusive answers, decimal validation and versioned restoration passed.');
+
+globalThis.sessionStorage={getItem:()=>JSON.stringify({schema:'v2',lights:['spots','none','spots'],length:'1e309'})};
+assert.deepEqual(restore(schema).lights,[]);assert.equal(restore(schema).length,undefined);
+globalThis.sessionStorage={getItem:()=>JSON.stringify({schema:'v2',lights:['spots','spots'],length:'5,25'})};
+assert.deepEqual(restore(schema).lights,['spots']);assert.equal(restore(schema).length,'5,25');
+assert.ok(validate({...initial(),length:'0.1',width:'0.1'},{fields:['length','width']},{length:fields.length,width:fields.length}).length);
+
+assert.deepEqual(validate({...initial(),length:'0.1',width:'0.95'},{fields:['length','width']},{length:fields.length,width:fields.length}),{});
+console.log('Calculator model: conditional fields, exclusive answers, decimal validation, minimum area and versioned restoration passed.');
