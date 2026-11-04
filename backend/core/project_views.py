@@ -50,3 +50,17 @@ def image(request, pk, variant):
     if item.project.status != Project.Status.PUBLISHED:
         response["X-Robots-Tag"] = "noindex, nofollow"
     return response
+
+
+@editor_required
+@require_safe
+def source_image(request, pk, media_pk):
+    item = get_object_or_404(ProjectMedia, pk=media_pk, project_id=pk)
+    try:
+        stream = (item.source or item.image).open("rb")
+    except (OSError, ValueError):
+        raise Http404
+    response = FileResponse(stream, content_type="image/webp")
+    response["Cache-Control"] = "private, no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response

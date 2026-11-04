@@ -1,14 +1,3 @@
-document.querySelectorAll('[data-upload]').forEach(form => {
-  form.addEventListener('submit', event => {
-    const files = [...form.querySelector('input[type=file]').files];
-    const status = form.querySelector('[data-upload-status]');
-    if (files.length > 8 || files.some(file => file.size > 12 * 1024 * 1024)) {
-      event.preventDefault(); status.textContent = 'Выберите до 8 файлов, не больше 12 МБ каждый.'; return;
-    }
-    status.textContent = 'Фотографии загружаются и подготавливаются. Дождитесь обновления страницы.';
-    form.querySelector('button[type=submit]').disabled = true;
-  });
-});
 let changed = false;
 document.querySelectorAll('[data-unsaved]').forEach(form => {
   form.addEventListener('input', () => { changed = true; });
@@ -17,3 +6,146 @@ document.querySelectorAll('[data-unsaved]').forEach(form => {
 window.addEventListener('beforeunload', event => {
   if (changed) { event.preventDefault(); event.returnValue = ''; }
 });
+
+const editor = document.querySelector('[data-image-editor]');
+const uploadForm = document.querySelector('[data-upload]');
+if (editor && typeof editor.showModal === 'function') {
+  const form = editor.querySelector('[data-editor-form]');
+  const field = name => form.elements.namedItem(name);
+  const status = editor.querySelector('[data-editor-status]');
+  const save = editor.querySelector('[data-editor-save]');
+  const canvas = editor.querySelector('canvas');
+  const context = canvas.getContext('2d');
+  const skip = editor.querySelector('[data-editor-skip]');
+  let queue = [], index = 0, current, image, objectURL, rotation = 0, busy = false, saved = 0, opener;
+  const message = (text, error = false) => {
+    status.textContent = text;
+    status.dataset.error = String(error);
+  };
+  const settings = () => ({
+    mode: field('mode').value, zoom: Number(field('zoom').value), x: Number(field('x').value), y: Number(field('y').value), rotation,
+    alt: field('alt').value, caption: field('caption').value, section: field('section').value, cover: field('cover').checked
+  });
+  function draw() {
+    if (!image) return;
+    const data = settings();
+    const rotated = document.createElement('canvas');
+    const swap = rotation === 90 || rotation === 270;
+    rotated.width = swap ? image.naturalHeight : image.naturalWidth;
+    rotated.height = swap ? image.naturalWidth : image.naturalHeight;
+    const ctx = rotated.getContext('2d');
+    ctx.translate(rotated.width / 2, rotated.height / 2);
+    ctx.rotate(rotation * Math.PI / 180);
+    ctx.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
+    context.fillStyle = '#f2f1e9'; context.fillRect(0, 0, 800, 600);
+    const w = rotated.width, h = rotated.height;
+    if (data.mode === 'fit') {
+      const scale = Math.min(800 / w, 600 / h);
+      context.drawImage(rotated, (800-w*scale)/2, (600-h*scale)/2, w*scale, h*scale);
+    } else {
+      const cw = Math.min(w, h*4/3) / data.zoom, ch = cw*3/4;
+      context.drawImage(rotated, (w-cw)*data.x/100, (h-ch)*data.y/100, cw, ch, 0, 0, 800, 600);
+    }
+    editor.querySelector('[data-editor-zoom-value]').textContent = data.zoom.toFixed(2) + '×';
+    ['zoom', 'x', 'y'].forEach(name => { field(name).disabled = data.mode === 'fit' || busy; });
+  }
+  async function show() {
+    if (objectURL) URL.revokeObjectURL(objectURL);
+    objectURL = null; image = null;
+    current = queue[index];
+    skip.hidden = !current.file;
+    message('Открываем фотографию…');
+    save.disabled = true;
+    editor.querySelector('[data-editor-counter]').textContent = current.file ? `Фото ${index+1} из ${queue.length} · сохранено ${saved}` : 'Редактирование сохранённой фотографии';
+    const data = current.edit || {};
+    rotation = data.rotation || 0;
+    for (const [name, value] of Object.entries({mode:'crop', zoom:1, x:50, y:50, ...data})) {
+      if (field(name)) field(name).value = value;
+    }
+    field('alt').value = current.alt || '';
+    field('caption').value = current.caption || '';
+    field('section').value = current.section || 'result';
+    field('cover').checked = Boolean(current.cover);
+    try {
+      const loaded = new Image();
+      if (current.file) { objectURL = URL.createObjectURL(current.file); loaded.src = objectURL; }
+      else loaded.src = current.source;
+      await loaded.decode();
+      if (loaded.naturalWidth * loaded.naturalHeight > 16000000 || Math.min(loaded.naturalWidth,loaded.naturalHeight) < 64) throw new Error('Размер изображения: от 64 пикселей по стороне до 16 мегапикселей.');
+      image = loaded;
+      editor.querySelector('[data-editor-size]').textContent = `${current.file?.name || 'Сохранённый исходник'} · ${loaded.naturalWidth} × ${loaded.naturalHeight} px`;
+      save.disabled = false; draw();
+      message('Настройте кадр и сохраните. При закрытии несохранённые фото не добавляются.');
+    } catch (error) { message(error.message.includes('Размер') ? error.message : 'Не удалось открыть изображение. Пропустите его и выберите исправный JPEG, PNG или WebP.', true); }
+  }
+  function open(items, button) {
+    if (changed) { alert('Сначала сохраните изменения сведений о проекте.'); return; }
+    queue = items; index = 0; saved = 0; opener = button;
+    editor.showModal(); show();
+  }
+  function finish() {
+    if (busy) return;
+    editor.close();
+    if (objectURL) URL.revokeObjectURL(objectURL);
+    objectURL = null;
+    if (saved) window.location.reload();
+    else { uploadForm?.reset(); opener?.focus(); }
+  }
+  function next() { if (++index < queue.length) show(); else finish(); }
+  function startUpload(event) {
+    event?.preventDefault();
+    const files = [...uploadForm.querySelector('input[type=file]').files];
+    if (!files.length) return;
+    if (files.length > 8 || files.some(file => file.size > 12*1024*1024)) {
+      uploadForm.querySelector('[data-upload-status]').textContent = 'Выберите до 8 файлов, не больше 12 МБ каждый.'; return;
+    }
+    const defaultAlt = document.querySelector('#id_title').value;
+    open(files.map((file, i) => ({file, key:crypto.randomUUID(), alt:defaultAlt, section:uploadForm.elements.section.value, cover:i===0 && !document.querySelector('.media-item')})), uploadForm.querySelector('button'));
+  }
+  uploadForm?.addEventListener('submit', startUpload);
+  uploadForm?.querySelector('input[type=file]').addEventListener('change', startUpload);
+  document.querySelectorAll('[data-image-edit]').forEach(button => button.addEventListener('click', () => {
+    const card = button.closest('.media-item');
+    open([{source:button.dataset.source, url:button.dataset.save, revision:button.dataset.revision,
+      edit:JSON.parse(card.querySelector('script[type="application/json"]').textContent),
+      alt:card.querySelector('input[name=alt]').value, caption:card.querySelector('input[name=caption]').value,
+      section:card.querySelector('select[name=section]').value, cover:Boolean(card.querySelector('.status.published'))}], button);
+  }));
+  form.addEventListener('input', draw);
+  editor.querySelector('[data-editor-rotate]').addEventListener('click', () => { rotation = (rotation+90)%360; draw(); });
+  editor.querySelector('[data-editor-reset]').addEventListener('click', () => {
+    rotation = 0; field('zoom').value=1; field('x').value=50; field('y').value=50; field('mode').value='crop'; draw();
+  });
+  editor.querySelector('[data-editor-close]').addEventListener('click', finish);
+  skip.addEventListener('click', () => { if (!busy) next(); });
+  editor.addEventListener('cancel', event => { event.preventDefault(); finish(); });
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (busy || !image) return;
+    const data = settings();
+    busy = true;
+    editor.querySelectorAll('button,input,select').forEach(control => control.disabled=true);
+    const body = new FormData();
+    body.append('csrfmiddlewaretoken', uploadForm.querySelector('[name=csrfmiddlewaretoken]').value);
+    body.append('editing', JSON.stringify(data));
+    if (current.file) { body.append('images', current.file); body.append('section', data.section); body.append('upload_key', current.key); }
+    else body.append('revision', current.revision);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', current.url || uploadForm.action);
+    xhr.setRequestHeader('Accept','application/json'); xhr.responseType='json';
+    message('Сохраняем фотографию…');
+    xhr.upload.addEventListener('progress', event => {
+      if (event.lengthComputable) message(`Загрузка ${Math.round(100*event.loaded/event.total)}%. Затем подготовим изображение.`);
+    });
+    const unlock = () => {
+      busy=false; editor.querySelectorAll('button,input,select').forEach(control=>control.disabled=false); draw();
+    };
+    xhr.addEventListener('load', () => {
+      unlock();
+      if (xhr.status>=200 && xhr.status<300 && xhr.response?.saved) { saved++; next(); }
+      else message(xhr.response?.error || (xhr.status===403 ? 'Сессия истекла. Войдите заново; сохранённые фото останутся в проекте.' : 'Не удалось сохранить фото. Повторите или пропустите его.'),true);
+    });
+    xhr.addEventListener('error', () => { unlock(); message('Связь прервалась. Повторите сохранение: фотография не добавится дважды.',true); });
+    xhr.send(body);
+  });
+}

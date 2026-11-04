@@ -54,26 +54,54 @@ def prepared_image(upload):
         raise ValidationError("Не удалось прочитать фотографию. Выберите исправный JPEG, PNG или WebP.") from exc
 
 
-def add_images(project_id, uploads, section):
+def add_images(project_id, uploads, section, edit=None, upload_key=None):
     if not uploads or len(uploads) > 8:
         raise ValidationError("Выберите от 1 до 8 фотографий за один раз.")
+    if edit is not None:
+        from .image_editing import validate_edit, rendered_image, media_metadata
+        if len(uploads) != 1:
+            raise ValidationError("В редакторе сохраняйте по одной фотографии.")
+        settings = validate_edit(edit)
+        metadata = media_metadata(edit)
     prepared = [prepared_image(upload) for upload in uploads]
     written = []
     try:
         with transaction.atomic():
             project = Project.objects.select_for_update().get(pk=project_id)
+            if upload_key:
+                existing = ProjectMedia.objects.filter(upload_key=upload_key).first()
+                if existing:
+                    if existing.project_id != project_id:
+                        raise ValidationError("Этот запрос загрузки уже использован.")
+                    return [existing]
             media = list(project.media.all())
             if len(media) + len(prepared) > 40:
                 raise ValidationError("В проекте может быть до 40 фотографий.")
             start = max((m.position for m in media), default=-1) + 1
+            created = []
             for index, (full, thumb, width, height) in enumerate(prepared):
                 item = ProjectMedia(project=project, position=start+index, section=section, width=width, height=height, alt=project.title, is_cover=not media and index == 0)
+                if edit is not None:
+                    item.source.save("source.webp", ContentFile(full.read()), save=False)
+                    written.append((item.source.storage, item.source.name))
+                    with item.source.open("rb") as source:
+                        full, thumb, width, height = rendered_image(source, settings)
+                    item.width, item.height = width, height
+                    item.editing = settings
+                    item.upload_key = upload_key
+                    for key, value in metadata.items():
+                        setattr(item, key, value)
+                    if edit.get("cover"):
+                        project.media.update(is_cover=False)
+                        item.is_cover = True
                 item.image.save(full.name, full, save=False)
                 written.append((item.image.storage, item.image.name))
                 item.thumbnail.save(thumb.name, thumb, save=False)
                 written.append((item.thumbnail.storage, item.thumbnail.name))
                 item.save()
+                created.append(item)
             project.save(update_fields=["updated_at"])
+        return created
     except Exception:
         for storage, name in written:
             storage.delete(name)

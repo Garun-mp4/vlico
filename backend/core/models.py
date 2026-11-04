@@ -68,6 +68,9 @@ class Project(Timestamped):
 class ProjectMedia(Timestamped):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="media")
     image = models.ImageField(upload_to=media_path)
+    source = models.ImageField(upload_to=media_path, storage=PrivateMediaStorage(), blank=True)
+    editing = models.JSONField(default=dict, blank=True)
+    upload_key = models.UUIDField(null=True, blank=True, unique=True, editable=False)
     thumbnail = models.ImageField(upload_to=media_path, blank=True)
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)

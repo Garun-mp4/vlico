@@ -84,3 +84,7 @@ The homepage HTML now lives in `backend/templates/site/home.html`. CSS, JavaScri
 The public portfolio extends the existing cream/graphite visual system, mono typography and photo-led composition. Case headers, metadata rows, project galleries and a restrained closing CTA share the same gutters. Gallery motion is limited to feedback; a native dialog supports keyboard, Escape and touch.
 
 The cabinet uses system sans at 16px for readable editing, with a mono VLICO wordmark. Dense work remains on a light canvas without entrance animations. Flat lists, standard labelled fields and explicit publication actions take priority over marketing composition. Semantic UI colors: success/focus `#075f40` on `#ddedea`, errors `#82251e` on `#f9e9e5`, destructive actions `#8c2424`, muted text `#5c5b54`, control border `#9d9c90`, canvas `#f6f5ef`, white input surfaces. The active tab underline indicates selection; it is not a decorative card accent.
+
+## Photo editing
+
+The cabinet uses a native dialog for protected image preparation. A live 4:3 canvas matches the site's image frames; fit mode keeps the full subject with cream padding. Crop, scale, position and rotation controls remain keyboard-operable native inputs. A sequential upload queue preserves already saved photos, reports progress and allows skipping. Save/close controls remain visible while scrolling. No entrance choreography is added to this work surface.

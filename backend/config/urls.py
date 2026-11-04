@@ -18,5 +18,7 @@ urlpatterns = [
     path("cabinet/projects/<int:pk>/preview/", project_views.preview, name="cabinet_preview"),
     path("cabinet/projects/<int:pk>/status/", cabinet.change_status, name="cabinet_status"),
     path("cabinet/projects/<int:pk>/upload/", cabinet.upload, name="cabinet_upload"),
+    path("cabinet/projects/<int:pk>/media/<int:media_pk>/source/", project_views.source_image, name="cabinet_image_source"),
+    path("cabinet/projects/<int:pk>/media/<int:media_pk>/edit/", cabinet.image_editor, name="cabinet_image_editor"),
     path("cabinet/projects/<int:pk>/media/<int:media_pk>/", cabinet.media_edit, name="cabinet_media"),
 ]

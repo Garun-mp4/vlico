@@ -50,6 +50,8 @@
 </form>
 <div class="media-grid">{% for item,media_form in media_forms %}<article class="media-item">
 <img src="{% url 'project_image' item.pk 'thumb' %}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
+<button type="button" class="button image-edit-button" data-image-edit data-source="{% url 'cabinet_image_source' project.pk item.pk %}" data-save="{% url 'cabinet_image_editor' project.pk item.pk %}" data-revision="{{ item.updated_at.isoformat }}">Редактировать изображение</button>
+{{ item.editing|json_script }}
 <div class="media-meta">
 <strong>Фото {{ forloop.counter }}</strong>{% if item.is_cover %}<span class="status published">Обложка</span>{% endif %}</div>
 <form method="post" action="{% url 'cabinet_media' project.pk item.pk %}" class="editor-form">{% csrf_token %}{% for field in media_form %}<div>
@@ -69,4 +71,6 @@
 </form>
 </details>
 </article>{% empty %}<p class="empty-state">Добавьте фотографии готового результата или процесса. Первая фотография станет обложкой.</p>{% endfor %}</div>
-</section>{% endif %}{% endblock %}
+</section>
+{% include 'cabinet/image-editor.html' %}
+{% endif %}{% endblock %}

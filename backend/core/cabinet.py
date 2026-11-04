@@ -1,5 +1,7 @@
 from datetime import timedelta
 import hashlib
+import json
+import uuid
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -7,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login
 from django.db import transaction
 from django.db.models import F
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
@@ -96,10 +98,17 @@ def upload(request, pk):
     if section not in {"result", "process"}:
         return HttpResponse(status=400)
     try:
-        add_images(project.pk, request.FILES.getlist("images"), section)
-    except ValidationError as exc:
-        messages.error(request, " ".join(exc.messages))
+        edit = json.loads(request.POST["editing"]) if "editing" in request.POST else None
+        key = uuid.UUID(request.POST["upload_key"]) if "upload_key" in request.POST else None
+        items = add_images(project.pk, request.FILES.getlist("images"), section, edit=edit, upload_key=key)
+    except (ValidationError, ValueError, TypeError) as exc:
+        error = " ".join(exc.messages) if isinstance(exc, ValidationError) else "Некорректные параметры загрузки."
+        if request.headers.get("Accept") == "application/json":
+            return JsonResponse({"error": error}, status=400)
+        messages.error(request, error)
     else:
+        if request.headers.get("Accept") == "application/json":
+            return JsonResponse({"saved": [item.pk for item in items]})
         messages.success(request, "Фотографии загружены. Их описания и порядок можно изменить ниже.")
     return redirect("cabinet_edit", pk=pk)
 
@@ -138,7 +147,7 @@ def media_edit(request, pk, media_pk):
             if project.status == Project.Status.PUBLISHED and project.media.count() == 1:
                 messages.error(request, "Сначала снимите проект с публикации: у опубликованного проекта должна остаться фотография.")
                 return redirect("cabinet_edit", pk=pk)
-            files = [(f.storage, f.name) for f in (item.image, item.thumbnail) if f]
+            files = [(f.storage, f.name) for f in (item.image, item.thumbnail, item.source) if f]
             was_cover = item.is_cover
             item.delete()
             if was_cover:
@@ -181,3 +190,17 @@ def change_status(request, pk):
         project.save(update_fields=["status", "published_at", "updated_at"])
     messages.success(request, "Статус проекта обновлён.")
     return redirect("cabinet_edit", pk=pk)
+
+
+@editor_required
+@require_POST
+def image_editor(request, pk, media_pk):
+    from .image_editing import edit_media
+    get_object_or_404(ProjectMedia, pk=media_pk, project_id=pk)
+    try:
+        data = json.loads(request.POST.get("editing", "{}"))
+        item = edit_media(pk, media_pk, data, request.POST.get("revision"))
+    except (ValidationError, ValueError, TypeError) as exc:
+        error = " ".join(exc.messages) if isinstance(exc, ValidationError) else "Некорректные параметры редактирования."
+        return JsonResponse({"error": error}, status=400)
+    return JsonResponse({"saved": [item.pk]})

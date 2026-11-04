@@ -1,0 +1,18 @@
+<dialog class="image-editor" aria-labelledby="image-editor-title" data-image-editor>
+<div class="image-editor-header"><div><h2 id="image-editor-title">Подготовка фотографии</h2><p data-editor-counter></p></div><button type="button" class="button" data-editor-close>Закрыть</button></div>
+<form data-editor-form>
+<div class="image-editor-layout">
+<div><canvas width="800" height="600" data-editor-canvas role="img" aria-label="Предпросмотр кадра 4 на 3"></canvas><p class="subtle">Так фотография будет выглядеть на сайте. Формат 4:3; исходник сохраняется для повторного редактирования.</p><p class="subtle" data-editor-size></p><div class="editor-tools"><button type="button" class="button" data-editor-rotate>Повернуть на 90°</button><button type="button" class="button" data-editor-reset>Сбросить кадр</button></div></div>
+<div class="editor-controls editor-form">
+<div><label for="editor-mode">Как разместить фотографию</label><select id="editor-mode" name="mode"><option value="crop">Заполнить кадр 4:3</option><option value="fit">Сохранить целиком с полями</option></select></div>
+<div><label for="editor-zoom">Масштаб <output data-editor-zoom-value>1.00×</output></label><input id="editor-zoom" name="zoom" type="range" min="1" max="3" step="0.01" value="1"></div>
+<div><label for="editor-x">Положение по горизонтали</label><input id="editor-x" name="x" type="range" min="0" max="100" step="1" value="50"></div>
+<div><label for="editor-y">Положение по вертикали</label><input id="editor-y" name="y" type="range" min="0" max="100" step="1" value="50"></div>
+<div><label for="editor-alt">Описание фотографии</label><input id="editor-alt" name="alt" maxlength="250" placeholder="Например: световые линии в потолке кухни"></div>
+<div><label for="editor-caption">Подпись на сайте (необязательно)</label><input id="editor-caption" name="caption" maxlength="250"></div>
+<div><label for="editor-section">Раздел проекта</label><select id="editor-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select></div>
+<label class="check-label"><input name="cover" type="checkbox"> Сделать обложкой проекта</label>
+</div></div>
+<p role="status" aria-live="polite" data-editor-status></p>
+<div class="image-editor-footer"><button type="button" class="button" data-editor-skip>Пропустить фото</button><button type="submit" class="button primary" data-editor-save>Сохранить фотографию</button></div>
+</form></dialog>
