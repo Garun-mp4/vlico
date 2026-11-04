@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.text import slugify
 from .models import Project, ProjectMedia, ProjectCategory
 
 
@@ -13,11 +14,30 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs["form"] = "project-form"
+        if not self.instance.pk:
+            self.fields["slug"].required = False
+            self.fields["slug"].help_text = "Можно оставить пустым: адрес создастся из названия. После публикации лучше не менять."
         self.fields["editor_notes"].widget.attrs.update(rows=4, placeholder="Нужно указать: объект, площадь, подтверждение фотографий и разрешение на публикацию адреса.")
         for name, text in {"location": "Нужно указать локацию", "area": "Нужно указать площадь, если известна", "materials": "Нужно указать подтверждённые материалы", "task": "Нужно описать задачу объекта", "solution": "Нужно описать выполненные решения"}.items():
             self.fields[name].widget.attrs["placeholder"] = text
         if self.instance.pk:
             self.fields["revision"].initial = self.instance.updated_at.isoformat()
+
+    def clean_slug(self):
+        slug = self.cleaned_data.get("slug")
+        if slug or self.instance.pk:
+            return slug
+        title = self.cleaned_data.get("title", "").lower()
+        alphabet = dict(zip("абвгдеёжзийклмнопрстуфхцчшщъыьэюя", "a b v g d e yo zh z i y k l m n o p r s t u f kh ts ch sh shch - y - e yu ya".split()))
+        root = slugify("".join(alphabet.get(char, char) for char in title))[:40] or "project"
+        slug = root
+        suffix = 2
+        while Project.objects.filter(slug=slug).exists():
+            slug = f"{root}-{suffix}"
+            suffix += 1
+        return slug
 
 
 class MediaForm(forms.ModelForm):

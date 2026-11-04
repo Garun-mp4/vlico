@@ -8,9 +8,10 @@ from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Q, Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
@@ -64,11 +65,18 @@ def projects(request):
     from .category_views import category_from_query
     selected_category = category_from_query(request)
     items = Project.objects.prefetch_related("media", "categories").order_by("position", "-updated_at")
-    if state in Project.Status.values:
-        items = items.filter(status=state)
+    query = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "recent")
+    if query:
+        items = items.filter(Q(title__icontains=query) | Q(location__icontains=query))
     if selected_category:
         items = items.filter(categories=selected_category)
-    return render(request, "cabinet/projects.html", {"projects": items, "state": state, "statuses": Project.Status.choices, "categories": ProjectCategory.objects.all(), "selected_category": selected_category})
+    counts = dict(items.order_by().values("status").annotate(total=Count("pk")).values_list("status", "total"))
+    if state in Project.Status.values:
+        items = items.filter(status=state)
+    orders = {"recent": ("-updated_at", "pk"), "old": ("updated_at", "pk"), "title": ("title", "pk"), "position": ("position", "-published_at", "pk")}
+    items = items.order_by(*orders.get(sort, orders["recent"]))
+    return render(request, "cabinet/projects.html", {"projects": items, "state": state, "query": query, "sort": sort, "total": sum(counts.values()), "status_counts": [(value, label, counts.get(value, 0)) for value, label in Project.Status.choices], "categories": ProjectCategory.objects.all(), "selected_category": selected_category})
 
 
 @editor_required
@@ -86,12 +94,37 @@ def edit(request, pk=None):
                 valid = False
             if valid:
                 project = form.save()
+                if request.headers.get("Accept") == "application/json":
+                    return JsonResponse({"url": reverse("cabinet_edit", args=[project.pk]), "revision": project.updated_at.isoformat(), "title": project.title, "status": project.status, "created": not pk})
                 messages.success(request, "Проект сохранён. Публикация выполняется отдельно.")
                 return redirect("cabinet_edit", pk=project.pk)
     else:
         form = ProjectForm(instance=project)
     media = list(project.media.all()) if project.pk else []
+    if request.method == "POST" and request.headers.get("Accept") == "application/json":
+        return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
     return render(request, "cabinet/edit.html", {"project": project, "form": form, "media_forms": [(m, MediaForm(instance=m)) for m in media]})
+
+
+@editor_required
+@require_POST
+def reorder_media(request, pk):
+    with transaction.atomic():
+        project = get_object_or_404(Project.objects.select_for_update(), pk=pk)
+        if request.POST.get("revision") != project.updated_at.isoformat():
+            return JsonResponse({"error": "Галерея изменена в другой вкладке. Обновите страницу перед перестановкой."}, status=409)
+        try:
+            ids = [int(value) for value in request.POST.getlist("order")]
+        except ValueError:
+            return JsonResponse({"error": "Некорректный порядок фотографий."}, status=400)
+        media = {item.pk: item for item in project.media.all()}
+        if len(ids) != len(media) or set(ids) != set(media):
+            return JsonResponse({"error": "Состав галереи изменился. Обновите страницу."}, status=400)
+        for position, media_id in enumerate(ids):
+            media[media_id].position = position
+        ProjectMedia.objects.bulk_update(media.values(), ["position"])
+        project.save(update_fields=["updated_at"])
+    return JsonResponse({"revision": project.updated_at.isoformat()})
 
 
 @editor_required
