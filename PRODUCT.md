@@ -52,3 +52,7 @@ The client will review provisional calculator prices selected for local developm
 A custom authenticated portfolio cabinet manages project text, photo uploads, ordering, cover selection, result/process groups, preview, publishing, unpublishing and archive/restore. Public project pages, the catalog and featured homepage entries read published database content. Project sitemap entries change immediately without rebuilding. Private editorial notes and missing-data placeholders are restricted to the cabinet/preview.
 
 Eight prepared drafts can be seeded with the included command; their photo grouping is provisional where source evidence is incomplete. These are not eight confirmed distinct completed orders. Published portfolios should only use confirmed records. Forms remain demonstration-only until milestone 3.
+
+## Project categories and homepage publication
+
+Project categories are independently managed in the cabinet and support multiple selections per project. Six initial ceiling/light categories can be edited or deleted without changing services or losing projects. Public category tags and filters use published projects only. All published projects now appear on the homepage automatically in configured order; the former featured-only selection is removed from the editing workflow.

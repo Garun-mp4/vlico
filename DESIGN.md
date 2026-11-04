@@ -88,3 +88,7 @@ The cabinet uses system sans at 16px for readable editing, with a mono VLICO wor
 ## Photo editing
 
 The cabinet uses a native dialog for protected image preparation. A live 4:3 canvas matches the site's image frames; fit mode keeps the full subject with cream padding. Crop, scale, position and rotation controls remain keyboard-operable native inputs. A sequential upload queue preserves already saved photos, reports progress and allows skipping. Save/close controls remain visible while scrolling. No entrance choreography is added to this work surface.
+
+## Project category navigation
+
+Category controls remain text-led: simple flat rows in the cabinet, standard checkboxes in the project form, wrapping underlined filters and compact linked labels on public cards. Multiple categories are supported without nesting dropdowns or adding decorative badges. Destructive removal uses a dedicated confirmation page explaining what remains intact. Navigation wraps on small screens and long category names wrap without horizontal overflow.
