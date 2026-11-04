@@ -107,3 +107,9 @@ The gallery uses three thumbnail columns, then two where space is constrained. C
 ## Homepage project photos
 
 Each homepage card keeps a 4:3 photo viewport. Start with its chosen cover, then show remaining photos in their saved order. Use native horizontal scroll snapping for touch, mouse dragging, and 44px previous/next buttons that remain visible without hover. Controls use the canvas background, ink text, a hairline border and a small photo counter; disable them at the ends and omit them for single-photo projects. Native vertical page scrolling and pinch zoom remain available. Keyboard changes and reduced-motion navigation are immediate; other arrow changes use browser smooth scrolling. No autoplay or nested project carousel. Photo clicks retain the case link, while dragging suppresses navigation. The catalog keeps its cover-only grid.
+
+## Leads and calculator
+
+Reuse the existing canvas, mono public typography and cabinet system sans. Keep forms flat, with visible labels, 48px public controls and 16px input text on phones. The calculator has one continuous form: dimensions and systems, an itemized preliminary result, then contact and optional plan. Desktop uses a sticky result alongside inputs; mobile places the result between parameters and contact fields. Unknown perimeter has a prominent textual explanation. Never autoplay steps or erase entered fields after an error.
+
+Public errors use `#8b302b` on the canvas, inline field feedback and a readable summary; saved state confirms database receipt rather than promising Telegram delivery. Keep existing native inputs, focus feedback, file-progress indication and explicit consent. Cabinet lead/rate controls have 44px targets; six navigation items form a three-column grid on small phones. Rate changes, private downloads and delivery retries use the existing cabinet vocabulary. Motion only supports feedback and respects reduced motion.

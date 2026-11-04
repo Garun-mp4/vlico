@@ -25,8 +25,8 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 
 ## Capabilities and constraints
 - The hero contains no contact input. Its links stay within this page.
-- The contact form is an interaction-only prototype. It validates fields locally and does not transmit or store submitted data.
-- Do not invent a fixed price or installation duration. Explain that the estimate follows the measurement and selected system, and timing is agreed before work begins.
+- The server-site forms persist real leads and private attachments; Telegram is a notification channel. The isolated legacy static preview retains its demonstration-only form.
+- The owner authorized provisional numeric calculator rates for local review. Label the result preliminary and show its composition and exclusions. A final estimate follows measurement; installation timing is agreed separately.
 - State free measurement only for Kaliningrad. Discuss travel elsewhere in the region separately.
 - Do not reuse the unconfirmed promotion in the supplied mockups.
 - Keep the preview `noindex` and publish only the `wireframe/` directory. Do not expose the rest of `from-client/`.
@@ -43,7 +43,7 @@ Client materials state that VLICO has worked since 2009, completed more than 10,
 
 ## Delivery stages
 
-Milestone 1 establishes the server, database, migrations and durable public/private storage while preserving the homepage. The form remains explicitly demonstrational until milestone 3. Milestone 2 adds the custom portfolio cabinet; milestone 3 adds stored leads, Telegram delivery and a numeric calculator with editable provisional rates; milestone 4 adds six service pages, cooperation, Yandex reviews, analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
+Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 adds six service pages, cooperation, Yandex reviews, analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
 
 The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.
 
@@ -51,7 +51,13 @@ The client will review provisional calculator prices selected for local developm
 
 A custom authenticated portfolio cabinet manages project text, photo uploads, ordering, cover selection, result/process groups, preview, publishing, unpublishing and archive/restore. Public project pages, the catalog and featured homepage entries read published database content. Project sitemap entries change immediately without rebuilding. Private editorial notes and missing-data placeholders are restricted to the cabinet/preview.
 
-Eight prepared drafts can be seeded with the included command; their photo grouping is provisional where source evidence is incomplete. These are not eight confirmed distinct completed orders. Published portfolios should only use confirmed records. Forms remain demonstration-only until milestone 3.
+Eight prepared drafts can be seeded with the included command; their photo grouping is provisional where source evidence is incomplete. These are not eight confirmed distinct completed orders. Published portfolios should only use confirmed records.
+
+## Milestone 3 delivered
+
+One server workflow handles consultation, measurement, project upload, calculator and partnership leads, including service/project context and first-touch attribution. The cabinet lists and processes leads, downloads private attachments and shows delivery/retry state. Editing a rate creates a version; each calculator lead keeps the applied version, selected parameters, line items and total. Unknown perimeter produces a clearly incomplete estimate rather than a guessed value.
+
+PostgreSQL holds the notification queue. A dedicated Compose process sends Telegram messages and documents, records confirmed progress and retries explicit temporary failures. Ambiguous delivery needs manual review to avoid automatic duplicate messages. One marked test with its PDF was delivered to the configured Telegram after the recipient started the bot. Legal operator details and public-launch privacy text remain milestone 4/5 dependencies; the local privacy page is explicitly a draft.
 
 ## Project categories and homepage publication
 
