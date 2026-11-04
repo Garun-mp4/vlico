@@ -130,6 +130,18 @@ document.querySelectorAll('.photo-drawer').forEach(dialog => {
   dialog.querySelector('[data-photo-close]').addEventListener('click', close);
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
 });
+// Keep photo menus within the viewport, including the first mobile thumbnail.
+document.addEventListener('toggle', event => {
+  const menu = event.target;
+  if (!menu.matches('.media-meta .context-menu') || !menu.open) return;
+  const content = menu.querySelector('.menu-content');
+  content.style.left = ''; content.style.right = '';
+  const bounds = content.getBoundingClientRect();
+  if (bounds.left < 12) {
+    content.style.right = 'auto';
+    content.style.left = `${12 - menu.getBoundingClientRect().left}px`;
+  }
+}, true);
 // Native disclosures keep menus keyboard accessible; close on Escape/outside click.
 document.addEventListener('click', event => document.querySelectorAll('.context-menu[open]').forEach(menu => {
   if (!menu.contains(event.target)) menu.open=false;
@@ -173,10 +185,13 @@ if (filterForm) {
     event.preventDefault();filterForm.elements.status.value=tab.dataset.status;clearTimeout(timer);load();
   });
 }
+document.querySelector('[data-pick-photos]')?.addEventListener('click', () => document.querySelector('#images').click());
 const grid=document.querySelector('[data-reorder-url]');
 if(grid) {
   let dragged, busy=false;
   const feedback=document.querySelector('[data-gallery-feedback]');
+  const cards=()=>[...grid.querySelectorAll(':scope > .media-item')];
+  const addTile=grid.querySelector('[data-pick-photos]');
   grid.addEventListener('dragstart',event=>{
     if(busy || changed || saving || event.target.closest('dialog, .context-menu')) {event.preventDefault();return;}
     dragged=event.target.closest('.media-item');
@@ -188,10 +203,10 @@ if(grid) {
   grid.addEventListener('drop',async event=>{
     event.preventDefault();const target=event.target.closest('.media-item');
     if(!dragged||!target||dragged===target||busy)return;
-    const old=[...grid.children], from=old.indexOf(dragged), to=old.indexOf(target);
+    const old=cards(), from=old.indexOf(dragged), to=old.indexOf(target);
     if(from<to)target.after(dragged);else target.before(dragged);
     const body=new FormData();body.append('csrfmiddlewaretoken',csrf());body.append('revision',projectForm.elements.revision.value);
-    [...grid.children].forEach(el=>body.append('order',el.dataset.mediaId));
+    cards().forEach(el=>body.append('order',el.dataset.mediaId));
     busy=true;saving=true;publicationState();feedback.textContent='Сохраняем порядок…';grid.setAttribute('aria-busy','true');
     // Lock project save until gallery revision is known.
     const button=document.querySelector('[data-project-save]');button.disabled=true;
@@ -199,8 +214,8 @@ if(grid) {
       const response=await fetch(grid.dataset.reorderUrl,{method:'POST',body,headers:{Accept:'application/json'}});
       const result=await response.json();if(!response.ok)throw new Error(result.error);
       projectForm.elements.revision.value=result.revision;feedback.textContent='Порядок фотографий сохранён';
-      [...grid.children].forEach((card,index)=>{card.querySelector('button[value=up]').disabled=index===0;card.querySelector('button[value=down]').disabled=index===grid.children.length-1;});
-    }catch(error){old.forEach(card=>grid.append(card));feedback.textContent=error.message.includes('Галерея')||error.message.includes('Состав')?error.message:'Не удалось подтвердить сохранение. На экране восстановлен прежний порядок. Обновите страницу и повторите.';}
+      cards().forEach((card,index)=>{card.querySelector('button[value=up]').disabled=index===0;card.querySelector('button[value=down]').disabled=index===cards().length-1;});
+    }catch(error){old.forEach(card=>grid.insertBefore(card,addTile));feedback.textContent=error.message.includes('Галерея')||error.message.includes('Состав')?error.message:'Не удалось подтвердить сохранение. На экране восстановлен прежний порядок. Обновите страницу и повторите.';}
     finally{busy=false;saving=false;publicationState();button.disabled=false;grid.removeAttribute('aria-busy');}
   });
 }

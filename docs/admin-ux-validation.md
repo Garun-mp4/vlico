@@ -28,3 +28,10 @@ Local screenshots are in ignored `.playwright-cli/admin-*-final.png`; they are r
 ## Design review
 
 Manual Impeccable quality pass: task hierarchy, keyboard controls, native dialog focus, discarded-edit protection, mobile layout and gallery discoverability checked. Mechanical detector produced palette advisories and cannot resolve Django `{% static %}` links; its default-black template observations are parser limitations. Cabinet semantic colors and surface additions are documented in DESIGN.md and checked in rendered pages.
+
+
+## Photo workspace refinement
+
+The gallery now precedes basic information, including on the new-project screen. One bordered card contains upload controls, compact image thumbnails, explicit cover selection, overlay action menus, an add-photo tile and an ordering footer. A new project still needs a named draft before media can be uploaded; the initial card explains this and links to the name field.
+
+Verified at 1440px and 390px with Playwright: two uploaded files persist, the add tile opens the native file chooser, drag reorder persists after reload and excludes the add tile from the request, aborted reorder restores the visible order with the add tile last, photo drawer opens, cover changes persist, and mobile menus remain within the viewport. Temporary test project 18 and its uploaded files were removed. All 44 server tests and Django checks pass. The design detector has palette advisories only; no blocking findings.
