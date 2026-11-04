@@ -34,7 +34,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Ресурсы и проверка
 
-Исходные фото компании: fabric-bauf.jpg, light-lines.jpg, magnetic-tracks.jpg, penthouse-chandelier.jpg, cornice.jpg. Для принципиальных узлов — SVG-сечения с подписью «схема», не фото объекта. Матовый ПВХ — ImageGen illustration, подпись и provenance отдельно. Оптимизированный WebP, заданные размеры, lazy loading.
+Существующие иллюстративные материалы сайта: light-lines.jpg, magnetic-tracks.jpg, penthouse-chandelier.jpg, cornice.jpg. Их наличие в репозитории не доказывает, что это выполненные компанией объекты. Для принципиальных узлов — SVG-сечения с подписью «схема», не фото объекта. Матовый ПВХ и ткань — ImageGen illustrations, подпись и provenance отдельно. Оптимизированный WebP, заданные размеры, lazy loading.
 
 Регрессии: прежние контрольные суммы; прямоугольник/площадь/неизвестные размеры; неизвестные количества; снятие света; exclusive answers; геометрия; ткань/профиль; парящий + LED без повторной строки; заявки с полным снимком, повтор и устаревшая версия. Браузер: восемь шагов, назад, результат, форма, ошибки сети, размеры 1440/1280/1024/768/390/320, no overflow, клавиатура, reduced motion, no-JS. Django suite/check и Docker build.
 
