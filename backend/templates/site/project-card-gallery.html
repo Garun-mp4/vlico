@@ -1,0 +1,15 @@
+<div class="project-carousel" data-project-carousel role="group" aria-roledescription="карусель" aria-label="Фотографии проекта «{{ project.title }}»">
+  <div class="project-carousel-track" id="project-photos-{{ project.pk }}" tabindex="0" aria-label="Фотографии. Используйте стрелки влево и вправо для переключения.">
+    {% include 'site/project-card-slide.html' with media=cover %}
+    {% for media in project.media.all %}{% if media.pk != cover.pk %}{% include 'site/project-card-slide.html' %}{% endif %}{% endfor %}
+  </div>
+  <div class="project-carousel-controls" hidden>
+    <button class="project-carousel-arrow project-carousel-prev" type="button" aria-label="Предыдущая фотография" aria-controls="project-photos-{{ project.pk }}" disabled>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>
+    </button>
+    <button class="project-carousel-arrow project-carousel-next" type="button" aria-label="Следующая фотография" aria-controls="project-photos-{{ project.pk }}">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 5 7 7-7 7"/></svg>
+    </button>
+    <span class="project-carousel-count" aria-live="polite" aria-atomic="true"><span class="visually-hidden">Фотография </span><span data-photo-number>1</span> / {{ project.media.count }}</span>
+  </div>
+</div>

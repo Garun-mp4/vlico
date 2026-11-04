@@ -50,6 +50,34 @@ class PortfolioTests(TestCase):
             self.assertEqual(self.client.get(path).status_code, 403)
         self.assertEqual(self.client.post(reverse("cabinet_status", args=[self.project.pk]), {"action": "publish", "confirm": "yes"}).status_code, 403)
 
+    def test_home_gallery_starts_with_cover_and_uses_saved_media_order(self):
+        first, second, cover = self.upload(3)
+        first.is_cover = False
+        first.save()
+        cover.is_cover = True
+        cover.save()
+        self.project.status = "published"
+        self.project.save()
+        draft = Project.objects.create(title="Private gallery", slug="private-gallery")
+        private = add_images(draft.pk, [jpeg()], "result")[0]
+        home = self.client.get("/")
+        urls = [reverse("project_image", args=[m.pk, "thumb"]) for m in (cover, first, second)]
+        html = home.content.decode()
+        self.assertLess(html.index(urls[0]), html.index(urls[1]))
+        self.assertLess(html.index(urls[1]), html.index(urls[2]))
+        self.assertContains(home, 'data-project-carousel', count=1)
+        self.assertNotContains(home, reverse("project_image", args=[private.pk, "thumb"]))
+        self.assertNotContains(self.client.get(reverse("projects")), 'data-project-carousel')
+
+    def test_home_single_photo_keeps_project_link_without_carousel(self):
+        item = self.upload(1)[0]
+        self.project.status = "published"
+        self.project.save()
+        home = self.client.get("/")
+        self.assertContains(home, reverse("project_image", args=[item.pk, "thumb"]))
+        self.assertContains(home, self.project.get_absolute_url())
+        self.assertNotContains(home, 'data-project-carousel')
+
     def test_drafts_and_their_media_are_private(self):
         item = self.upload(1)[0]
         self.assertEqual(self.client.get(reverse("project", args=[self.project.slug])).status_code, 404)

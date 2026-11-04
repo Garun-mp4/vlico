@@ -375,3 +375,22 @@ a:focus-visible,button:focus-visible {
 .project-categories a {text-underline-offset:4px;}
 
 .portfolio-filters a,.project-categories li,.project-categories a {max-width:100%;overflow-wrap:anywhere;}
+
+.project-carousel {position:relative;min-width:0;}
+.project-carousel-track {display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;}
+.project-carousel-track::-webkit-scrollbar {display:none;}
+.project-carousel-track.is-dragging {scroll-snap-type:none;cursor:grabbing;user-select:none;}
+.project-carousel-slide {display:block;flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;-webkit-user-drag:none;}
+.project-carousel-slide img {display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;user-select:none;-webkit-user-drag:none;}
+.project-carousel-controls {position:absolute;inset:0;pointer-events:none;}
+.project-carousel-controls[hidden] {display:none;}
+.project-carousel-arrow {position:absolute;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--rule);border-radius:50%;background:var(--canvas);color:var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation;transition:background-color 150ms ease;}
+.project-carousel-prev {left:14px;}
+.project-carousel-next {right:14px;}
+.project-carousel-arrow:disabled {opacity:.45;cursor:default;}
+.project-carousel-arrow:active:not(:disabled) {background:var(--canvas-soft);}
+.project-carousel-count {position:absolute;right:14px;bottom:14px;padding:7px 11px;background:var(--canvas);color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums;}
+.project-carousel .visually-hidden {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;}
+.project-carousel-track:focus-visible,.project-carousel-slide:focus-visible {outline-offset:-4px;}
+@media(hover:hover) {.project-carousel-arrow:hover:not(:disabled) {background:var(--canvas-soft);}}
+@media(prefers-reduced-motion:reduce) {.project-carousel-arrow {transition:none;}}

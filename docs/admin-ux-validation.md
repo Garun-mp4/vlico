@@ -35,3 +35,9 @@ Manual Impeccable quality pass: task hierarchy, keyboard controls, native dialog
 The gallery now precedes basic information, including on the new-project screen. One bordered card contains upload controls, compact image thumbnails, explicit cover selection, overlay action menus, an add-photo tile and an ordering footer. A new project still needs a named draft before media can be uploaded; the initial card explains this and links to the name field.
 
 Verified at 1440px and 390px with Playwright: two uploaded files persist, the add tile opens the native file chooser, drag reorder persists after reload and excludes the add tile from the request, aborted reorder restores the visible order with the add tile last, photo drawer opens, cover changes persist, and mobile menus remain within the viewport. Temporary test project 18 and its uploaded files were removed. All 44 server tests and Django checks pass. The design detector has palette advisories only; no blocking findings.
+
+## Homepage photo navigation
+
+Homepage project cards now show all saved photos, starting with the chosen cover. Catalog cards remain cover-only. Two additional server regressions check cover/order, draft-photo exclusion and the single-photo fallback; all 46 tests pass.
+
+Playwright checks at 1440px and 390px cover previous/next buttons, disabled ends, keyboard Home/End and arrows, actual mouse drag without accidental navigation, independent cards, native touch swipe, rapid smooth-arrow clicks, resize preserving the current photo, normal photo links and the JavaScript-disabled fallback. A mobile browser context with touch enabled confirms vertical page scrolling over the photo; no horizontal page overflow. Reduced motion uses immediate navigation. Screenshots are ignored local artifacts in `.playwright-cli/card-gallery-*.png`. Mobile checks use browser emulation, not physical hardware.
