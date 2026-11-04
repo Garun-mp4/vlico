@@ -11,6 +11,9 @@ from .models import Project, ProjectMedia
 EDITOR_PERMISSIONS = ("core.view_project", "core.add_project", "core.change_project", "core.view_projectmedia", "core.add_projectmedia", "core.change_projectmedia", "core.delete_projectmedia")
 
 
+CATEGORY_PERMISSIONS = ("core.view_projectcategory", "core.add_projectcategory", "core.change_projectcategory", "core.delete_projectcategory")
+
+
 def is_editor(user):
     return user.is_authenticated and user.is_active and user.is_staff and user.has_perms(EDITOR_PERMISSIONS)
 
@@ -26,7 +29,7 @@ def editor_required(view):
 
 
 def published_projects():
-    return Project.objects.filter(status=Project.Status.PUBLISHED).prefetch_related("media", "services").order_by("position", "-published_at", "pk")
+    return Project.objects.filter(status=Project.Status.PUBLISHED).prefetch_related("media", "services", "categories").order_by("position", "-published_at", "pk")
 
 
 def prepared_image(upload):

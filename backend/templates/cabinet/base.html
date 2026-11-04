@@ -16,7 +16,7 @@
 <header class="cabinet-header">
 <a class="cabinet-brand" href="{% url 'cabinet_projects' %}">VLICO <span>Кабинет проектов</span>
 </a>
-<nav aria-label="Кабинет">
+<nav aria-label="Кабинет">{% if user.is_authenticated %}<a href="{% url 'cabinet_projects' %}">Проекты</a>{% if perms.core.view_projectcategory %}<a href="{% url 'cabinet_categories' %}">Категории</a>{% endif %}{% endif %}
 <a href="{% url 'home' %}">Открыть сайт</a>{% if user.is_authenticated %}<form action="{% url 'cabinet_logout' %}" method="post">{% csrf_token %}<button class="plain" type="submit">Выйти</button>
 </form>{% endif %}</nav>
 </header>

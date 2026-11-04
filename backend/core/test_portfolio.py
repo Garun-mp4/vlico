@@ -28,7 +28,7 @@ class PortfolioTests(TestCase):
 
     def setUp(self):
         self.directory = TemporaryDirectory()
-        self.settings_context = override_settings(MEDIA_ROOT=Path(self.directory.name))
+        self.settings_context = override_settings(MEDIA_ROOT=Path(self.directory.name)/"public", PRIVATE_MEDIA_ROOT=Path(self.directory.name)/"private")
         self.settings_context.enable()
         self.addCleanup(self.directory.cleanup)
         self.addCleanup(self.settings_context.disable)

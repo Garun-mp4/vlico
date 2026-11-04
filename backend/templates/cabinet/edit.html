@@ -6,10 +6,10 @@
 </div>{% if project.pk %}<a class="button" href="{% url 'cabinet_preview' project.pk %}" target="_blank" rel="noopener">Предпросмотр</a>{% endif %}</div>
 <div class="editor-layout">
 <section>
-<h2>Сведения о проекте</h2>
+<h2>Сведения о проекте</h2><p class="subtle">Категории помогают посетителю найти нужные работы. {% if perms.core.view_projectcategory %}<a href="{% url 'cabinet_categories' %}" target="_blank" rel="noopener">Управление категориями</a>{% endif %}</p>
 <form method="post" class="editor-form" data-unsaved>{% csrf_token %}{{ form.as_div }}<div class="save-bar">
 <button class="button primary" type="submit">Сохранить проект</button>
-<span>Сохранение не меняет статус публикации.</span>
+<span>После публикации проект автоматически появится на главной.</span>
 </div>
 </form>
 </section>

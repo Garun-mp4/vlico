@@ -72,3 +72,16 @@ class ImageEditorTests(TestCase):
         response=self.client.post(path,{"images":jpeg(),"editing":json.dumps({"caption":4})},HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code,400)
         self.assertEqual(self.project.media.count(),1)
+
+    def test_capacity_limit_and_image_source_isolation(self):
+        from core.models import ProjectMedia
+        ProjectMedia.objects.bulk_create([ProjectMedia(project=self.project,image="placeholder.webp",position=i) for i in range(40)])
+        with self.assertRaises(ValidationError): add_images(self.project.pk,[jpeg()],"result")
+        self.assertEqual(self.project.media.count(),40)
+
+    def test_source_files_stay_inside_test_storage(self):
+        from pathlib import Path
+        from django.conf import settings
+        item=add_images(self.project.pk,[jpeg()],"result",edit={})[0]
+        self.assertTrue(Path(item.source.path).is_relative_to(Path(self.directory.name)))
+        self.assertTrue(Path(item.source.path).is_relative_to(settings.PRIVATE_MEDIA_ROOT))

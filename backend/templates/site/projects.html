@@ -4,8 +4,8 @@
 <h1>Потолки в реальных интерьерах.</h1>
 <p>Частные пространства и коммерческие объекты. Потолки, освещение и детали, собранные в одну систему.</p>
 </section>
-<section class="portfolio-grid" aria-label="Проекты VLICO">{% for project in projects %}{% include 'site/project-card.html' %}{% empty %}<div class="portfolio-empty">
-<h2>Готовим подробные истории работ</h2>
+<nav class="portfolio-filters" aria-label="Категории проектов"><a href="{% url 'projects' %}" {% if not selected_category %}aria-current="page"{% endif %}>Все проекты</a>{% for category in categories %}<a href="?category={{ category.pk }}" {% if selected_category.pk == category.pk %}aria-current="page"{% endif %}>{{ category.title }} <span>({{ category.project_count }})</span></a>{% endfor %}</nav>{% if selected_category %}<p class="portfolio-selection">Категория: {{ selected_category.title }}</p>{% endif %}<section class="portfolio-grid" aria-label="Проекты VLICO">{% for project in projects %}{% include 'site/project-card.html' %}{% empty %}<div class="portfolio-empty">
+<h2>{% if selected_category %}В этой категории пока нет опубликованных работ{% else %}Готовим подробные истории работ{% endif %}</h2>
 <p>Собираем фотографии и описания выполненных объектов. Расскажите о вашем помещении, чтобы обсудить подходящее решение.</p>
 <a class="text-link" href="{% url 'home' %}#contact">Обсудить задачу</a>
 </div>{% endfor %}</section>{% endblock %}

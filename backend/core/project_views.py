@@ -2,7 +2,8 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_safe
 from django.views.decorators.cache import never_cache
-from .models import Project, ProjectMedia
+from .models import Project, ProjectMedia, ProjectCategory
+from django.db.models import Count, Q
 from .portfolio import editor_required, is_editor, published_projects
 
 
@@ -13,7 +14,13 @@ def project_context(project):
 
 @require_safe
 def index(request):
-    return render(request, "site/projects.html", {"projects": published_projects()})
+    from .category_views import category_from_query
+    selected_category = category_from_query(request)
+    projects = published_projects()
+    if selected_category:
+        projects = projects.filter(categories=selected_category)
+    categories = ProjectCategory.objects.annotate(project_count=Count("projects", filter=Q(projects__status=Project.Status.PUBLISHED), distinct=True))
+    return render(request, "site/projects.html", {"projects": projects, "categories": categories, "selected_category": selected_category})
 
 
 @require_safe
@@ -25,7 +32,7 @@ def detail(request, slug):
 @editor_required
 @require_safe
 def preview(request, pk):
-    context = project_context(get_object_or_404(Project.objects.prefetch_related("media", "services"), pk=pk))
+    context = project_context(get_object_or_404(Project.objects.prefetch_related("media", "services", "categories"), pk=pk))
     context["preview"] = True
     response = render(request, "site/project.html", context)
     response["X-Robots-Tag"] = "noindex, nofollow"

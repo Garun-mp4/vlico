@@ -16,7 +16,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core.exceptions import ValidationError
 from .forms import ProjectForm, MediaForm
-from .models import Project, ProjectMedia, LoginBucket
+from .models import Project, ProjectMedia, LoginBucket, ProjectCategory
 from .portfolio import editor_required, is_editor, add_images
 
 
@@ -61,10 +61,14 @@ def signout(request):
 @require_http_methods(["GET"])
 def projects(request):
     state = request.GET.get("status", "")
-    items = Project.objects.prefetch_related("media").order_by("position", "-updated_at")
+    from .category_views import category_from_query
+    selected_category = category_from_query(request)
+    items = Project.objects.prefetch_related("media", "categories").order_by("position", "-updated_at")
     if state in Project.Status.values:
         items = items.filter(status=state)
-    return render(request, "cabinet/projects.html", {"projects": items, "state": state, "statuses": Project.Status.choices})
+    if selected_category:
+        items = items.filter(categories=selected_category)
+    return render(request, "cabinet/projects.html", {"projects": items, "state": state, "statuses": Project.Status.choices, "categories": ProjectCategory.objects.all(), "selected_category": selected_category})
 
 
 @editor_required

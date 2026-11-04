@@ -2,6 +2,7 @@ import uuid
 from pathlib import PurePosixPath
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.functions import Lower
 from .storage import PrivateMediaStorage
 
 
@@ -31,6 +32,18 @@ class Service(Timestamped):
         return self.title
 
 
+class ProjectCategory(Timestamped):
+    title = models.CharField(max_length=120)
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "title", "pk"]
+        constraints = [models.UniqueConstraint(Lower("title"), name="unique_project_category_title", violation_error_message="Категория с таким названием уже существует.")]
+
+    def __str__(self):
+        return self.title
+
+
 class Project(Timestamped):
     class Status(models.TextChoices):
         DRAFT = "draft", "Черновик"
@@ -48,6 +61,7 @@ class Project(Timestamped):
     area = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
     services = models.ManyToManyField(Service, blank=True)
+    categories = models.ManyToManyField(ProjectCategory, blank=True, related_name="projects")
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT)
     featured = models.BooleanField(default=False)
     position = models.PositiveIntegerField(default=0)

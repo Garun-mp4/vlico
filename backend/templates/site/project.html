@@ -3,7 +3,7 @@
 <p>
 <a href="{% url 'projects' %}">Проекты</a> / {{ project.title }}</p>
 <h1>{{ project.title }}</h1>
-<dl class="case-facts">{% if project.location %}<div>
+{% include 'site/categories.html' %}<dl class="case-facts">{% if project.location %}<div>
 <dt>Локация</dt>
 <dd>{{ project.location }}</dd>
 </div>{% endif %}{% if project.object_type %}<div>

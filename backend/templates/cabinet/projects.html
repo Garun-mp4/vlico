@@ -6,17 +6,17 @@
 <a class="button primary" href="{% url 'cabinet_new' %}">Добавить проект</a>
 </div>
 <nav class="status-tabs" aria-label="Статус проектов">
-<a {% if not state %}aria-current="page"{% endif %} href="{% url 'cabinet_projects' %}">Все</a>{% for value,label in statuses %}<a {% if state == value %}aria-current="page"{% endif %} href="?status={{ value }}">{{ label }}</a>{% endfor %}</nav>
-<div class="project-list">{% for project in projects %}<article class="project-row">
+<a {% if not state %}aria-current="page"{% endif %} href="{% url 'cabinet_projects' %}{% if selected_category %}?category={{ selected_category.pk }}{% endif %}">Все</a>{% for value,label in statuses %}<a {% if state == value %}aria-current="page"{% endif %} href="?status={{ value }}{% if selected_category %}&amp;category={{ selected_category.pk }}{% endif %}">{{ label }}</a>{% endfor %}</nav>
+<form method="get" class="category-filter"><input type="hidden" name="status" value="{{ state }}"><label for="category-filter">Категория</label><select name="category" id="category-filter"><option value="">Все категории</option>{% for category in categories %}<option value="{{ category.pk }}" {% if selected_category.pk == category.pk %}selected{% endif %}>{{ category.title }}</option>{% endfor %}</select><button class="button" type="submit">Показать</button>{% if selected_category %}<a href="?status={{ state }}">Сбросить</a>{% endif %}</form><div class="project-list">{% for project in projects %}<article class="project-row">
 <a class="row-image" href="{% url 'cabinet_edit' project.pk %}" tabindex="-1" aria-hidden="true">{% with cover=project.cover_media %}{% if cover %}<img src="{% url 'project_image' cover.pk 'thumb' %}" alt="" width="160" height="120" loading="lazy">{% else %}<span>Добавьте обложку</span>{% endif %}{% endwith %}</a>
 <div class="row-title">
 <a href="{% url 'cabinet_edit' project.pk %}">{{ project.title }}</a>
-<p class="subtle">{{ project.location|default:'Локация не указана' }} · {{ project.media.all|length }} фото</p>
+<p class="subtle">{% for category in project.categories.all %}{{ category.title }}{% if not forloop.last %} · {% endif %}{% empty %}Без категории{% endfor %}</p><p class="subtle">{{ project.location|default:'Локация не указана' }} · {{ project.media.all|length }} фото</p>
 </div>
 <span class="status {{ project.status }}">{{ project.get_status_display }}</span>
 <a class="edit-link" href="{% url 'cabinet_edit' project.pk %}">Редактировать</a>
 </article>{% empty %}<div class="empty-state">
-<h2>Здесь будут ваши работы</h2>
+<h2>{% if selected_category or state %}В этом списке пока нет проектов{% else %}Здесь будут ваши работы{% endif %}</h2>
 <p>Добавьте первый проект, загрузите фотографии и сохраните его как черновик.</p>
 <a href="{% url 'cabinet_new' %}">Добавить проект</a>
 </div>{% endfor %}</div>{% endblock %}

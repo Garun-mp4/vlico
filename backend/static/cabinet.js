@@ -17,7 +17,7 @@ if (editor && typeof editor.showModal === 'function') {
   const canvas = editor.querySelector('canvas');
   const context = canvas.getContext('2d');
   const skip = editor.querySelector('[data-editor-skip]');
-  let queue = [], index = 0, current, image, objectURL, rotation = 0, busy = false, saved = 0, opener;
+  let queue = [], index = 0, current, image, objectURL, rotation = 0, busy = false, saved = 0, opener, generation = 0;
   const message = (text, error = false) => {
     status.textContent = text;
     status.dataset.error = String(error);
@@ -50,6 +50,7 @@ if (editor && typeof editor.showModal === 'function') {
     ['zoom', 'x', 'y'].forEach(name => { field(name).disabled = data.mode === 'fit' || busy; });
   }
   async function show() {
+    const token = ++generation;
     if (objectURL) URL.revokeObjectURL(objectURL);
     objectURL = null; image = null;
     current = queue[index];
@@ -71,12 +72,13 @@ if (editor && typeof editor.showModal === 'function') {
       if (current.file) { objectURL = URL.createObjectURL(current.file); loaded.src = objectURL; }
       else loaded.src = current.source;
       await loaded.decode();
+      if (token !== generation || !editor.open) return;
       if (loaded.naturalWidth * loaded.naturalHeight > 16000000 || Math.min(loaded.naturalWidth,loaded.naturalHeight) < 64) throw new Error('Размер изображения: от 64 пикселей по стороне до 16 мегапикселей.');
       image = loaded;
       editor.querySelector('[data-editor-size]').textContent = `${current.file?.name || 'Сохранённый исходник'} · ${loaded.naturalWidth} × ${loaded.naturalHeight} px`;
       save.disabled = false; draw();
       message('Настройте кадр и сохраните. При закрытии несохранённые фото не добавляются.');
-    } catch (error) { message(error.message.includes('Размер') ? error.message : 'Не удалось открыть изображение. Пропустите его и выберите исправный JPEG, PNG или WebP.', true); }
+    } catch (error) { if (token !== generation || !editor.open) return; message(error.message.includes('Размер') ? error.message : 'Не удалось открыть изображение. Пропустите его и выберите исправный JPEG, PNG или WebP.', true); }
   }
   function open(items, button) {
     if (changed) { alert('Сначала сохраните изменения сведений о проекте.'); return; }
@@ -85,6 +87,7 @@ if (editor && typeof editor.showModal === 'function') {
   }
   function finish() {
     if (busy) return;
+    generation++;
     editor.close();
     if (objectURL) URL.revokeObjectURL(objectURL);
     objectURL = null;

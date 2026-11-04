@@ -1,5 +1,5 @@
 from django.urls import path
-from core import views, cabinet, project_views
+from core import views, cabinet, project_views, category_views
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import ProjectSitemap
 urlpatterns = [
@@ -13,6 +13,10 @@ urlpatterns = [
     path("cabinet/login/", cabinet.login, name="cabinet_login"),
     path("cabinet/logout/", cabinet.signout, name="cabinet_logout"),
     path("cabinet/", cabinet.projects, name="cabinet_projects"),
+    path("cabinet/categories/", category_views.index, name="cabinet_categories"),
+    path("cabinet/categories/new/", category_views.edit, name="cabinet_category_new"),
+    path("cabinet/categories/<int:pk>/", category_views.edit, name="cabinet_category_edit"),
+    path("cabinet/categories/<int:pk>/delete/", category_views.delete, name="cabinet_category_delete"),
     path("cabinet/projects/new/", cabinet.edit, name="cabinet_new"),
     path("cabinet/projects/<int:pk>/", cabinet.edit, name="cabinet_edit"),
     path("cabinet/projects/<int:pk>/preview/", project_views.preview, name="cabinet_preview"),

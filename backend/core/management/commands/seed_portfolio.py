@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand, CommandError
-from core.models import Project, Service
+from core.models import Project, Service, ProjectCategory
 from core.portfolio import add_images
 
 class Command(BaseCommand):
@@ -22,6 +22,7 @@ class Command(BaseCommand):
             if not created:
                 continue
             project.services.set(Service.objects.filter(slug__in=service_slugs))
+            project.categories.set(ProjectCategory.objects.filter(title__in=project.services.values_list("title", flat=True)))
             if source:
                 for group in ("result", "process"):
                     paths = [p["path"] for p in photos if p.get("section", "result") == group]

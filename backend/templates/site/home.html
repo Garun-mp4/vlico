@@ -153,7 +153,7 @@
 
       <section class="projects section-light" id="projects" aria-labelledby="projects-title">
         <div class="home-project-heading"><h2 id="projects-title">Потолки в реальных интерьерах.</h2><p>Частные пространства и коммерческие объекты. Подробности решений, фотографии результата и процесса монтажа.</p><a class="text-link" href="{% url 'projects' %}">Все проекты <span aria-hidden="true">↗</span></a></div>
-        <div class="portfolio-grid home-project-grid">{% for project in featured_projects %}{% include 'site/project-card.html' %}{% empty %}<div class="portfolio-empty"><p>Готовим подробные истории выполненных работ. Обсудим решение для вашего помещения.</p><a class="text-link" href="#contact">Обсудить проект</a></div>{% endfor %}</div>
+        <div class="portfolio-grid home-project-grid">{% for project in homepage_projects %}{% include 'site/project-card.html' %}{% empty %}<div class="portfolio-empty"><p>Готовим подробные истории выполненных работ. Обсудим решение для вашего помещения.</p><a class="text-link" href="#contact">Обсудить проект</a></div>{% endfor %}</div>
       </section>
 
       <section class="solutions section-sand" id="solutions" aria-labelledby="solutions-title">
