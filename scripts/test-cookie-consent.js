@@ -10,6 +10,12 @@ async page => {
     await page.evaluate(() => localStorage.removeItem('vlicoPrivacy'));
     await page.reload();
     check(await panel.isVisible(), 'Initial cookie notice is absent');
+    if (width <= 760) {
+      const bounds = await panel.boundingBox();
+      const gap = 844 - bounds.y - bounds.height;
+      check(gap >= 11 && gap <= 13, 'Cookie notice is not anchored to the bottom');
+      check(bounds.y >= 68, 'Cookie notice covers the header');
+    }
     check(await panel.locator('input[type=checkbox]').count() === 0, 'Initial notice still has checkboxes');
     check(await page.locator('iframe').count() >= 2, 'Widgets wait for consent');
     check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), 'Overflow at ' + width);
