@@ -22,9 +22,26 @@ async page => {
   await page.waitForFunction(() => getComputedStyle(document.querySelector('.footer-wordmark-highlight')).opacity === '1');
   check(await word.locator('.footer-wordmark-highlight').evaluate(n => getComputedStyle(n).fill) === 'rgb(39, 190, 130)', 'Highlight is not the brand color');
   const first = await word.locator('[data-footer-spot]').getAttribute('style');
+  const originalShape = await word.locator('[data-footer-blob-shape]').getAttribute('d');
+  check(originalShape?.includes('C') && !await word.locator('circle').count(), 'Organic mask is missing');
+  const inertia = await word.evaluate(async node => {
+    const spot=node.querySelector('[data-footer-spot]'),rect=node.querySelector('svg').getBoundingClientRect();
+    const before=spot.style.transform;
+    node.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse',clientX:rect.left+rect.width*.75,clientY:rect.top+rect.height*.5}));
+    const immediate=spot.style.transform;
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    return {deferred:before===immediate,lag:Math.abs(new DOMMatrix(getComputedStyle(spot).transform).e-750)};
+  });
+  check(inertia.deferred && inertia.lag>10,'Highlight jumps to pointer instead of following with inertia');
   await page.mouse.move(bounds.x + bounds.width * .75, bounds.y + bounds.height * .5);
   await page.waitForFunction(previous => document.querySelector('[data-footer-spot]').getAttribute('style') !== previous, first);
+  await page.waitForFunction(previous=>document.querySelector('[data-footer-blob-shape]').getAttribute('d')!==previous,originalShape);
   await page.locator('.site-footer').screenshot({ path: '.playwright-cli/footer-highlight.png' });
+  // Allow the documented 1.1s settling window, then verify there is no idle loop.
+  await page.waitForTimeout(1400);
+  const settled=await word.locator('[data-footer-blob-shape]').getAttribute('d');
+  await page.waitForTimeout(250);
+  check(await word.locator('[data-footer-blob-shape]').getAttribute('d')===settled,'Mask keeps animating while pointer is idle');
   await page.mouse.move(0,0);
   check(!await word.evaluate(n => n.classList.contains('is-highlighted')), 'Effect remains active after leave');
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -40,5 +57,5 @@ async page => {
   await mobile.locator('.site-footer').screenshot({ path: '.playwright-cli/footer-mobile.png' });
   await context.close();
   check(!errors.length, errors.join('; '));
-  return { widths:[320,390,768,1440,1920], layout:'full word and clear footer bar', pointer:'local brand highlight follows pointer and stops on leave', reducedMotion:'static', touch:'static', errors };
+  return { widths:[320,390,768,1440,1920], layout:'full word and clear footer bar', pointer:'organic shape, inertial following, bounded settling and no idle loop', inertia, reducedMotion:'static', touch:'static', errors };
 }

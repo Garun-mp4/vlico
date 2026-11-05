@@ -184,22 +184,69 @@ contactForm?.querySelectorAll("input").forEach((input) => {
 });
 }
 
-// Only pointer movement schedules work; the decorative wordmark has no idle loop.
+// A bounded, 30 fps SVG mask: pointer inertia and a brief organic settling motion.
 const footerWordmark = document.querySelector('[data-footer-wordmark]');
 if (footerWordmark) {
   const svg = footerWordmark.querySelector('svg');
   const spot = footerWordmark.querySelector('[data-footer-spot]');
+  const shape = footerWordmark.querySelector('[data-footer-blob-shape]');
   const interactive = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-  let bounds = null, frame = 0, x = 0, y = 0;
-  function paintSpot() {
-    frame = 0;
-    if (!interactive.matches || !footerWordmark.classList.contains('is-highlighted')) return;
-    bounds ||= svg.getBoundingClientRect();
-    spot.style.transform = `translate(${(x - bounds.left) * 1000 / bounds.width}px, ${(y - bounds.top) * 260 / bounds.height}px)`;
+  // One softly edged path; the filter is bounded to a small local SVG region.
+  const layer = document.createElementNS('http://www.w3.org/2000/svg','use');
+  layer.setAttribute('href','#footer-blob-shape');
+  layer.setAttribute('filter','url(#footer-blob-soften)');
+  spot.append(layer);
+  let bounds = null, frame = 0, x = 0, y = 0, targetX = 0, targetY = 0;
+  let lastPaint = 0, lastMove = 0, phase = 0, spread = 0.9, stretch = 0, angle = 0;
+  function contour() {
+    const count = 12, points = [];
+    for (let index=0;index<count;index++) {
+      const a=index*Math.PI*2/count;
+      const radius=128*(1+0.17*Math.sin(3*a+phase)+0.10*Math.sin(5*a-phase*0.73)+0.05*Math.cos(2*a+phase*0.4));
+      points.push([Math.cos(a)*radius,Math.sin(a)*radius]);
+    }
+    const at=index=>points[(index+count)%count];
+    let d=`M${points[0].join(',')}`;
+    for(let index=0;index<count;index++) {
+      const previous=at(index-1),current=at(index),next=at(index+1),after=at(index+2);
+      d+=`C${current[0]+(next[0]-previous[0])/6},${current[1]+(next[1]-previous[1])/6} ${next[0]-(after[0]-current[0])/6},${next[1]-(after[1]-current[1])/6} ${next.join(',')}`;
+    }
+    shape.setAttribute('d',d+'Z');
+  }
+  function paintSpot(now) {
+    frame=0;
+    if (!interactive.matches || document.hidden || !footerWordmark.classList.contains('is-highlighted')) return;
+    const elapsed=now-lastPaint;
+    if (elapsed>=1000/30-0.5) {
+      const dt=Math.min(elapsed,48), follow=1-Math.exp(-dt/85), soften=1-Math.exp(-dt/160);
+      const dx=targetX-x,dy=targetY-y,distance=Math.hypot(dx,dy);
+      if(distance>0.5) {
+        const direction=Math.atan2(dy,dx)*180/Math.PI;
+        angle+=(((direction-angle)%360+540)%360-180)*soften;
+      }
+      x+=dx*follow;y+=dy*follow;
+      stretch+=(Math.min(distance/450,0.24)-stretch)*soften;
+      spread+=(1-spread)*soften;
+      phase+=dt*0.0014;
+      contour();
+      spot.style.transform=`translate(${x}px, ${y}px) rotate(${angle}deg) scale(${spread*(1+stretch)}, ${spread*(1-stretch*0.25)})`;
+      lastPaint=now;
+    }
+    // No persistent idle animation, including when a pointer is parked here.
+    if (now-lastMove<1100 || Math.hypot(targetX-x,targetY-y)>0.1) frame=requestAnimationFrame(paintSpot);
   }
   function moveSpot(event) {
-    if (!interactive.matches || event.pointerType === 'touch') return;
-    x = event.clientX; y = event.clientY;
+    if (!interactive.matches || document.hidden || event.pointerType === 'touch') return;
+    bounds ||= svg.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    targetX=(event.clientX-bounds.left)*1000/bounds.width;
+    targetY=(event.clientY-bounds.top)*260/bounds.height;
+    lastMove=performance.now();
+    if (!footerWordmark.classList.contains('is-highlighted')) {
+      x=targetX;y=targetY;angle=0;stretch=0;spread=0.9;phase=lastMove*0.001;
+      lastPaint=lastMove-1000/30;
+      footerWordmark.classList.add('is-highlighted');
+    }
     if (!frame) frame = requestAnimationFrame(paintSpot);
   }
   function resetSpot() {
@@ -209,12 +256,15 @@ if (footerWordmark) {
   footerWordmark.addEventListener('pointerenter', event => {
     if (!interactive.matches || event.pointerType === 'touch') return;
     bounds = svg.getBoundingClientRect();
-    footerWordmark.classList.add('is-highlighted'); moveSpot(event);
+    moveSpot(event);
   });
   footerWordmark.addEventListener('pointermove', moveSpot, { passive: true });
   footerWordmark.addEventListener('pointerleave', resetSpot);
   footerWordmark.addEventListener('pointercancel', resetSpot);
   interactive.addEventListener('change', resetSpot);
   window.addEventListener('resize', resetSpot, { passive: true });
-  window.addEventListener('scroll', () => { bounds = null; }, { passive: true });
+  window.addEventListener('scroll', resetSpot, { passive: true });
+  window.addEventListener('blur', resetSpot);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) resetSpot(); });
+  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting)resetSpot();}).observe(footerWordmark);
 }
