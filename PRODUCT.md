@@ -43,7 +43,7 @@ Client materials state that VLICO has worked since 2009, completed more than 10,
 
 ## Delivery stages
 
-Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 adds six service pages, cooperation, Yandex reviews, analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
+Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 now provides six service pages, cooperation, verified contacts, opt-in Yandex reviews, consent-aware analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
 
 The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.
 
@@ -57,7 +57,7 @@ Eight prepared drafts can be seeded with the included command; their photo group
 
 One server workflow handles consultation, measurement, project upload, calculator and partnership leads, including service/project context and first-touch attribution. The cabinet lists and processes leads, downloads private attachments and shows delivery/retry state. Editing a rate creates a version; each calculator lead keeps the applied version, selected parameters, line items and total. Unknown perimeter produces a clearly incomplete estimate rather than a guessed value.
 
-PostgreSQL holds the notification queue. A dedicated Compose process sends Telegram messages and documents, records confirmed progress and retries explicit temporary failures. Ambiguous delivery needs manual review to avoid automatic duplicate messages. One marked test with its PDF was delivered to the configured Telegram after the recipient started the bot. Legal operator details and public-launch privacy text remain milestone 4/5 dependencies; the local privacy page is explicitly a draft.
+PostgreSQL holds the notification queue. A dedicated Compose process sends Telegram messages and documents, records confirmed progress and retries explicit temporary failures. Ambiguous delivery needs manual review to avoid automatic duplicate messages. One marked test with its PDF was delivered to the configured Telegram after the recipient started the bot. Privacy, separate consent and cookie documents are implemented. Unknown operator, retention and infrastructure details remain bracketed fields to complete before launch; deployment and the real analytics dashboard remain milestone 5 checks.
 
 ## Project categories and homepage publication
 
