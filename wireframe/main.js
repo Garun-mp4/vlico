@@ -183,3 +183,38 @@ contactForm?.querySelectorAll("input").forEach((input) => {
   });
 });
 }
+
+// Only pointer movement schedules work; the decorative wordmark has no idle loop.
+const footerWordmark = document.querySelector('[data-footer-wordmark]');
+if (footerWordmark) {
+  const svg = footerWordmark.querySelector('svg');
+  const spot = footerWordmark.querySelector('[data-footer-spot]');
+  const interactive = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+  let bounds = null, frame = 0, x = 0, y = 0;
+  function paintSpot() {
+    frame = 0;
+    if (!interactive.matches || !footerWordmark.classList.contains('is-highlighted')) return;
+    bounds ||= svg.getBoundingClientRect();
+    spot.style.transform = `translate(${(x - bounds.left) * 1000 / bounds.width}px, ${(y - bounds.top) * 260 / bounds.height}px)`;
+  }
+  function moveSpot(event) {
+    if (!interactive.matches || event.pointerType === 'touch') return;
+    x = event.clientX; y = event.clientY;
+    if (!frame) frame = requestAnimationFrame(paintSpot);
+  }
+  function resetSpot() {
+    cancelAnimationFrame(frame); frame = 0; bounds = null;
+    footerWordmark.classList.remove('is-highlighted');
+  }
+  footerWordmark.addEventListener('pointerenter', event => {
+    if (!interactive.matches || event.pointerType === 'touch') return;
+    bounds = svg.getBoundingClientRect();
+    footerWordmark.classList.add('is-highlighted'); moveSpot(event);
+  });
+  footerWordmark.addEventListener('pointermove', moveSpot, { passive: true });
+  footerWordmark.addEventListener('pointerleave', resetSpot);
+  footerWordmark.addEventListener('pointercancel', resetSpot);
+  interactive.addEventListener('change', resetSpot);
+  window.addEventListener('resize', resetSpot, { passive: true });
+  window.addEventListener('scroll', () => { bounds = null; }, { passive: true });
+}

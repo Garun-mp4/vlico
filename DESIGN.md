@@ -40,7 +40,7 @@ motion:
 
 ## Direction
 
-Use Eleos as a composition and motion reference: a full-frame hero, oversized wordmark, visible 12-column grid, editorial project layouts, thin rules, and a large cropped wordmark in the footer. Build the page with new VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
+Use Eleos as a composition and motion reference: a full-frame hero, oversized wordmark, visible 12-column grid, editorial project layouts, thin rules, and a large fully visible wordmark in the footer. Build the page with new VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
 
 The result should feel like an architecture and interiors portfolio, with the ceiling and light as the subject. Keep the supplied green VLICO mark as the brand accent. The page's main canvas stays warm cream, the dark sections use charcoal, and photography carries most of the visual richness.
 
@@ -142,3 +142,7 @@ Show four generated views of exactly one window and room: visible ceiling track,
 ## Live calculator price
 
 Keep one price block above the desktop visual, sticky at 95px inside its sidebar. Large tabular mono numerals carry the known total; a short note distinguishes missing base data, partial positions and a completed preliminary estimate. Show the latest total difference and server-derived unit/whole-position prices beside relevant choices. No browser tariff table or guessed finish premium. During recalculation hide the previous number; errors offer an explicit retry. On phones the same block becomes one bottom panel, reserves its measured height in the calculator and includes the safe-area inset. Hide it while text fields have focus and outside the question shell; navigation stays in document flow. Full warnings remain available on desktop and on the final itemized result.
+
+## Footer wordmark
+
+The footer VLICO wordmark fills the available grid width with equal gutters and a clear gap above the dark footer bar. Keep all letters visible; never restore negative bottom margins or cropped type. A soft brand-green spotlight follows a fine pointer only over the letters, with a brief opacity fade. Touch and reduced-motion use a static wordmark. No autoplay or idle animation loop.
