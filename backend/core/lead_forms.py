@@ -17,7 +17,7 @@ class LeadForm(forms.Form):
     contact = forms.CharField(label="Телефон, email или Telegram", max_length=160, widget=forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "+7, email или @username"}))
     service = forms.ModelChoiceField(label="Решение", queryset=Service.objects.all().order_by("position", "pk"), required=False, empty_label="Нужна помощь с выбором")
     comment = forms.CharField(label="Что нужно учесть", max_length=1200, required=False, widget=forms.Textarea(attrs={"rows": 3}))
-    consent = forms.BooleanField(label="Согласен на обработку имени, контакта, параметров и приложенных файлов для ответа на заявку")
+    consent = forms.BooleanField(label="Согласен на обработку имени, контакта, параметров для ответа на заявку")
     project = forms.ModelChoiceField(queryset=Project.objects.filter(status="published"), required=False, widget=forms.HiddenInput)
     interest = forms.CharField(max_length=200, required=False, widget=forms.HiddenInput)
     idempotency_key = forms.UUIDField(widget=forms.HiddenInput)

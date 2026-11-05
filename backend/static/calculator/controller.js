@@ -167,7 +167,6 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); lightPreview = null; quote = null; step = 0; save(); render(true); live.schedule(); });
   find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); live.schedule(); } });
   find('contact').addEventListener('click', () => { if (!quote || busy) return; showContact(true); contact.querySelector('input[name=name]')?.focus(); contact.scrollIntoView({ block: 'start', behavior: 'instant' }); });
-  form.querySelector('[name=attachments]').addEventListener('change', event => { form.querySelector('[data-selected-files]').textContent = [...event.target.files].map(file => file.name).join(', '); });
   const contactDescriptions = new Map([...contact.querySelectorAll('[aria-describedby]')].map(input => [input, input.getAttribute('aria-describedby')]));
   function resetContactError(input) {
     input.removeAttribute('aria-invalid');
@@ -188,7 +187,6 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     event.preventDefault(); if (busy || form.dataset.submitted) return;
     if (!quote) { next.click(); return; }
     if (!form.reportValidity()) return;
-    const files = [...form.querySelector('[name=attachments]').files];
     submitErrors.hidden = true;
     clearContactErrors();
     const showSubmitErrors = errors => {
@@ -203,12 +201,10 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
         group.append(line); input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', [contactDescriptions.get(input), line.id].filter(Boolean).join(' '));
       }
     };
-    if (files.length > 3 || files.some(file => file.size > 8 * 1024 * 1024)) { showSubmitErrors({ attachments: ['Можно приложить до 3 файлов по 8 МБ.'] }); return; }
     const data = payload(); setBusy(true); status.hidden = false; status.textContent = 'Сохраняем заявку…';
     contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
-    const xhr = new XMLHttpRequest(), progress = find('upload'); xhr.open('POST', form.dataset.api); xhr.timeout = 90000; progress.hidden = !files.length;
-    xhr.upload.onprogress = event => { if (event.lengthComputable) progress.value = 100 * event.loaded / event.total; };
-    const finish = () => { progress.hidden = true; setBusy(false); if (!form.dataset.submitted) contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = false; }); };
+    const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.timeout = 90000;
+    const finish = () => { setBusy(false); if (!form.dataset.submitted) contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = false; }); };
     xhr.onload = () => {
       let body; try { body = JSON.parse(xhr.responseText); } catch { body = {}; }
       if (!body || typeof body !== 'object' || Array.isArray(body)) body = {};

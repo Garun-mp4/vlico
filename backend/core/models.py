@@ -111,7 +111,7 @@ class PricingVersion(Timestamped):
 class Lead(Timestamped):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     idempotency_key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    kind = models.CharField(max_length=20, choices=[("consultation", "Консультация"), ("measurement", "Запись на замер"), ("project", "Отправка проекта"), ("calculator", "Предварительный расчёт"), ("partner", "Сотрудничество")])
+    kind = models.CharField(max_length=20, choices=[("consultation", "Консультация"), ("measurement", "Запись на замер"), ("project", "Обсуждение проекта"), ("calculator", "Предварительный расчёт"), ("partner", "Сотрудничество")])
     name = models.CharField(max_length=160)
     contact = models.CharField(max_length=250)
     service = models.ForeignKey(Service, null=True, blank=True, on_delete=models.SET_NULL)

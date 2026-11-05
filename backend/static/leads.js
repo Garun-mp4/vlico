@@ -19,9 +19,7 @@
   } catch { /* Server-side session attribution remains available when storage is blocked. */ }
   document.querySelectorAll('[data-lead-form]').forEach(form => {
     const errors = form.querySelector('[data-lead-errors]'), status = form.querySelector('[data-lead-status]');
-    const progress = form.querySelector('[data-upload-progress]');
     const submit = form.querySelector('button[type="submit"]:not([data-calculate])');
-    const files = form.querySelector('[name=attachments]');
     let busy = false;
 
     function showErrors(items) {
@@ -46,21 +44,15 @@
       form.querySelector('[aria-invalid=true]')?.focus();
     }
 
-    files?.addEventListener('change', () => { form.querySelector('[data-selected-files]').textContent = [...files.files].map(file => file.name).join(', '); });
-    const setFileRequired = () => { if (files) files.required = form.elements.namedItem('kind').value === 'project'; };
-    form.querySelector('[name=kind]')?.addEventListener('change', setFileRequired); setFileRequired();
     document.querySelectorAll('[data-interest]').forEach(link => link.addEventListener('click', () => { form.elements.namedItem('interest').value = link.dataset.interest || ''; }));
     form.addEventListener('input', event => { event.target.removeAttribute('aria-invalid'); });
     form.addEventListener('submit', async event => {
       event.preventDefault();
       if (busy || form.dataset.submitted === 'true') return;
-      const selected = [...(files?.files || [])];
-      if (selected.length > 3 || selected.some(file => file.size > 8 * 1024 * 1024)) { showErrors({ attachments: ['Можно выбрать до 3 файлов, каждый не больше 8 МБ.'] }); return; }
       const data = new FormData(form); data.set('source_page', location.pathname); data.set('attribution', JSON.stringify(attribution));
-      busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Сохраняем заявку…'; progress.hidden = !selected.length;
+      busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Сохраняем заявку…';
       const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.setRequestHeader('Accept', 'application/json'); xhr.timeout = 90000;
-      xhr.upload.onprogress = event => { if (event.lengthComputable) progress.value = Math.round(event.loaded / event.total * 100); };
-      const finish = () => { busy = false; progress.hidden = true; if (form.dataset.submitted !== 'true') submit.disabled = false; };
+      const finish = () => { busy = false; if (form.dataset.submitted !== 'true') submit.disabled = false; };
       xhr.onload = () => {
         let result; try { result = JSON.parse(xhr.responseText); } catch { result = {}; }
         if (xhr.status >= 200 && xhr.status < 300 && result.ok) {

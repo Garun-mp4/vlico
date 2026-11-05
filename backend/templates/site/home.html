@@ -213,10 +213,10 @@
             <p class="eyebrow">СВЯЗАТЬСЯ</p>
             <h2 class="display-heading" id="contact-title">ОБСУДИМ ПОТОЛОК И СВЕТ В ВАШЕМ ПОМЕЩЕНИИ.</h2>
             <p>Расскажите, что за помещение и каким вы хотите видеть свет. Подскажем, с чего начать расчёт.</p>
-            <div class="contact-details"><a href="{{ company.phone_href }}" data-goal="phone_click">{{ company.phone }}</a><div><a href="{{ company.telegram }}" target="_blank" rel="noopener" data-goal="telegram_click">Telegram ↗</a> · <a href="{{ company.whatsapp }}" target="_blank" rel="noopener" data-goal="whatsapp_click">WhatsApp ↗</a></div><a href="{% url 'contacts' %}">Адрес и все контакты ↗</a><a href="{% url 'partners' %}">Дизайнерам и строителям ↗</a></div><div class="contact-options"><a class="text-link" href="{% url 'home' %}#calculator">Рассчитать стоимость ↗</a><a class="text-link" href="{% url 'request_form' 'measurement' %}">Записаться на замер ↗</a><a class="text-link" href="{% url 'request_form' 'project' %}">Отправить проект ↗</a></div>
+            <div class="contact-details"><a href="{{ company.phone_href }}" data-goal="phone_click">{{ company.phone }}</a><div><a href="{{ company.telegram }}" target="_blank" rel="noopener" data-goal="telegram_click">Telegram ↗</a> · <a href="{{ company.whatsapp }}" target="_blank" rel="noopener" data-goal="whatsapp_click">WhatsApp ↗</a></div><a href="{% url 'contacts' %}">Адрес и все контакты ↗</a><a href="{% url 'partners' %}">Дизайнерам и строителям ↗</a></div><div class="contact-options"><a class="text-link" href="{% url 'home' %}#calculator">Рассчитать стоимость ↗</a><a class="text-link" href="{% url 'request_form' 'measurement' %}">Записаться на замер ↗</a><a class="text-link" href="{% url 'request_form' 'project' %}">Обсудить проект ↗</a></div>
           </div>
 
-          <form class="contact-form lead-form reveal" id="contact-form" method="post" action="{% url 'request_form' 'consultation' %}" enctype="multipart/form-data" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
+          <form class="contact-form lead-form reveal" id="contact-form" method="post" action="{% url 'request_form' 'consultation' %}" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
             {% include 'site/lead-fields.html' %}
             <p class="lead-help">Замер в Калининграде бесплатный. Выезд по области обсудим отдельно.</p>
             {% include 'site/lead-feedback.html' %}

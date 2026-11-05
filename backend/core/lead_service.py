@@ -2,13 +2,10 @@ from datetime import timedelta
 from hashlib import sha256
 import json
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from .attribution import safe_path, submission_attribution
-from .lead_uploads import prepare_attachments
-from .models import Lead, LeadAttachment, Delivery, SubmissionBucket, PricingVersion
+from .models import Lead, Delivery, SubmissionBucket, PricingVersion
 from .configurator import calculation_form, calculate_answers
 from .legal import consent_record
 
@@ -37,13 +34,8 @@ def save_submission(request, form):
     if not form.is_valid():
         raise SubmissionError(dict(form.errors))
     data = form.cleaned_data
-    files = request.FILES.getlist("attachments")
-    if data["kind"] == "project" and not files:
-        raise SubmissionError({"attachments": ["Приложите проект или планировку."]})
-    try:
-        attachments = prepare_attachments(files)
-    except ValidationError as exc:
-        raise SubmissionError({"attachments": exc.messages})
+    if request.FILES:
+        raise SubmissionError({"__all__": ["Прикрепление файлов больше не используется. Обновите страницу и отправьте заявку без вложений."]})
     answers = calculation_form(request.POST) if data["kind"] == "calculator" else None
     if answers and not answers.is_valid():
         raise SubmissionError(dict(answers.errors))
@@ -52,7 +44,6 @@ def save_submission(request, form):
     context["consent"] = consent_record()
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
     payload.update(project=project.pk if project else None, service=service.pk if service else None, legal_version=data["legal_version"])
-    payload["files"] = [item["digest"] for item in attachments]
     if answers:
         payload["inputs"] = {key: str(value) for key, value in answers.cleaned_data.items()}
     digest = sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
@@ -61,7 +52,6 @@ def save_submission(request, form):
         if existing.payload_hash != digest:
             raise SubmissionError({"__all__": ["Эта форма уже отправлена с другими данными. Откройте новую форму для нового обращения."]}, 409)
         return existing, False
-    written = []
     try:
         with transaction.atomic():
             version, quote = None, {}
@@ -76,20 +66,12 @@ def save_submission(request, form):
             lead = Lead.objects.create(idempotency_key=data["idempotency_key"], payload_hash=digest, kind=data["kind"], name=data["name"], contact=data["contact"],
                 service=service, project=project, comment=data.get("comment", ""), context=context, source_page=safe_path(request.POST.get("source_page", "/")),
                 attribution=submission_attribution(request), calculation=quote, pricing_version=version, consent_at=timezone.now())
-            for attachment in attachments:
-                item = LeadAttachment(lead=lead, original_name=attachment["name"], content_type=attachment["content_type"], size=len(attachment["data"]))
-                item.file.save("plan" + attachment["suffix"], ContentFile(attachment["data"]), save=False)
-                written.append((item.file.storage, item.file.name))
-                item.save()
             Delivery.objects.create(lead=lead)
             return lead, True
-    except Exception as exc:
-        for storage, name in written:
-            storage.delete(name)
-        if isinstance(exc, IntegrityError):
-            existing = Lead.objects.filter(idempotency_key=data["idempotency_key"]).first()
-            if existing:
-                if existing.payload_hash == digest:
-                    return existing, False
-                raise SubmissionError({"__all__": ["Эта форма уже отправлена с другими данными. Откройте новую форму для нового обращения."]}, 409) from None
+    except IntegrityError:
+        existing = Lead.objects.filter(idempotency_key=data["idempotency_key"]).first()
+        if existing:
+            if existing.payload_hash == digest:
+                return existing, False
+            raise SubmissionError({"__all__": ["Эта форма уже отправлена с другими данными. Откройте новую форму для нового обращения."]}, 409) from None
         raise

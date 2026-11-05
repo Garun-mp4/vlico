@@ -7,7 +7,7 @@
   {% if calculator_available %}
   {{ config_schema|json_script:"config-schema" }}
   {{ config_bootstrap|json_script:"config-bootstrap" }}
-  <form method="post" action="{% url 'calculator' %}" enctype="multipart/form-data" data-configurator data-api="{% url 'lead_submit' %}" data-estimate-api="{% url 'estimate' %}" data-assets="{% static 'assets/' %}">{% csrf_token %}
+  <form method="post" action="{% url 'calculator' %}" data-configurator data-api="{% url 'lead_submit' %}" data-estimate-api="{% url 'estimate' %}" data-assets="{% static 'assets/' %}">{% csrf_token %}
     <div data-config-fallback>
       <input type="hidden" name="schema" value="v2">
       <p class="lead-help">Можно заполнить всё на одной странице. Неизвестные количества оставьте пустыми. Поля неподходящих вариантов не учитываются.</p>
@@ -35,11 +35,10 @@
     </div>
     <div class="config-contact" data-config-contact-form>
       <h3>Получить точный расчёт</h3><p class="lead-help">Отправим специалисту выбранную конфигурацию. Планировку можно приложить, если она есть.</p>
-      {% with lead_form=calc_lead_form attachment_id='calc_attachments' attachment_help_id='calc_attachment_help' %}{% include 'site/lead-fields.html' %}{% endwith %}
+      {% with lead_form=calc_lead_form %}{% include 'site/lead-fields.html' %}{% endwith %}
       {% if calc_errors %}<div class="lead-errors" role="alert">{% for field, messages in calc_errors.items %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endfor %}</div>{% endif %}
       <div class="lead-errors" data-config-submit-errors role="alert" hidden></div>
       <p class="lead-feedback" data-config-status role="status" hidden></p>
-      <progress max="100" value="0" data-config-upload aria-label="Загрузка вложений" hidden></progress>
       <button type="submit" name="action" value="submit" class="lead-submit" data-config-submit>Отправить расчёт специалисту</button>
     </div>
   </form>

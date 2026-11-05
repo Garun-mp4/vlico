@@ -15,7 +15,6 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from django.urls import reverse
 from django.utils import timezone
-from pypdf import PdfWriter
 from .lead_cabinet import BUSINESS_PERMISSIONS
 from .lead_forms import LeadForm
 from .lead_service import save_submission
@@ -25,10 +24,7 @@ from .telegram_delivery import deliver_one, DeliveryError, claim_delivery, messa
 
 
 def pdf(name="plan.pdf"):
-    writer = PdfWriter()
-    writer.add_blank_page(width=200, height=200)
-    stream = BytesIO(); writer.write(stream)
-    return SimpleUploadedFile(name, stream.getvalue(), content_type="application/pdf")
+    return SimpleUploadedFile(name, b"%PDF-1.4\n% Historical attachment fixture\n%%EOF", content_type="application/pdf")
 
 
 def payload(kind="consultation", **overrides):
@@ -48,10 +44,9 @@ class LeadTests(TestCase):
         self.editor.user_permissions.add(*Permission.objects.filter(content_type__app_label="core", codename__in=[name.split(".")[1] for name in BUSINESS_PERMISSIONS]))
         self.version = PricingVersion.objects.get(active=True)
 
-    def test_every_kind_saves_and_queues_with_private_validated_files(self):
+    def test_every_kind_saves_and_queues_without_files(self):
         for kind in ("consultation", "measurement", "partner", "project", "calculator"):
             data = payload(kind)
-            if kind == "project": data["attachments"] = pdf()
             if kind == "calculator": data.update(area="20", material="pvc", edge="shadow", perimeter="18", pricing_version=self.version.pk)
             response = self.client.post(reverse("lead_submit"), data)
             self.assertEqual(response.status_code, 201, response.content)
@@ -59,9 +54,22 @@ class LeadTests(TestCase):
             self.assertEqual(lead.contact, "+79000000001")
             self.assertIsNotNone(lead.consent_at)
             self.assertEqual(lead.deliveries.count(), 1)
-        attachment = LeadAttachment.objects.get()
-        self.assertEqual(attachment.content_type, "application/pdf")
-        self.assertEqual(self.client.get("/media/"+attachment.file.name).status_code, 404)
+        self.assertFalse(LeadAttachment.objects.exists())
+
+    def test_public_forms_have_no_upload_controls(self):
+        for path in ('/', '/calculator/', '/request/consultation/', '/request/measurement/', '/request/project/', '/request/partner/'):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, 'type="file"')
+            self.assertNotContains(response, 'name="attachments"')
+            self.assertNotContains(response, 'multipart/form-data')
+
+    def test_project_request_without_javascript_accepts_no_file(self):
+        response = self.client.post(reverse('request_form', args=['project']), payload('project'))
+        self.assertContains(response, 'Заявка сохранена')
+        self.assertEqual(Lead.objects.count(), 1)
+        self.assertEqual(Delivery.objects.count(), 1)
+        self.assertFalse(LeadAttachment.objects.exists())
 
     def test_repeat_is_idempotent_and_modified_replay_is_rejected(self):
         data = payload()
@@ -93,21 +101,22 @@ class LeadTests(TestCase):
         SubmissionBucket.objects.update(expires_at=timezone.now()-timedelta(seconds=1))
         self.assertEqual(self.client.post(reverse("lead_submit"), payload()).status_code, 201)
 
-    def test_file_count_size_content_and_required_project_file(self):
-        invalid = [payload("project"), payload(attachments=[pdf() for _ in range(4)]),
+    def test_public_uploads_are_rejected_for_every_field_name(self):
+        invalid = [payload("project", attachments=pdf()), payload(other_file=pdf()), payload(attachments=[pdf() for _ in range(4)]),
             payload(attachments=SimpleUploadedFile("fake.pdf", b"%PDF-fake\n%%EOF")),
             payload(attachments=SimpleUploadedFile("script.jpg", b"<script>alert(1)</script>")),
-            payload(attachments=SimpleUploadedFile("bad.exe", b"MZ")),
-            payload(attachments=SimpleUploadedFile("large.pdf", b"x"*(8*1024*1024+1)))]
+            payload(attachments=SimpleUploadedFile("bad.exe", b"MZ"))]
         for data in invalid:
             self.assertEqual(self.client.post(reverse("lead_submit"), data).status_code, 400)
+        oversized = self.client.post(reverse("lead_submit"), payload(attachments=SimpleUploadedFile("large.pdf", b"x"*(2*1024*1024+1))))
+        self.assertEqual(oversized.status_code, 413)
         self.assertEqual(Lead.objects.count(), 0)
         self.assertEqual(LeadAttachment.objects.count(), 0)
 
-    def test_failed_queue_creation_rolls_back_lead_and_private_files(self):
+    def test_failed_queue_creation_rolls_back_lead(self):
         with patch("core.lead_service.Delivery.objects.create", side_effect=RuntimeError("test failure")):
             with self.assertRaises(RuntimeError):
-                self.client.post(reverse("lead_submit"), payload("project", attachments=pdf()))
+                self.client.post(reverse("lead_submit"), payload("project"))
         self.assertEqual(Lead.objects.count(), 0)
         self.assertEqual(LeadAttachment.objects.count(), 0)
         self.assertEqual(list(Path(self.temp.name).rglob("*.pdf")), [])
@@ -150,8 +159,9 @@ class LeadTests(TestCase):
         self.assertEqual(Lead.objects.count(), 1)
 
     def test_cabinet_permissions_private_download_status_and_retry(self):
-        response = self.client.post(reverse("lead_submit"), payload("project", attachments=pdf()))
-        lead=Lead.objects.get(pk=response.json()["reference"]); attachment=lead.attachments.get(); delivery=lead.deliveries.get()
+        response = self.client.post(reverse("lead_submit"), payload("project"))
+        lead=Lead.objects.get(pk=response.json()["reference"]); delivery=lead.deliveries.get()
+        attachment=LeadAttachment.objects.create(lead=lead, original_name="plan.pdf", file=pdf(), content_type="application/pdf", size=50)
         paths=[reverse("cabinet_leads"),reverse("cabinet_lead",args=[lead.pk]),reverse("cabinet_rates"),reverse("cabinet_lead_attachment",args=[lead.pk,attachment.pk])]
         for path in paths: self.assertEqual(self.client.get(path).status_code,302)
         reader=get_user_model().objects.create_user("reader")
@@ -275,7 +285,7 @@ class ConcurrentLeadTests(TransactionTestCase):
         settings=override_settings(PRIVATE_MEDIA_ROOT=Path(self.temp.name)/"private")
         settings.enable();self.addCleanup(settings.disable)
 
-    def test_concurrent_replay_saves_one_lead_one_file_and_one_delivery(self):
+    def test_concurrent_replay_saves_one_lead_without_files_and_one_delivery(self):
         data=payload("project")
         barrier=Barrier(2)
         def send(index):
@@ -283,13 +293,13 @@ class ConcurrentLeadTests(TransactionTestCase):
             try:
                 client=Client(REMOTE_ADDR=f"192.0.2.{index+1}")
                 barrier.wait(timeout=10)
-                return client.post(reverse("lead_submit"),{**data,"attachments":pdf()}).status_code
+                return client.post(reverse("lead_submit"),data).status_code
             finally:connections.close_all()
         with ThreadPoolExecutor(max_workers=2) as pool:
             results=list(pool.map(send,range(2)))
         self.assertEqual(sorted(results),[200,201])
-        self.assertEqual((Lead.objects.count(),LeadAttachment.objects.count(),Delivery.objects.count()),(1,1,1))
-        self.assertEqual(len(list(Path(self.temp.name).rglob("*.pdf"))),1)
+        self.assertEqual((Lead.objects.count(),LeadAttachment.objects.count(),Delivery.objects.count()),(1,0,1))
+        self.assertEqual(len(list(Path(self.temp.name).rglob("*.pdf"))),0)
 
     def test_concurrent_workers_only_claim_a_delivery_once(self):
         lead=Lead.objects.create(kind="consultation",name="Test",contact="test@example.com",consent_at=timezone.now())

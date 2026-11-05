@@ -26,7 +26,7 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 
 ## Capabilities and constraints
 - The hero contains no contact input. Its links stay within this page.
-- The server-site forms persist real leads and private attachments; Telegram is a notification channel. The isolated legacy static preview retains its demonstration-only form.
+- The server-site forms persist real leads without public file uploads; Telegram is a notification channel. The isolated legacy static preview retains its demonstration-only form.
 - The owner authorized provisional numeric calculator rates for local review. Label the result preliminary and show its composition and exclusions. A final estimate follows measurement; installation timing is agreed separately.
 - State free measurement only for Kaliningrad. Discuss travel elsewhere in the region separately.
 - Do not reuse the unconfirmed promotion in the supplied mockups.
@@ -56,10 +56,12 @@ Eight prepared drafts can be seeded with the included command; their photo group
 
 ## Milestone 3 delivered
 
-One server workflow handles consultation, measurement, project upload, calculator and partnership leads, including service/project context and first-touch attribution. The cabinet lists and processes leads, downloads private attachments and shows delivery/retry state. Editing a rate creates a version; each calculator lead keeps the applied version, selected parameters, line items and total. Unknown perimeter produces a clearly incomplete estimate rather than a guessed value.
+One server workflow handles consultation, measurement, project discussion, calculator and partnership leads, including service/project context and first-touch attribution. The cabinet lists and processes leads, downloads private attachments and shows delivery/retry state. Editing a rate creates a version; each calculator lead keeps the applied version, selected parameters, line items and total. Unknown perimeter produces a clearly incomplete estimate rather than a guessed value.
 
 PostgreSQL holds the notification queue. A dedicated Compose process sends Telegram messages and documents, records confirmed progress and retries explicit temporary failures. Ambiguous delivery needs manual review to avoid automatic duplicate messages. One marked test with its PDF was delivered to the configured Telegram after the recipient started the bot. Privacy, separate consent and cookie documents are implemented. Unknown operator, retention and infrastructure details remain bracketed fields to complete before launch; deployment and the real analytics dashboard remain milestone 5 checks.
 
 ## Project categories and homepage publication
 
 Project categories are independently managed in the cabinet and support multiple selections per project. Six initial ceiling/light categories can be edited or deleted without changing services or losing projects. Public category tags and filters use published projects only. All published projects now appear on the homepage automatically in configured order; the former featured-only selection is removed from the editing workflow.
+
+Public visitors do not attach files, including in the calculator and project inquiry. Existing private lead attachments remain accessible to authorized staff; portfolio photo management is unchanged.

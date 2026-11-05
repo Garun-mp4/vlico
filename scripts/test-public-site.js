@@ -26,7 +26,7 @@ async page => {
   await page.getByRole('link', { name: 'Обсудить решение ↗', exact: true }).click();
   check(await page.locator('select[name=service] option:checked').innerText() === 'Теневые потолки', 'Service context was lost');
   await page.goto(base + '/partners/');
-  await page.getByRole('link', { name: 'Отправить проект ↗', exact: true }).click();
+  await page.getByRole('link', { name: 'Обсудить проект ↗', exact: true }).click();
   check(await page.locator('[name=kind]').inputValue() === 'partner', 'Partner CTA picked wrong lead kind');
   check(await page.locator('[name=interest]').inputValue() === 'Сотрудничество', 'Partner context was lost');
 
