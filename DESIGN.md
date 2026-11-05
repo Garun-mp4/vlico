@@ -55,7 +55,7 @@ The result should feel like an architecture and interiors portfolio, with the ce
 
 ## Typography
 
-Use locally hosted Manrope for all headings and solution titles, and IBM Plex Mono in regular, medium, and semibold weights for body text and interface labels. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The hero VLICO wordmark uses Manrope with -0.04em tracking and is oversized text, not an imported copy of the Eleos wordmark.
+Use locally hosted Manrope for all headings and solution titles, and IBM Plex Mono in regular, medium, and semibold weights for body text and interface labels. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The footer SVG wordmark also uses Manrope, preserving its responsive sizing and pointer highlight. The hero VLICO wordmark uses Manrope with -0.04em tracking and is oversized text, not an imported copy of the Eleos wordmark.
 
 ## Grid and rhythm
 
