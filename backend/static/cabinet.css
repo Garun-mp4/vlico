@@ -150,6 +150,10 @@ summary {cursor:pointer;text-underline-offset:4px}
 .media-meta .menu-content {min-width:210px}
 .add-photo {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;aspect-ratio:4/3;width:100%;border:1px dashed var(--control);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-size:13px}
 .add-photo:hover {background:#efeee6;color:var(--ink)}
+.media-grid>.media-item:first-child,.cover-slot-empty {border:2px solid var(--accent);}
+.cover-slot-empty {color:var(--accent);background:#edf4ee;}
+.cover-slot-placeholder {max-width:160px;margin-bottom:18px;}
+.add-photo.drag-over {outline:2px solid var(--accent);outline-offset:3px;}
 .gallery-card-footer {display:flex;align-items:center;gap:10px;border-top:1px solid var(--rule);padding-top:16px;margin-top:22px;font-size:12px;color:var(--muted)}
 .gallery-card-footer svg {flex-shrink:0}
 .section-nav {margin-bottom:24px}

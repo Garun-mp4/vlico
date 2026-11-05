@@ -78,9 +78,9 @@ if (projectForm) projectForm.addEventListener('submit', async event => {
     const solutionCheck = document.querySelector('[data-check="solution"]');
     if (solutionCheck) solutionCheck.textContent = `${solution ? '✓' : '○'} Решение и результат`;
     const publish = document.querySelector('[data-publish]');
-    if (publish) publish.dataset.initialDisabled = String(!solution || !document.querySelector('.photo-open .status'));
+    if (publish) publish.dataset.initialDisabled = String(!solution || !document.querySelector('.photo-open .status:not([hidden])'));
     const reason=document.querySelector('[data-publish-reason]');
-    if (reason) reason.textContent = !solution || !document.querySelector('.photo-open .status') ? 'Добавьте обложку и описание решения перед публикацией.' : '';
+    if (reason) reason.textContent = !solution || !document.querySelector('.photo-open .status:not([hidden])') ? 'Добавьте обложку и описание решения перед публикацией.' : '';
   } catch (error) {
     saveState.textContent = 'Изменения не сохранены';
     if (!errors.textContent) errors.textContent = error.message.includes('Проверьте') ? error.message : 'Не удалось сохранить. Проверьте соединение и повторите. Ваши данные остались в форме.';
@@ -200,6 +200,21 @@ if(grid) {
   const feedback=document.querySelector('[data-gallery-feedback]');
   const cards=()=>[...grid.querySelectorAll(':scope > .media-item')];
   const addTile=grid.querySelector('[data-pick-photos]');
+  addTile.addEventListener('dragover',event=>{
+    if(!addTile.disabled && [...event.dataTransfer.types].includes('Files')) {event.preventDefault();addTile.classList.add('drag-over');}
+  });
+  addTile.addEventListener('dragleave',()=>addTile.classList.remove('drag-over'));
+  addTile.addEventListener('drop',event=>{
+    addTile.classList.remove('drag-over');
+    if(addTile.disabled || !event.dataTransfer.files.length)return;
+    event.preventDefault();
+    const input=document.querySelector('#images');input.files=event.dataTransfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  const updateCover=()=>cards().forEach((card,index)=>{
+    card.classList.toggle('is-cover',index===0);
+    card.querySelectorAll('[data-cover-indicator]').forEach(el=>el.hidden=index!==0);
+    card.querySelectorAll('button[value=cover]').forEach(el=>el.hidden=index===0);
+  });
   grid.addEventListener('dragstart',event=>{
     if(busy || changed || saving || event.target.closest('dialog, .context-menu')) {event.preventDefault();return;}
     dragged=event.target.closest('.media-item');
@@ -213,6 +228,7 @@ if(grid) {
     if(!dragged||!target||dragged===target||busy)return;
     const old=cards(), from=old.indexOf(dragged), to=old.indexOf(target);
     if(from<to)target.after(dragged);else target.before(dragged);
+    updateCover();
     const body=new FormData();body.append('csrfmiddlewaretoken',csrf());body.append('revision',projectForm.elements.revision.value);
     cards().forEach(el=>body.append('order',el.dataset.mediaId));
     busy=true;saving=true;publicationState();feedback.textContent='Сохраняем порядок…';grid.setAttribute('aria-busy','true');
@@ -222,8 +238,9 @@ if(grid) {
       const response=await fetch(grid.dataset.reorderUrl,{method:'POST',body,headers:{Accept:'application/json'}});
       const result=await response.json();if(!response.ok)throw new Error(result.error);
       projectForm.elements.revision.value=result.revision;feedback.textContent='Порядок фотографий сохранён';
+      cards().forEach(card=>{const edit=card.querySelector('[data-image-edit]');if(edit&&result.media_revisions?.[card.dataset.mediaId])edit.dataset.revision=result.media_revisions[card.dataset.mediaId];});
       cards().forEach((card,index)=>{card.querySelector('button[value=up]').disabled=index===0;card.querySelector('button[value=down]').disabled=index===cards().length-1;});
-    }catch(error){old.forEach(card=>grid.insertBefore(card,addTile));feedback.textContent=error.message.includes('Галерея')||error.message.includes('Состав')?error.message:'Не удалось подтвердить сохранение. На экране восстановлен прежний порядок. Обновите страницу и повторите.';}
+    }catch(error){old.forEach(card=>grid.insertBefore(card,addTile));updateCover();feedback.textContent=error.message.includes('Галерея')||error.message.includes('Состав')?error.message:'Не удалось подтвердить сохранение. На экране восстановлен прежний порядок. Обновите страницу и повторите.';}
     finally{busy=false;saving=false;publicationState();button.disabled=false;grid.removeAttribute('aria-busy');}
   });
 }

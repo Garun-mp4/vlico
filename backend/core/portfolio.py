@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from .models import Project, ProjectMedia
 
 EDITOR_PERMISSIONS = ("core.view_project", "core.add_project", "core.change_project", "core.view_projectmedia", "core.add_projectmedia", "core.change_projectmedia", "core.delete_projectmedia")
@@ -15,6 +16,17 @@ EDITOR_PERMISSIONS = ("core.view_project", "core.add_project", "core.change_proj
 
 CATEGORY_PERMISSIONS = ("core.view_projectcategory", "core.add_projectcategory", "core.change_projectcategory", "core.delete_projectcategory")
 PROJECT_DELETE_PERMISSION = "core.delete_project"
+
+
+def save_media_order(project, ordered):
+    """Caller locks the project; slot zero is always the cover."""
+    project.media.filter(is_cover=True).update(is_cover=False)
+    now = timezone.now()
+    for position, item in enumerate(ordered):
+        item.position = position
+        item.is_cover = position == 0
+        item.updated_at = now
+    ProjectMedia.objects.bulk_update(ordered, ["position", "is_cover", "updated_at"])
 
 
 def delete_project(project_id, revision):
@@ -141,6 +153,8 @@ def add_images(project_id, uploads, section, edit=None, upload_key=None):
                 written.append((item.thumbnail.storage, item.thumbnail.name))
                 item.save()
                 created.append(item)
+            if edit is not None and edit.get("cover"):
+                save_media_order(project, created + media)
             project.save(update_fields=["updated_at"])
         return created
     except Exception:

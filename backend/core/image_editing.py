@@ -105,6 +105,9 @@ def edit_media(project_id, media_id, data, revision):
                 project.media.exclude(pk=item.pk).update(is_cover=False)
                 item.is_cover = True
             item.save()
+            if data.get("cover"):
+                from .portfolio import save_media_order
+                save_media_order(project, [item] + list(project.media.exclude(pk=item.pk)))
             project.save(update_fields=["updated_at"])
             transaction.on_commit(lambda: [storage.delete(name) for storage, name in old], robust=True)
         return item

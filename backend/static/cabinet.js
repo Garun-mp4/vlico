@@ -142,7 +142,7 @@ if (editor && typeof editor.showModal === 'function') {
     open([{source:button.dataset.source, url:button.dataset.save, revision:button.dataset.revision,
       edit:JSON.parse(card.querySelector('script[type="application/json"]').textContent),
       alt:card.querySelector('input[name=alt]').value, caption:card.querySelector('input[name=caption]').value,
-      section:card.querySelector('select[name=section]').value, cover:Boolean(card.querySelector('.status.published'))}], button);
+      section:card.querySelector('select[name=section]').value, cover:Boolean(card.querySelector('.status.published:not([hidden])'))}], button);
   }));
   form.addEventListener('input', draw);
   editor.querySelector('[data-editor-rotate]').addEventListener('click', () => { rotation = (rotation+90)%360; draw(); });

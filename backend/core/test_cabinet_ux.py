@@ -76,7 +76,10 @@ class CabinetUXTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(self.project.media.values_list("pk", flat=True)), [second.pk, first.pk])
         first.refresh_from_db()
-        self.assertTrue(first.is_cover)
+        self.assertFalse(first.is_cover)
+        second.refresh_from_db()
+        self.assertTrue(second.is_cover)
+        self.assertEqual(response.json()['media_revisions'][str(second.pk)],second.updated_at.isoformat())
         self.assertEqual(self.client.post(path, {"revision":revision, "order":[first.pk, second.pk]}).status_code, 409)
         new_revision = response.json()["revision"]
         for ids in ([first.pk, first.pk], [first.pk], [first.pk, 999999], ["bad"]):

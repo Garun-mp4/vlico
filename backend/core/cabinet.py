@@ -18,7 +18,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.core.exceptions import ValidationError, PermissionDenied
 from .forms import ProjectForm, MediaForm
 from .models import Project, ProjectMedia, LoginBucket, ProjectCategory
-from .portfolio import editor_required, is_editor, add_images, delete_project, PROJECT_DELETE_PERMISSION
+from .portfolio import editor_required, is_editor, add_images, delete_project, PROJECT_DELETE_PERMISSION, save_media_order
 
 
 @never_cache
@@ -120,11 +120,9 @@ def reorder_media(request, pk):
         media = {item.pk: item for item in project.media.all()}
         if len(ids) != len(media) or set(ids) != set(media):
             return JsonResponse({"error": "Состав галереи изменился. Обновите страницу."}, status=400)
-        for position, media_id in enumerate(ids):
-            media[media_id].position = position
-        ProjectMedia.objects.bulk_update(media.values(), ["position"])
+        save_media_order(project, [media[media_id] for media_id in ids])
         project.save(update_fields=["updated_at"])
-    return JsonResponse({"revision": project.updated_at.isoformat()})
+    return JsonResponse({"revision": project.updated_at.isoformat(), "media_revisions": {str(item.pk):item.updated_at.isoformat() for item in media.values()}})
 
 
 @editor_required
@@ -165,18 +163,14 @@ def media_edit(request, pk, media_pk):
                 messages.error(request, "Проверьте подпись и описание: не более 250 символов; выберите раздел галереи.")
                 return redirect("cabinet_edit", pk=pk)
         elif action == "cover":
-            project.media.update(is_cover=False)
-            item.is_cover = True
-            item.save(update_fields=["is_cover"])
+            save_media_order(project, [item] + list(project.media.exclude(pk=item.pk)))
         elif action in {"up", "down"}:
             ordered = list(project.media.all())
             index = next(i for i, m in enumerate(ordered) if m.pk == item.pk)
             target = index + (-1 if action == "up" else 1)
             if 0 <= target < len(ordered):
                 ordered[index], ordered[target] = ordered[target], ordered[index]
-                for position, media in enumerate(ordered):
-                    media.position = position
-                ProjectMedia.objects.bulk_update(ordered, ["position"])
+                save_media_order(project, ordered)
         elif action == "delete":
             if request.POST.get("confirm") != "yes":
                 messages.error(request, "Подтвердите удаление фотографии.")
@@ -185,13 +179,8 @@ def media_edit(request, pk, media_pk):
                 messages.error(request, "Сначала снимите проект с публикации: у опубликованного проекта должна остаться фотография.")
                 return redirect("cabinet_edit", pk=pk)
             files = [(f.storage, f.name) for f in (item.image, item.thumbnail, item.source) if f]
-            was_cover = item.is_cover
             item.delete()
-            if was_cover:
-                replacement = project.media.first()
-                if replacement:
-                    replacement.is_cover = True
-                    replacement.save(update_fields=["is_cover"])
+            save_media_order(project, list(project.media.all()))
             transaction.on_commit(lambda: [storage.delete(name) for storage, name in files])
         else:
             return HttpResponse(status=400)
