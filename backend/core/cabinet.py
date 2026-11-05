@@ -15,10 +15,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from .forms import ProjectForm, MediaForm
 from .models import Project, ProjectMedia, LoginBucket, ProjectCategory
-from .portfolio import editor_required, is_editor, add_images
+from .portfolio import editor_required, is_editor, add_images, delete_project, PROJECT_DELETE_PERMISSION
 
 
 @never_cache
@@ -227,6 +227,29 @@ def change_status(request, pk):
         project.save(update_fields=["status", "published_at", "updated_at"])
     messages.success(request, "Статус проекта обновлён.")
     return redirect("cabinet_edit", pk=pk)
+
+
+@editor_required
+@require_http_methods(["GET", "POST"])
+def remove_project(request, pk):
+    if not request.user.has_perm(PROJECT_DELETE_PERMISSION):
+        raise PermissionDenied
+    project = get_object_or_404(Project.objects.prefetch_related("media"), pk=pk)
+    if request.method == "POST":
+        if request.POST.get("confirm") != "yes":
+            messages.error(request, "Подтвердите, что хотите удалить проект и его фотографии.")
+        else:
+            try:
+                title = delete_project(pk, request.POST.get("revision"))
+            except Project.DoesNotExist:
+                return redirect("cabinet_projects")
+            except ValidationError as error:
+                messages.error(request, " ".join(error.messages))
+                project.refresh_from_db()
+            else:
+                messages.success(request, f'Проект «{title}» удалён.')
+                return redirect("cabinet_projects")
+    return render(request, "cabinet/project-delete.html", {"project": project, "photo_count": project.media.count(), "lead_count": project.lead_set.count()})
 
 
 @editor_required

@@ -1,6 +1,8 @@
 const editor = document.querySelector('[data-image-editor]');
 const uploadForm = document.querySelector('[data-upload]');
 if (editor && typeof editor.showModal === 'function') {
+  const prepareButton = uploadForm?.querySelector('[data-prepare-photos]');
+  if (prepareButton) prepareButton.hidden = true;
   const form = editor.querySelector('[data-editor-form]');
   const field = name => form.elements.namedItem(name);
   const status = editor.querySelector('[data-editor-status]');
@@ -113,6 +115,12 @@ if (editor && typeof editor.showModal === 'function') {
   function next() { baseline = null; window.photoEditorDirty = false; image = null; if (++index < queue.length) show(); else finish(); }
   function startUpload(event) {
     event?.preventDefault();
+    if (changed || saving) {
+      uploadForm.querySelector('input[type=file]').value = '';
+      panelFeedback.textContent = 'Сначала сохраните сведения о проекте, затем выберите фотографии.';
+      panelFeedback.scrollIntoView({block:'center'});
+      return;
+    }
     const files = [...uploadForm.querySelector('input[type=file]').files];
     if (!files.length) return;
     if (files.some(file => !['image/jpeg','image/png','image/webp'].includes(file.type))) { uploadForm.querySelector('[data-upload-status]').textContent = 'Поддерживаются только JPEG, PNG и WebP. Проверьте выбранные файлы.'; return; }
@@ -121,7 +129,7 @@ if (editor && typeof editor.showModal === 'function') {
       uploadForm.querySelector('[data-upload-status]').textContent = 'Выберите до 8 файлов, не больше 12 МБ каждый.'; return;
     }
     const defaultAlt = document.querySelector('#id_title').value;
-    open(files.map((file, i) => ({file, key:crypto.randomUUID(), alt:defaultAlt, section:uploadForm.elements.section.value, cover:i===0 && !document.querySelector('.media-item')})), uploadForm.querySelector('button'));
+    open(files.map((file, i) => ({file, key:crypto.randomUUID(), alt:defaultAlt, section:uploadForm.elements.section.value, cover:i===0 && !document.querySelector('.media-item')})), document.querySelector('[data-pick-photos]'));
   }
   uploadForm?.addEventListener('submit', startUpload);
   uploadForm?.querySelector('input[type=file]').addEventListener('change', startUpload);

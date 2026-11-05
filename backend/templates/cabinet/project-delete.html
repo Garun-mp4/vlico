@@ -1,0 +1,14 @@
+{% extends 'cabinet/base.html' %}{% block title %}Удаление проекта{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'cabinet_edit' project.pk %}">← К проекту</a>
+<section class="category-editor project-delete" aria-labelledby="delete-project-title">
+<h1 id="delete-project-title">Удалить проект?</h1><h2>{{ project.title }}</h2>
+<p><span class="status {{ project.status }}">{{ project.get_status_display }}</span></p>
+<p>Будут удалены описание проекта и все его фотографии: {{ photo_count }}. Удалятся также миниатюры и сохранённые исходники из админки. Это действие нельзя отменить.</p>
+{% if project.status == 'published' %}<p>Проект исчезнет с главной, из каталога и с привязанных страниц услуг. Его отдельная страница станет недоступна.</p>{% endif %}
+{% if lead_count %}<p>Связанных обращений: {{ lead_count }}. Обращения и история их отправки сохранятся.</p>{% endif %}
+<p class="subtle">Чтобы временно скрыть работу и сохранить материалы, используйте архив в редакторе проекта.</p>
+<form method="post" class="editor-form" data-project-delete-form>{% csrf_token %}
+<input type="hidden" name="revision" value="{{ project.updated_at.isoformat }}">
+<label class="check-label"><input type="checkbox" name="confirm" value="yes" required> Я понимаю, что проект и его фотографии будут удалены навсегда</label>
+<div class="confirm-actions"><a class="button" href="{% url 'cabinet_edit' project.pk %}">Отмена</a><button class="button danger" type="submit">Удалить проект навсегда</button></div>
+</form></section>{% endblock %}

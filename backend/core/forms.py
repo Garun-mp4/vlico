@@ -25,6 +25,12 @@ class ProjectForm(forms.ModelForm):
         if self.instance.pk:
             self.fields["revision"].initial = self.instance.updated_at.isoformat()
 
+    def clean_solution(self):
+        value = self.cleaned_data.get("solution", "")
+        if self.instance.status == Project.Status.PUBLISHED and not value.strip():
+            raise forms.ValidationError("У опубликованного проекта должно быть описание решения. Заполните его или сначала снимите проект с публикации.")
+        return value
+
     def clean_slug(self):
         slug = self.cleaned_data.get("slug")
         if slug or self.instance.pk:

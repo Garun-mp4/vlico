@@ -166,6 +166,11 @@ summary {cursor:pointer;text-underline-offset:4px}
 .category-row h2 {margin:0 0 7px;overflow-wrap:anywhere}
 .category-actions {display:flex;flex-wrap:wrap;gap:12px;max-width:100%}
 .category-editor {max-width:650px}
+.cabinet .project-remove {color:var(--error);}
+.publish-panel .project-remove {display:block;margin-top:22px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;min-height:44px;}
+.project-delete h2 {overflow-wrap:anywhere;}
+.project-delete .confirm-actions {display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px;}
+@media(max-width:480px) {.project-delete .confirm-actions {flex-direction:column;align-items:stretch;}}
 .category-editor .editor-form {margin-top:28px}
 .confirm-dialog {max-width:440px;width:calc(100% - 32px);border:1px solid var(--rule);border-radius:6px;padding:26px;background:var(--canvas);color:var(--ink)}
 .confirm-actions {display:flex;justify-content:flex-end;gap:10px;margin-top:24px}

@@ -38,6 +38,7 @@ urlpatterns = [
     path("cabinet/projects/<int:pk>/", cabinet.edit, name="cabinet_edit"),
     path("cabinet/projects/<int:pk>/preview/", project_views.preview, name="cabinet_preview"),
     path("cabinet/projects/<int:pk>/status/", cabinet.change_status, name="cabinet_status"),
+    path("cabinet/projects/<int:pk>/delete/", cabinet.remove_project, name="cabinet_project_delete"),
     path("cabinet/projects/<int:pk>/upload/", cabinet.upload, name="cabinet_upload"),
     path("cabinet/projects/<int:pk>/reorder/", cabinet.reorder_media, name="cabinet_reorder"),
     path("cabinet/projects/<int:pk>/media/<int:media_pk>/source/", project_views.source_image, name="cabinet_image_source"),

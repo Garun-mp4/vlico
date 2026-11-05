@@ -12,7 +12,7 @@
       <div class="upload-copy"><h3>Загрузите фотографии</h3><p>Перетащите файлы сюда или <label class="file-pick" for="images">выберите на компьютере</label></p><p class="helptext" id="upload-limits">JPEG, PNG, WebP · до 12 МБ и 16 Мп · до 8 за раз</p></div>
       <input id="images" class="file-input" type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Выбрать фотографии" aria-describedby="upload-limits">
     </div>
-    <div class="upload-options"><label for="upload-section">Раздел новых фотографий</label><select id="upload-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select><button class="button" type="submit">Подготовить фотографии</button></div>
+    <div class="upload-options"><label for="upload-section">Раздел новых фотографий</label><select id="upload-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select><button class="button" type="submit" data-prepare-photos>Загрузить фотографии</button></div>
     <p role="status" data-upload-status></p>
   </form>
   <div role="status" class="gallery-feedback" data-gallery-feedback></div>

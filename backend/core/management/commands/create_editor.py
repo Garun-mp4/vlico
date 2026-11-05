@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.password_validation import validate_password
 from django.core.management.base import BaseCommand, CommandError
-from core.portfolio import EDITOR_PERMISSIONS, CATEGORY_PERMISSIONS
+from core.portfolio import EDITOR_PERMISSIONS, CATEGORY_PERMISSIONS, PROJECT_DELETE_PERMISSION
 from core.lead_cabinet import BUSINESS_PERMISSIONS
 
 class Command(BaseCommand):
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             raise CommandError("Set VLICO_EDITOR_PASSWORD privately in the environment first.")
         validate_password(password)
         group, _ = Group.objects.get_or_create(name="Portfolio editors")
-        group.permissions.add(*Permission.objects.filter(content_type__app_label="core", codename__in=[p.split(".")[1] for p in EDITOR_PERMISSIONS + CATEGORY_PERMISSIONS + BUSINESS_PERMISSIONS]))
+        group.permissions.add(*Permission.objects.filter(content_type__app_label="core", codename__in=[p.split(".")[1] for p in EDITOR_PERMISSIONS + CATEGORY_PERMISSIONS + BUSINESS_PERMISSIONS + (PROJECT_DELETE_PERMISSION,)]))
         user = get_user_model().objects.create_user(username=username, password=password, is_staff=True)
         user.groups.add(group)
         self.stdout.write("Portfolio editor created. Password was not displayed.")

@@ -186,6 +186,14 @@ if (filterForm) {
   });
 }
 document.querySelector('[data-pick-photos]')?.addEventListener('click', () => document.querySelector('#images').click());
+document.querySelector('[data-project-delete-form]')?.addEventListener('submit', event => {
+  const form = event.currentTarget;
+  if (form.dataset.submitting) { event.preventDefault(); return; }
+  form.dataset.submitting = 'true';
+  form.setAttribute('aria-busy','true');
+  const button = form.querySelector('button[type=submit]');
+  button.disabled = true; button.textContent = 'Удаляем проект…';
+});
 const grid=document.querySelector('[data-reorder-url]');
 if(grid) {
   let dragged, busy=false;

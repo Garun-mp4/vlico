@@ -1,17 +1,55 @@
 from functools import wraps
 from io import BytesIO
 import warnings
+import logging
 from PIL import Image, ImageOps, UnidentifiedImageError
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import Q
 from .models import Project, ProjectMedia
 
 EDITOR_PERMISSIONS = ("core.view_project", "core.add_project", "core.change_project", "core.view_projectmedia", "core.add_projectmedia", "core.change_projectmedia", "core.delete_projectmedia")
 
 
 CATEGORY_PERMISSIONS = ("core.view_projectcategory", "core.add_projectcategory", "core.change_projectcategory", "core.delete_projectcategory")
+PROJECT_DELETE_PERMISSION = "core.delete_project"
+
+
+def delete_project(project_id, revision):
+    with transaction.atomic():
+        project = Project.objects.select_for_update().get(pk=project_id)
+        if revision != project.updated_at.isoformat():
+            raise ValidationError("Проект изменён в другой вкладке. Проверьте его ещё раз перед удалением.")
+        files = {}
+        for item in project.media.all():
+            for field in (item.image, item.thumbnail, item.source):
+                if field:
+                    private = field.field.name == "source"
+                    files[(private, field.name)] = field.storage
+        title = project.title
+        for lead in project.lead_set.select_for_update():
+            if not lead.context.get("project_title"):
+                lead.context = {**lead.context, "project_title": title}
+                lead.save(update_fields=["context"])
+        project.delete()
+        # A moved photo can retain its original storage path. Delete exact files,
+        # never a project directory, and keep files referenced by another record.
+        removable = []
+        for (private, name), storage in files.items():
+            references = Q(source=name) if private else Q(image=name) | Q(thumbnail=name)
+            if not ProjectMedia.objects.filter(references).exists():
+                removable.append((storage, name))
+
+        def remove_files():
+            for storage, name in removable:
+                try:
+                    storage.delete(name)
+                except OSError:
+                    logging.getLogger(__name__).exception("Could not clean up a deleted project's photo")
+        transaction.on_commit(remove_files, robust=True)
+    return title
 
 
 def is_editor(user):
