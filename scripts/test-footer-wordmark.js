@@ -6,6 +6,9 @@ async page => {
   if (await page.locator('[data-privacy-panel]').isVisible()) await page.getByRole('button', { name: 'Отклонить', exact: true }).click();
   await page.evaluate(() => document.fonts.ready);
   const word = page.locator('[data-footer-wordmark]');
+  // SVG use clones need typography on the source, not an ancestor CSS selector.
+  check((await word.locator('#footer-letters').getAttribute('font-family')).startsWith('Manrope'), 'SVG highlight source must explicitly use Manrope');
+  check(await word.locator('#footer-letters').getAttribute('letter-spacing') === '0', 'SVG clone spacing differs from base text');
   for (const width of [320,390,768,1440,1920]) {
     await page.setViewportSize({ width, height: 1000 });
     await word.scrollIntoViewIfNeeded();
