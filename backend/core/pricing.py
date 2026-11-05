@@ -62,6 +62,13 @@ class CalculationForm(forms.Form):
                 field.widget.attrs["placeholder"] = "0"
 
 
+def priced_item(code, quantity, rates):
+    row = rates[code]
+    total = None if quantity is None else str((Decimal(quantity) * Decimal(row['amount'])).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+    return {'code': code, 'title': row['title'], 'quantity': str(quantity) if quantity is not None else None,
+            'unit': row['unit'], 'unit_price': row['amount'], 'total': total}
+
+
 def calculate(cleaned, version=None):
     version = version or PricingVersion.objects.get(active=True)
     rates = validate_rates(version.rates)
@@ -71,9 +78,7 @@ def calculate(cleaned, version=None):
     for code, quantity in selected:
         if quantity is None or quantity == 0:
             continue
-        row = rates[code]
-        total = (Decimal(quantity) * Decimal(row["amount"])).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
-        items.append({"code": code, "title": row["title"], "quantity": str(quantity), "unit": row["unit"], "unit_price": row["amount"], "total": str(total)})
+        items.append(priced_item(code, quantity, rates))
     return {"version": version.pk, "version_title": version.title, "currency": "RUB", "inputs": {k: str(v) if v is not None else None for k, v in cleaned.items()},
         "items": items, "total": str(sum((Decimal(item["total"]) for item in items), Decimal("0.00"))),
         "complete": cleaned.get("perimeter") is not None, "exclusions": EXCLUSIONS}

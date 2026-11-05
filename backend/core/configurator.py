@@ -57,6 +57,7 @@ class ConfiguratorForm(forms.Form):
     locality = forms.CharField(label="Населённый пункт", required=False, max_length=120)
 
     def __init__(self, *args, **kwargs):
+        self.partial = kwargs.pop('partial', False)
         if args and args[0] is not None:
             data = args[0].copy()
             # Exclude stale dependent values before validation, including malformed ones.
@@ -68,6 +69,9 @@ class ConfiguratorForm(forms.Form):
                     data[key] = data[key].replace(",", ".")
             args = (data, *args[1:])
         super().__init__(*args, **kwargs)
+        if self.partial:
+            for field in self.fields.values():
+                field.required = False
 
     def clean(self):
         data = super().clean()
@@ -79,16 +83,16 @@ class ConfiguratorForm(forms.Form):
                 self.add_error(name, "Выберите конкретные варианты либо один ответ «нет / не знаю».")
         if data.get("size_mode") == "dimensions" and data.get("shape") == "rectangle":
             for name in ("length", "width"):
-                if data.get(name) is None:
+                if data.get(name) is None and not self.partial:
                     self.add_error(name, "Укажите размер или выберите другой способ ввода.")
             if data.get("length") and data.get("width"):
                 data["area"] = (data["length"] * data["width"]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
                 data["perimeter"] = 2 * (data["length"] + data["width"])
                 if data["area"] < Decimal(".1"):
                     self.add_error("length", "Площадь должна быть не меньше 0,1 м².")
-        elif data.get("size_mode") != "unknown" and data.get("area") is None:
+        elif not self.partial and data.get("size_mode") != "unknown" and data.get("area") is None:
             self.add_error("area", "Укажите площадь или выберите «Не знаю размеры».")
-        if data.get("location") in {"region", "other"} and not data.get("locality"):
+        if not self.partial and data.get("location") in {"region", "other"} and not data.get("locality"):
             self.add_error("locality", "Укажите населённый пункт.")
         return data
 
@@ -159,6 +163,32 @@ def summary(data):
         elif isinstance(field, forms.ChoiceField): value = dict(field.choices).get(value, value)
         rows.append({"label": field.label, "value": str(value)})
     return rows
+
+
+def preview_answers(form, version):
+    """Price only explicit choices; accepting a draft never relaxes lead validation."""
+    from .pricing import validate_rates, priced_item
+    data = form.cleaned_data.copy()
+    missing = [field.label for name, field in ConfiguratorForm.base_fields.items()
+               if field.required and name != 'schema' and not data.get(name)]
+    for name in ('material', 'edge', 'shape', 'cornice', 'location'):
+        data[name] = data.get(name) or 'unknown'
+    quote = calculate_answers(data, version)
+    warnings = quote['warnings']
+    if not form.cleaned_data.get('location'):
+        warnings = [w for w in warnings if not w.startswith('Выезд и возможность')]
+    quote['warnings'] = list(dict.fromkeys(['Выберите: ' + label for label in missing] + warnings))
+    quote['complete'] = not quote['warnings']
+    rates = validate_rates(version.rates)
+    options = {}
+    for field, choices in (('material', [('pvc', 'pvc'), ('fabric', 'fabric')]),
+                           ('edge', [(c, c) for c in ('standard', 'shadow', 'floating')]),
+                           ('lights', [(c, c) for c in ('spots', 'light_lines', 'tracks')]),
+                           ('cornice', [('hidden', 'cornices')])):
+        for value, code in choices:
+            quantity = data.get('area') if field == 'material' else data.get('perimeter') if field == 'edge' else data.get(code)
+            options[f'{field}:{value}'] = priced_item(code, quantity, rates)
+    return quote, options
 
 
 STEP_FIELDS = [

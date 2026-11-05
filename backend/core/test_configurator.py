@@ -151,3 +151,46 @@ class ConfiguratorTests(TestCase):
         self.assertIsNone(bootstrap['quote'])
         self.assertIn('length', bootstrap['errors'])
         self.assertEqual(response.context['config_form']['length'].value(), '')
+
+    def test_live_price_sequence_and_replacement(self):
+        data = {'schema': 'v2', 'preview': '1', 'size_mode': 'dimensions', 'shape': 'rectangle', 'length': '5', 'width': '4', 'material': 'pvc'}
+        def preview(**updates):
+            data.update(updates)
+            response = self.client.post(reverse('estimate'), data)
+            self.assertEqual(response.status_code, 200, response.content)
+            return response.json()
+        first = preview()
+        self.assertEqual(first['quote']['total'], '13000.00')
+        self.assertEqual([i['code'] for i in first['quote']['items']], ['pvc'])
+        self.assertFalse(first['quote']['complete'])
+        self.assertEqual(first['options']['edge:shadow']['total'], '15300.00')
+        self.assertEqual(preview(edge='standard')['quote']['total'], '16240.00')
+        self.assertEqual(preview(edge='shadow')['quote']['total'], '28300.00')
+        self.assertEqual(preview(lights=['spots'], spots='6')['quote']['total'], '31000.00')
+        self.assertEqual(preview(lights=['spots', 'light_lines', 'tracks'], light_lines='3', tracks='2', cornice='hidden', cornices='3')['quote']['total'], '50900.00')
+        self.assertEqual(preview(lights=['none'], cornice='none')['quote']['total'], '28300.00')
+        self.assertEqual(preview(material='fabric')['quote']['total'], '55300.00')
+        self.assertEqual(preview(width='2')['quote']['total'], '31900.00')
+        self.assertIsNone(preview(material='pvc_gloss')['quote']['total'])
+
+    def test_preview_is_partial_but_submission_and_final_estimate_stay_strict(self):
+        response = self.client.post(reverse('estimate'), {'schema': 'v2', 'preview': '1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.json()['quote']['total'])
+        self.assertEqual(response.json()['quote']['items'], [])
+        self.assertEqual(self.client.post(reverse('estimate'), {'schema': 'v2'}).status_code, 400)
+        self.assertEqual(self.client.post(reverse('estimate'), {'schema': 'v2', 'preview': '1', 'size_mode': 'dimensions', 'shape': 'rectangle', 'length': 'Infinity'}).status_code, 400)
+
+    def test_preview_matches_final_and_uses_current_version(self):
+        data = answers(edge='shadow', lights=['spots'], spots='6')
+        preview = self.client.post(reverse('estimate'), {**data, 'preview': '1'}).json()['quote']
+        final = self.client.post(reverse('estimate'), data).json()['quote']
+        self.assertEqual(preview, final)
+        self.version.active = False
+        self.version.save()
+        rates = default_rates()
+        rates['pvc']['amount'] = '700'
+        current = PricingVersion.objects.create(title='Updated test rates', rates=rates, active=True)
+        updated = self.client.post(reverse('estimate'), {**data, 'preview': '1'}).json()['quote']
+        self.assertEqual(updated['version'], current.pk)
+        self.assertEqual(updated['total'], '32000.00')

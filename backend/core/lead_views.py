@@ -85,10 +85,15 @@ def calculator(request):
 @never_cache
 @require_POST
 def estimate(request):
-    form = answer_form(request.POST)
+    preview = request.POST.get('preview') == '1' and request.POST.get('schema') == 'v2'
+    from .configurator import ConfiguratorForm, preview_answers
+    form = ConfiguratorForm(request.POST, partial=True) if preview else answer_form(request.POST)
     if not form.is_valid():
         return JsonResponse({"ok": False, "errors": dict(form.errors)}, status=400)
     version = get_object_or_404(PricingVersion, active=True)
+    if preview:
+        quote, options = preview_answers(form, version)
+        return JsonResponse({'ok': True, 'quote': quote, 'options': options})
     return JsonResponse({"ok": True, "quote": calculate_answers(form.cleaned_data, version)})
 
 
