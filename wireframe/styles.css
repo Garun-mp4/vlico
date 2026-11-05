@@ -704,3 +704,8 @@ h1, h2, h3, h4, h5, h6, [role="heading"], .solution-name {
 .hero-offer h1, .display-heading, .project-copy h3, .commercial-copy h3 {
   letter-spacing: -.03em;
 }
+
+.hero-wordmark {
+  font-family: "Manrope", Arial, sans-serif;
+  letter-spacing: -.04em;
+}
