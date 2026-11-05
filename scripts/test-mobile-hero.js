@@ -4,6 +4,7 @@ async page => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('http://127.0.0.1:8000/');
   if (await page.locator('[data-privacy-panel]').isVisible()) await page.getByRole('button', { name: 'Отклонить', exact: true }).click();
+  await page.evaluate(() => document.fonts.ready);
   const results = [];
   for (const [width, height] of [[320,568],[360,720],[390,844],[412,780],[640,360],[641,600],[768,700],[820,600],[1024,600],[1280,720],[1440,768],[1920,900],[2560,1080]]) {
     await page.setViewportSize({ width, height });

@@ -13,6 +13,7 @@ colors:
   brand: "#27be82"
 typography:
   family: "IBM Plex Mono"
+  headings: "Manrope"
   weight-regular: 400
   weight-medium: 500
   weight-semibold: 600
@@ -54,7 +55,7 @@ The result should feel like an architecture and interiors portfolio, with the ce
 
 ## Typography
 
-Use the locally hosted IBM Plex Mono family in regular, medium, and semibold weights. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The VLICO wordmark is oversized text, not an imported copy of the Eleos wordmark.
+Use locally hosted Manrope for all headings and solution titles, and IBM Plex Mono in regular, medium, and semibold weights for body text and interface labels. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The VLICO wordmark is oversized text, not an imported copy of the Eleos wordmark.
 
 ## Grid and rhythm
 
@@ -154,3 +155,5 @@ Use distinct content rows for the location label, large VLICO wordmark, offer/co
 ## Homepage project preview
 
 Show at most six published projects on the landing page: three columns from 1100px, two from 641px, one below. Desktop/tablet previews use a compact 3:2 photo and a two-line description; mobile retains the 4:3 image. Preserve arrows, dragging and swipe within each project. Place the full-catalogue link below the grid. Project detail and catalogue pages retain their existing layouts.
+
+The hero uses the client-supplied `hero-vlico-interior.webp` with its original warmth and soft focus, without additional image filters. Cover sizing is centered on desktop and positioned at 62% horizontally on mobile to retain the window and ceiling lighting.
