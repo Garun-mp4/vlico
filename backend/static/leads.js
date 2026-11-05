@@ -66,7 +66,7 @@
         if (xhr.status >= 200 && xhr.status < 300 && result.ok) {
           status.textContent = `${result.message} Номер: ${result.reference}`; form.dataset.submitted = 'true';
           form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
-          document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind } }));
+          document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind, reference: result.reference } }));
         } else {
           status.hidden = true;
           showErrors(result.errors || { __all__: [xhr.status === 403 ? 'Сессия формы устарела. Сохраните введённое и обновите страницу.' : 'Сервис временно недоступен. Данные остались в форме; попробуйте отправить снова.'] });

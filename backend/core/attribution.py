@@ -56,7 +56,7 @@ class AttributionMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.method == "GET" and (request.path == "/" or request.path.startswith(("/projects/", "/request/", "/calculator/"))):
+        if request.method == "GET" and (request.path == "/" or request.path.startswith(("/projects/", "/request/", "/calculator/", "/services/", "/partners/", "/contacts/"))):
             now = timezone.now()
             saved = request.session.get("lead_attribution", {})
             if not saved or saved.get("expires", 0) < now.timestamp():

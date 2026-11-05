@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +31,7 @@ MIDDLEWARE = [
 ]
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "DIRS": [BASE_DIR / "templates"], "APP_DIRS": True,
-              "OPTIONS": {"context_processors": ["django.template.context_processors.request", "django.contrib.auth.context_processors.auth", "django.contrib.messages.context_processors.messages"]}}]
+              "OPTIONS": {"context_processors": ["django.template.context_processors.request", "django.contrib.auth.context_processors.auth", "django.contrib.messages.context_processors.messages", "core.public_site.public_context"]}}]
 WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": os.environ.get("POSTGRES_DB", "vlico"),
     "USER": os.environ.get("POSTGRES_USER", "vlico"), "PASSWORD": os.environ["POSTGRES_PASSWORD"],
@@ -78,3 +79,21 @@ DATA_UPLOAD_MAX_NUMBER_FILES = 8
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_DELIVERY_ENABLED = os.environ.get("TELEGRAM_DELIVERY_ENABLED", "false").lower() == "true"
+
+SITE_URL = os.environ.get("SITE_URL", "https://vlico39.ru").rstrip("/")
+_site_parts = urlsplit(SITE_URL)
+if _site_parts.scheme not in {"https", "http"} or not _site_parts.netloc or _site_parts.path or _site_parts.username or _site_parts.query or _site_parts.fragment:
+    raise ImproperlyConfigured("SITE_URL must be a public origin without path or credentials")
+YANDEX_METRIKA_ID = os.environ.get("YANDEX_METRIKA_ID", "113716679").strip()
+if YANDEX_METRIKA_ID and not YANDEX_METRIKA_ID.isdigit():
+    raise ImproperlyConfigured("YANDEX_METRIKA_ID must be numeric")
+ANALYTICS_ENABLED = os.environ.get("ANALYTICS_ENABLED", "false").lower() == "true"
+LEGAL_VERSION = "2026-11-05.1"
+LEGAL_OPERATOR = {
+    "name": os.environ.get("OPERATOR_NAME") or "[Полное наименование организации или ФИО индивидуального предпринимателя]",
+    "inn": os.environ.get("OPERATOR_INN") or "[ИНН оператора]",
+    "registration": os.environ.get("OPERATOR_REGISTRATION") or "[ОГРН / ОГРНИП]",
+    "address": os.environ.get("OPERATOR_ADDRESS") or "[Адрес оператора для юридически значимых обращений]",
+    "email": os.environ.get("PRIVACY_EMAIL") or "i@gizersky.ru",
+    "version": LEGAL_VERSION,
+}

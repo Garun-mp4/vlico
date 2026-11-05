@@ -216,7 +216,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
         status.textContent = `${body.message} Номер: ${body.reference}`; form.dataset.submitted = 'true';
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Storage optional. */ }
         finish(); form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
-        document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: 'calculator' } }));
+        document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: 'calculator', reference: body.reference } }));
       } else {
         status.hidden = true;
         if (body.quote) { showQuote(body.quote); showContact(true); }

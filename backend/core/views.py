@@ -24,5 +24,8 @@ def health(request):
 
 @require_safe
 def robots(request):
-    # Search launch and sitemap are intentionally implemented in milestone 4/5.
-    return HttpResponse("User-agent: *\nDisallow: /\n", content_type="text/plain")
+    from django.conf import settings
+    text = "User-agent: *\nDisallow: /\n"
+    if settings.SITE_INDEXABLE:
+        text = "User-agent: *\nDisallow: /cabinet/\nDisallow: /api/\nDisallow: /request/\nDisallow: /health/\nSitemap: " + settings.SITE_URL + "/sitemap.xml\n"
+    return HttpResponse(text, content_type="text/plain")

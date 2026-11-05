@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="description" content="{% block description %}Реальные проекты потолков и освещения VLICO в Калининграде и области.{% endblock %}">
-<title>{% block title %}Проекты{% endblock %} · VLICO</title>
+{% include 'site/seo.html' %}
 <link rel="icon" href="{% static 'assets/vlico-logo.svg' %}">
 <link rel="stylesheet" href="{% static 'styles.css' %}">
 <link rel="stylesheet" href="{% static 'portfolio.css' %}">
 <link rel="stylesheet" href="{% static 'configurator.css' %}">
 <script type="module" src="{% static 'calculator/controller.js' %}"></script>
 <link rel="stylesheet" href="{% static 'leads.css' %}">
+<link rel="stylesheet" href="{% static 'site.css' %}">
+<script src="{% static 'site.js' %}" defer></script>
 <script src="{% static 'leads.js' %}" defer></script>
 <script src="{% static 'portfolio.js' %}" defer>
 </script>
+<script src="{% static 'project-carousel.js' %}" defer></script>
 </head>
 <body class="portfolio-page">
 <a class="skip-link" href="#content">Перейти к содержимому</a>
@@ -23,9 +24,10 @@
 <img src="{% static 'assets/vlico-logo.svg' %}" width="140" height="47" alt="VLICO">
 </a>
 <nav aria-label="Основная навигация">
+<a href="{% url 'services' %}">Решения</a>
 <a href="{% url 'projects' %}">Проекты</a>
-<a href="{% url 'home' %}#calculator">Калькулятор</a>
-<a href="{% url 'home' %}#contact">Обсудить проект</a>
+<a href="{% url 'calculator' %}">Расчёт</a>
+<a href="{% url 'contacts' %}">Контакты</a>
 </nav>
 </header>
 <main id="content">{% block content %}{% endblock %}</main>
@@ -33,5 +35,6 @@
 <a href="{% url 'home' %}">VLICO</a>
 <p>Потолки и свет · Калининград и область</p>
 <a href="{% url 'home' %}#contact">Обсудить проект</a>
-</footer>{% block dialog %}{% endblock %}</body>
+{% include 'site/public-links.html' %}
+</footer>{% include 'site/privacy-controls.html' %}{% block dialog %}{% endblock %}</body>
 </html>

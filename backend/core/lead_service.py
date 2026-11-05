@@ -10,6 +10,7 @@ from .attribution import safe_path, submission_attribution
 from .lead_uploads import prepare_attachments
 from .models import Lead, LeadAttachment, Delivery, SubmissionBucket, PricingVersion
 from .configurator import calculation_form, calculate_answers
+from .legal import consent_record
 
 
 class SubmissionError(Exception):
@@ -48,8 +49,9 @@ def save_submission(request, form):
         raise SubmissionError(dict(answers.errors))
     project, service = data.get("project"), data.get("service")
     context = {"interest": data.get("interest", ""), "project_title": project.title if project else "", "service_title": service.title if service else ""}
+    context["consent"] = consent_record()
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
-    payload.update(project=project.pk if project else None, service=service.pk if service else None)
+    payload.update(project=project.pk if project else None, service=service.pk if service else None, legal_version=data["legal_version"])
     payload["files"] = [item["digest"] for item in attachments]
     if answers:
         payload["inputs"] = {key: str(value) for key, value in answers.cleaned_data.items()}

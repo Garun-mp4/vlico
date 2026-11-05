@@ -5,6 +5,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from .models import Lead, Project, Service
+from .legal import consent_revision
 
 KINDS = Lead._meta.get_field("kind").choices
 TOKEN_SALT = "vlico.lead-submission.v1"
@@ -23,9 +24,12 @@ class LeadForm(forms.Form):
     submission_token = forms.CharField(widget=forms.HiddenInput, max_length=300)
     website = forms.CharField(required=False, max_length=200, widget=forms.TextInput(attrs={"tabindex": "-1", "autocomplete": "off"}))
     pricing_version = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput)
+    legal_version = forms.CharField(widget=forms.HiddenInput, max_length=100)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.initial["legal_version"] = consent_revision()
         selected_kind = self.data.get("kind") if self.is_bound else self.initial.get("kind")
         if selected_kind == "calculator":
             self.fields["kind"].widget = forms.HiddenInput()
@@ -49,6 +53,11 @@ class LeadForm(forms.Form):
 
     def clean_name(self):
         return " ".join(self.cleaned_data["name"].split())
+
+    def clean_legal_version(self):
+        if self.cleaned_data["legal_version"] != consent_revision():
+            raise ValidationError("Условия обработки данных обновились. Обновите страницу и ознакомьтесь с согласием.")
+        return self.cleaned_data["legal_version"]
 
     def clean(self):
         data = super().clean()

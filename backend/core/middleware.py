@@ -9,6 +9,8 @@ class PreviewRobotsMiddleware:
         if request.path.startswith("/cabinet/"):
             response["Cache-Control"] = "private, no-store"
             response["X-Robots-Tag"] = "noindex, nofollow"
+        if request.path.startswith(("/api/", "/request/", "/health/")) or response.status_code >= 400:
+            response["X-Robots-Tag"] = "noindex, nofollow"
         if not settings.SITE_INDEXABLE:
             response["X-Robots-Tag"] = "noindex, nofollow"
         return response

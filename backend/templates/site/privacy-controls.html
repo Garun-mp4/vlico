@@ -1,0 +1,6 @@
+{{ site_config|json_script:'site-config' }}
+<section class="privacy-panel" data-privacy-panel aria-labelledby="privacy-title" hidden>
+<div><h2 id="privacy-title">Приватность на сайте</h2><p>Обязательные cookie обеспечивают работу форм. Аналитику Яндекс Метрики и внешние виджеты Яндекса можно включить отдельно. <a href="{% url 'cookies' %}">Подробнее</a></p></div>
+<form data-privacy-form><div class="privacy-options"><label><input type="checkbox" name="analytics"> Аналитика посещений</label><label><input type="checkbox" name="external"> Рейтинг и отзывы Яндекса</label></div><div class="privacy-actions"><button type="submit">Сохранить выбор</button><button type="button" data-privacy-essential>Только необходимые</button></div></form>
+</section>
+<noscript><p class="public-links">Аналитика и внешние виджеты отключены. Отзывы доступны по ссылке на Яндекс Карты.</p></noscript>

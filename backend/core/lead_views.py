@@ -11,7 +11,7 @@ from .configurator import calculation_form as answer_form, calculate_answers, co
 def initial_lead_form(request, kind="consultation"):
     project = Project.objects.filter(slug=request.GET.get("project", ""), status="published").first()
     service = Service.objects.filter(slug=request.GET.get("service", "")).first()
-    return LeadForm(initial={"kind": kind, "project": project, "service": service})
+    return LeadForm(initial={"kind": kind, "project": project, "service": service, "interest": request.GET.get("interest", "")[:200]})
 
 
 def accept(request):

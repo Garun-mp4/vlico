@@ -1,8 +1,7 @@
 from django.urls import path
 from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
-from django.contrib.sitemaps.views import sitemap
-from core.sitemaps import ProjectSitemap
+from core import public_site
 urlpatterns = [
     path("", views.home, name="home"),
     path("request/<str:kind>/", lead_views.request_form, name="request_form"),
@@ -18,7 +17,13 @@ urlpatterns = [
     path("cabinet/rates/", lead_cabinet.rates, name="cabinet_rates"),
     path("health/", views.health, name="health"),
     path("robots.txt", views.robots, name="robots"),
-    path("sitemap.xml", sitemap, {"sitemaps": {"projects": ProjectSitemap}}, name="sitemap"),
+    path("sitemap.xml", public_site.sitemap, name="sitemap"),
+    path("services/", public_site.services, name="services"),
+    path("services/<slug:slug>/", public_site.service, name="service"),
+    path("partners/", public_site.partners, name="partners"),
+    path("contacts/", public_site.contacts, name="contacts"),
+    path("consent/", public_site.consent, name="consent"),
+    path("cookies/", public_site.cookies, name="cookies"),
     path("projects/", project_views.index, name="projects"),
     path("projects/<slug:slug>/", project_views.detail, name="project"),
     path("project-media/<int:pk>/<str:variant>/", project_views.image, name="project_image"),
@@ -39,3 +44,4 @@ urlpatterns = [
     path("cabinet/projects/<int:pk>/media/<int:media_pk>/edit/", cabinet.image_editor, name="cabinet_image_editor"),
     path("cabinet/projects/<int:pk>/media/<int:media_pk>/", cabinet.media_edit, name="cabinet_media"),
 ]
+handler404 = "core.public_site.not_found"
