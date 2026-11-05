@@ -57,9 +57,9 @@ class CategoryForm(forms.ModelForm):
     revision = forms.CharField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = ProjectCategory
-        fields = ["title", "position"]
-        labels = {"title": "Название категории", "position": "Порядок показа"}
-        help_texts = {"position": "Меньшее число показывается раньше в списках и фильтрах."}
+        fields = ["title", "position", "is_public"]
+        labels = {"title": "Название категории", "position": "Порядок показа", "is_public": "Показывать категорию на сайте"}
+        help_texts = {"position": "Меньшее число показывается раньше в списках и фильтрах.", "is_public": "Категория появится в меню, фильтрах и подписях проектов. Если отключить, сами опубликованные проекты останутся на сайте."}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

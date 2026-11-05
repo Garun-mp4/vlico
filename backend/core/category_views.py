@@ -22,7 +22,7 @@ def category_editor_required(view):
     return wrapped
 
 
-def category_from_query(request):
+def category_from_query(request, public=False):
     value = request.GET.get("category", "")
     if not value:
         return None
@@ -30,7 +30,8 @@ def category_from_query(request):
         pk = int(value)
     except (ValueError, TypeError):
         raise Http404
-    return get_object_or_404(ProjectCategory, pk=pk)
+    categories = ProjectCategory.objects.filter(is_public=True) if public else ProjectCategory.objects.all()
+    return get_object_or_404(categories, pk=pk)
 
 
 @category_editor_required

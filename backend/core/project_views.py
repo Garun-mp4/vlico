@@ -15,11 +15,11 @@ def project_context(project):
 @require_safe
 def index(request):
     from .category_views import category_from_query
-    selected_category = category_from_query(request)
+    selected_category = category_from_query(request, public=True)
     projects = published_projects()
     if selected_category:
         projects = projects.filter(categories=selected_category)
-    categories = ProjectCategory.objects.annotate(project_count=Count("projects", filter=Q(projects__status=Project.Status.PUBLISHED), distinct=True))
+    categories = ProjectCategory.objects.filter(is_public=True).annotate(project_count=Count("projects", filter=Q(projects__status=Project.Status.PUBLISHED), distinct=True))
     return render(request, "site/projects.html", {"projects": projects, "categories": categories, "selected_category": selected_category})
 
 

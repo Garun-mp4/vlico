@@ -35,6 +35,7 @@ class Service(Timestamped):
 class ProjectCategory(Timestamped):
     title = models.CharField(max_length=120)
     position = models.PositiveIntegerField(default=0)
+    is_public = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["position", "title", "pk"]
@@ -66,6 +67,10 @@ class Project(Timestamped):
     featured = models.BooleanField(default=False)
     position = models.PositiveIntegerField(default=0)
     published_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def public_categories(self):
+        return [category for category in self.categories.all() if category.is_public]
 
     def get_absolute_url(self):
         from django.urls import reverse

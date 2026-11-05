@@ -21,6 +21,34 @@ class CategoryTests(TestCase):
         expected = {"Теневые потолки", "Парящие потолки", "Световые линии", "Магнитные треки", "Скрытые карнизы", "Тканевые потолки"}
         self.assertEqual(set(ProjectCategory.objects.values_list("title", flat=True)),expected)
 
+    def test_category_visibility_keeps_projects_and_can_be_restored(self):
+        self.category_login()
+        category = ProjectCategory.objects.create(title="Внутреннее направление")
+        self.project.categories.add(category)
+        self.upload(1)
+        self.project.status = "published"
+        self.project.save()
+        path = reverse("cabinet_category_edit", args=[category.pk])
+        self.assertContains(self.client.get(path), "Показывать категорию на сайте")
+        data = {"title": category.title, "position": category.position, "revision": category.updated_at.isoformat()}
+        self.assertEqual(self.client.post(path, data).status_code, 302)
+        category.refresh_from_db()
+        self.assertFalse(category.is_public)
+        for public_path in ("/", reverse("projects"), self.project.get_absolute_url()):
+            response = self.client.get(public_path)
+            self.assertNotContains(response, category.title)
+            self.assertContains(response, self.project.title)
+        self.assertEqual(self.client.get(reverse("projects"), {"category": category.pk}).status_code, 404)
+        self.assertContains(self.client.get(reverse("cabinet_projects"), {"category": category.pk}), self.project.title)
+        self.assertContains(self.client.get(reverse("cabinet_categories")), "Только в кабинете")
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.status, "published")
+        self.assertEqual(self.project.media.count(), 1)
+        self.assertTrue(self.project.categories.filter(pk=category.pk).exists())
+        data.update(is_public="on", revision=category.updated_at.isoformat())
+        self.assertEqual(self.client.post(path, data).status_code, 302)
+        self.assertContains(self.client.get(reverse("projects"), {"category": category.pk}), category.title)
+
     def test_category_crud_duplicate_and_stale_revision(self):
         self.category_login()
         new = reverse("cabinet_category_new")

@@ -24,7 +24,7 @@ def absolute(path):
 
 def project_navigation():
     covers = ProjectMedia.objects.filter(project__categories=OuterRef("pk"), project__status="published", is_cover=True).order_by("project__position", "project_id")
-    categories = list(ProjectCategory.objects.annotate(preview_pk=Subquery(covers.values("pk")[:1])))
+    categories = list(ProjectCategory.objects.filter(is_public=True).annotate(preview_pk=Subquery(covers.values("pk")[:1])))
     services = {item["title"].casefold(): item for item in SERVICES}
     for category in categories:
         service = services.get(category.title.casefold())

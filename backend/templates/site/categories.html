@@ -1,1 +1,1 @@
-{% if project.categories.all %}<ul class="project-categories" aria-label="Категории проекта">{% for category in project.categories.all %}<li><a href="{% url 'projects' %}?category={{ category.pk }}">{{ category.title }}</a></li>{% endfor %}</ul>{% endif %}
+{% with categories=project.public_categories %}{% if categories %}<ul class="project-categories" aria-label="Категории проекта">{% for category in categories %}<li><a href="{% url 'projects' %}?category={{ category.pk }}">{{ category.title }}</a></li>{% endfor %}</ul>{% endif %}{% endwith %}

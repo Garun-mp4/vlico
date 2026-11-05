@@ -70,6 +70,7 @@ Major sections receive generous top and bottom space. Use hairline rules for pro
 - Project entries use real VLICO photos and only case facts present in the supplied brief. Avoid promo graphics and generated imagery presented as documented work.
 - Solution rows remain open and text-led. Hover shifts the row slightly and moves its arrow.
 - Desktop project-direction links reuse the solution preview engine: a small inertial image stays beside the dropdown without intercepting clicks. Known directions use their service illustration; custom directions use a published project cover, with no private draft imagery. Decorative previews stay disabled on touch, stop animating when idle, and remain stationary for reduced motion.
+- Category visibility is editable in the cabinet. Hidden categories stay available to editors but disappear from public navigation, filters and project labels; their published projects remain in the catalogue. The process-only “Монтажные работы” and unprepared “Транспарентные потолки” directions start hidden.
 - The contact form appears at the end of the page. Milestone 1 preserves its explicit demonstration state; milestone 3 replaces this with server submission and truthful loading, success and error states.
 - Use a brief page cover, subtle image settling, once-only scroll reveals, and small arrow transitions. Keep motion on opacity and transforms; respect `prefers-reduced-motion`.
 
