@@ -253,8 +253,8 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
 .hero {
   position: relative;
   min-height: 760px;
-  height: 100svh;
-  max-height: 1120px;
+  height: auto;
+  max-height: none;
   overflow: hidden;
   isolation: isolate;
   background: #2c2a26;
@@ -265,11 +265,11 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
 .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 43%; filter: blur(.45px) sepia(.12) saturate(.72) contrast(.95) brightness(.7); }
 .hero-shade { z-index: -2; background: linear-gradient(180deg, rgba(18, 18, 17, .34) 0%, rgba(20, 20, 18, .1) 31%, rgba(20, 19, 16, .28) 57%, rgba(18, 18, 16, .82) 100%); }
 .hero-grain { z-index: -1; pointer-events: none; opacity: .2; mix-blend-mode: soft-light; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E"); }
-.hero-content { position: relative; height: 100%; min-height: 760px; padding-top: 118px; }
+.hero-content { position: relative; display: flex; flex-direction: column; gap: 32px; height: auto; min-height: max(760px, 100svh); padding-top: 118px; padding-bottom: 24px; }
 .hero-kicker, .eyebrow, .hero-side-label { margin: 0; font-size: 11px; font-weight: 500; letter-spacing: .05em; line-height: 1.5; }
-.hero-kicker { position: absolute; top: 119px; left: var(--grid-gutter); color: rgba(242,241,233,.82); }
-.hero-wordmark { position: absolute; top: 42%; left: 2.3vw; width: 100%; transform: translateY(-50%); font-size: clamp(220px, 30vw, 600px); font-weight: 400; letter-spacing: -.115em; line-height: .8; white-space: nowrap; opacity: .94; }
-.hero-bottom { position: absolute; right: var(--grid-gutter); bottom: clamp(58px, 7.5vh, 100px); left: var(--grid-gutter); display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: end; }
+.hero-kicker { color: rgba(242,241,233,.82); }
+.hero-wordmark { position: relative; width: 100%; margin-top: 16px; font-size: clamp(220px, 30vw, 600px); font-weight: 400; letter-spacing: -.115em; line-height: .8; white-space: nowrap; opacity: .94; }
+.hero-bottom { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: start; }
 .hero-offer { grid-column: 1 / span 6; max-width: 720px; }
 .hero-offer h1 { max-width: 18ch; margin: 0; font-size: clamp(25px, 2.55vw, 43px); font-weight: 500; letter-spacing: -.055em; line-height: 1.15; text-transform: uppercase; }
 .hero-offer > p { max-width: 62ch; margin: 15px 0 0; color: rgba(242,241,233,.82); font-size: clamp(12px, .92vw, 15px); line-height: 1.55; }
@@ -281,7 +281,7 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
 .hero-side dt { color: rgba(242,241,233,.64); }
 .hero-side dd { margin: 0; text-align: right; }
 .hero-note { margin: 10px 0 0; color: rgba(242,241,233,.75); font-size: 11px; }
-.scroll-cue { position: absolute; bottom: 24px; left: 50%; display: flex; align-items: center; gap: 9px; color: rgba(242,241,233,.7); font-size: 11px; letter-spacing: .08em; text-decoration: none; transform: translateX(-50%); }
+.scroll-cue { align-self: center; margin-top: auto; display: flex; align-items: center; gap: 9px; color: rgba(242,241,233,.7); font-size: 11px; letter-spacing: .08em; text-decoration: none; }
 .scroll-cue i { color: var(--night-ink); font-size: 15px; font-style: normal; }
 .text-link { display: inline-flex; align-items: center; gap: 10px; width: fit-content; padding: 4px 0 6px; border-bottom: 1px solid currentColor; font-size: 12px; font-weight: 500; letter-spacing: .01em; line-height: 1.35; text-decoration: none; }
 .text-link-light { color: var(--night-ink); }
@@ -421,8 +421,8 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
 .motion-ready .hero-kicker { transition-delay: 100ms; }
 .motion-ready .hero-offer { transition-delay: 300ms; }
 .motion-ready .hero-side { transition-delay: 410ms; }
-.motion-ready .hero-wordmark { opacity: .04; transform: translateY(calc(-50% + 16px)); transition: opacity 1050ms var(--ease-out) 220ms, transform 1050ms var(--ease-out) 220ms; }
-.motion-ready .is-loaded .hero-wordmark { opacity: .94; transform: translateY(-50%); }
+.motion-ready .hero-wordmark { opacity: .04; transform: translateY(16px); transition: opacity 1050ms var(--ease-out) 220ms, transform 1050ms var(--ease-out) 220ms; }
+.motion-ready .is-loaded .hero-wordmark { opacity: .94; transform: none; }
 .motion-ready .about-image figcaption { transition-delay: 60ms; }
 .motion-ready .about-copy { transition-delay: 140ms; }
 .motion-ready .project-copy { transition-delay: 100ms; }
@@ -490,9 +490,9 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   .desktop-nav a, .header-cta { font-size: 11px; }
   .header-cta { grid-column: 10 / span 3; }
   .hero { min-height: 780px; }
-  .hero-content { min-height: 780px; }
-  .hero-wordmark { top: 38%; font-size: 31vw; }
-  .hero-bottom { grid-template-columns: repeat(8, minmax(0, 1fr)); bottom: 65px; }
+  .hero-content { min-height: max(780px, 100svh); }
+  .hero-wordmark { font-size: 31vw; }
+  .hero-bottom { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   .hero-offer { grid-column: 1 / span 5; }
   .hero-side { grid-column: 6 / span 3; }
   .hero-offer h1 { font-size: clamp(25px, 4vw, 35px); }
@@ -651,7 +651,7 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .loader { display: none; }
   .motion-ready .reveal { opacity: 1; transform: none; }
-  .motion-ready .hero-wordmark { opacity: .94; transform: translateY(-50%); }
+  .motion-ready .hero-wordmark { opacity: .94; transform: none; }
   .motion-ready [data-image-frame] .image-reveal-cover { display: none; }
   .motion-ready [data-image-frame] img { transform: none !important; transition: none !important; }
 }

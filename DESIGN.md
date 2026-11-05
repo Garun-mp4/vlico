@@ -146,3 +146,7 @@ Keep one price block above the desktop visual, sticky at 95px inside its sidebar
 ## Footer wordmark
 
 The footer VLICO wordmark fills the available grid width with equal gutters and a clear gap above the dark footer bar. Keep all letters visible; never restore negative bottom margins or cropped type. A soft brand-green spotlight follows a fine pointer only over the letters, with a brief opacity fade. Touch and reduced-motion use a static wordmark. No autoplay or idle animation loop.
+
+## Hero layout safety
+
+Use distinct content rows for the location label, large VLICO wordmark, offer/conditions and scroll cue on every breakpoint. Keep the desktop offer and conditions in separate columns of one row below the wordmark. Let the hero grow when the viewport is short or text is enlarged; do not position these content groups independently with top/bottom percentages.
