@@ -23,7 +23,7 @@ services:
       PUBLIC_MEDIA_ROOT: /data/public
       PRIVATE_MEDIA_ROOT: /data/private
     ports:
-      - "127.0.0.1:${WEB_PORT:-8000}:8000"
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-8000}:8000"
     volumes:
       - public_media:/data/public
       - private_media:/data/private
