@@ -1,2 +1,19 @@
-<section class="reviews-block" aria-labelledby="reviews-title"><div><p class="eyebrow">ОПЫТ КЛИЕНТОВ</p><h2 id="reviews-title">Отзывы о VLICO</h2><p>Истории клиентов и актуальная оценка — в карточке студии на Яндекс Картах.</p><a class="text-link" href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Читать отзывы ↗</a> <a class="text-link" href="{{ company.yandex }}reviews/?add-review=true" target="_blank" rel="noopener" data-goal="review_write_click">Оставить отзыв ↗</a><div class="rating-badge" data-external-widget="rating"><button type="button" data-privacy-open>Показать рейтинг Яндекса</button></div></div>
-<div class="reviews-widget" data-external-widget="reviews"><div class="external-fallback"><p>Здесь появятся отзывы из Яндекс Карт, если вы разрешите внешние виджеты.</p><button type="button" data-privacy-open>Настроить виджеты</button><p><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener">Открыть отзывы на Яндекс Картах ↗</a></p></div></div></section>
+<section class="reviews-block" id="reviews" aria-labelledby="reviews-title">
+  <div class="reviews-intro">
+    <p class="eyebrow">ОПЫТ КЛИЕНТОВ</p>
+    <h2 id="reviews-title">Отзывы о VLICO</h2>
+    <p>Что клиенты говорят о работе с нами. Оригинальные отзывы и актуальная оценка — напрямую из Яндекс Карт.</p>
+    <div class="reviews-actions">
+      <a class="text-link" href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Все отзывы на Яндекс Картах ↗</a>
+      <a class="text-link" href="{{ company.yandex }}reviews/?add-review=true" target="_blank" rel="noopener" data-goal="review_write_click">Оставить отзыв ↗</a>
+    </div>
+    <div class="rating-badge" data-external-widget="rating"><button type="button" data-privacy-open>Показать рейтинг Яндекса</button></div>
+  </div>
+  <div class="reviews-widget" data-external-widget="reviews">
+    <div class="external-fallback">
+      <p>Покажем отзывы прямо из Яндекс Карт.</p>
+      <button type="button" data-external-enable>Загрузить отзывы Яндекса</button>
+      <p class="reviews-privacy-note">При загрузке Яндекс получит IP-адрес и технические сведения о соединении. Выбор можно изменить в <button type="button" class="inline-button" data-privacy-open>настройках приватности</button>. <a href="{% url 'cookies' %}">Подробнее</a>.</p>
+    </div>
+  </div>
+</section>

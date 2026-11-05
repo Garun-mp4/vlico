@@ -66,7 +66,7 @@
       const iframe = document.createElement('iframe'); iframe.src = source[0]; iframe.title = source[1];
       iframe.loading = 'lazy'; iframe.referrerPolicy = 'no-referrer'; iframe.setAttribute('frameborder', '0');
       iframe.width = host.dataset.externalWidget === 'rating' ? '150' : '760';
-      iframe.height = host.dataset.externalWidget === 'rating' ? '50' : '600';
+      iframe.height = host.dataset.externalWidget === 'rating' ? '50' : '960';
       // Keep a real link available even when a third-party frame fails to load.
       host.append(iframe);
       host.querySelectorAll(':scope > button').forEach(node => { node.hidden = true; });
@@ -97,6 +97,14 @@
   form.addEventListener('submit', event => { event.preventDefault(); save(); });
   panel.querySelector('[data-privacy-essential]').addEventListener('click', () => save(true));
   document.addEventListener('click', event => {
+    const external = event.target.closest('[data-external-enable]');
+    if (external) {
+      returnFocus = null;
+      form.elements.analytics.checked = choice.analytics;
+      form.elements.external.checked = true;
+      save();
+      external.closest('[data-external-widget]')?.querySelector('iframe')?.focus({ preventScroll: true });
+    }
     const trigger = event.target.closest('[data-privacy-open]');
     if (trigger) show(trigger);
     const link = event.target.closest('[data-goal]');

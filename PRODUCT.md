@@ -18,6 +18,7 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 ## Page structure
 - Full-screen, photo-led offer with a large VLICO wordmark.
 - Editorial company statement about planning ceiling and lighting as one system.
+- Original Yandex reviews as the third main section, with three visible previews, the live rating and links to read or write reviews.
 - Selected work, including the documented Rumyantseva penthouse and Podlesnaya hotel project.
 - A concise list of ceiling and lighting systems.
 - A photo-led section explaining the project sequence.

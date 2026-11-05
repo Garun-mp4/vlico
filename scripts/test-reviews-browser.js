@@ -1,0 +1,56 @@
+async page => {
+  const check = (condition, message) => { if (!condition) throw Error(message); };
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.setViewportSize({ width: 1440, height: 1180 });
+  await page.goto('http://127.0.0.1:8000/');
+  await page.evaluate(() => {
+    const version = JSON.parse(document.getElementById('site-config').textContent).consent_version;
+    localStorage.setItem('vlicoPrivacy', JSON.stringify({ version, expires: Date.now() + 86400000, analytics: false, external: false }));
+  });
+  await page.reload();
+  const section = page.locator('#reviews');
+  const sections = await page.locator('main > section').evaluateAll(nodes => nodes.map(node => node.id));
+  check(sections.slice(0, 4).join(',') === 'top,about,reviews,projects', 'Reviews must be the third main section');
+  check(await page.locator('iframe').count() === 0, 'Widgets loaded before permission');
+  check(await section.getByRole('link', { name: 'Все отзывы на Яндекс Картах ↗', exact: true }).getAttribute('href') === 'https://yandex.ru/maps/org/studiya_potolkov_vlico/164382623295/reviews/', 'All-reviews link changed');
+  check((await section.getByRole('link', { name: 'Оставить отзыв ↗', exact: true }).getAttribute('href')).endsWith('reviews/?add-review=true'), 'Write-review link changed');
+  await section.locator('[data-external-enable]').click();
+  const iframe = section.locator('[data-external-widget=reviews] iframe');
+  await iframe.waitFor();
+  const frame = page.frameLocator('#reviews [data-external-widget=reviews] iframe');
+  await frame.locator('.comment').nth(2).waitFor({ state: 'visible', timeout: 20000 });
+  await frame.locator('body').evaluate(() => document.fonts.ready);
+  check(await iframe.getAttribute('src') === 'https://yandex.ru/maps-reviews-widget/164382623295?comments', 'Reviews are not from the official widget');
+  const preference = await page.evaluate(() => JSON.parse(localStorage.getItem('vlicoPrivacy')));
+  check(preference.external === true && preference.analytics === false, 'Loading reviews must not enable analytics');
+  const viewports = [];
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 768 ? 844 : 1180 });
+    await iframe.scrollIntoViewIfNeeded();
+    await frame.locator('.badge__comments').evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+    const visible = await frame.locator('.badge__comments').evaluate(container => {
+      const bounds = container.getBoundingClientRect();
+      return [...container.querySelectorAll('.comment')].filter(node => {
+        const rect = node.getBoundingClientRect();
+        return rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
+      }).length;
+    });
+    check(visible >= 3, 'Fewer than three original review previews fit at ' + width);
+    check((await iframe.boundingBox()).width >= 300, 'Widget is narrower than supported at ' + width);
+    check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), 'Overflow at ' + width);
+    viewports.push({ width, visible });
+    if (width === 1440 || width === 390) await section.screenshot({ path: `.playwright-cli/reviews-after-${width}.png` });
+  }
+  await page.locator('footer [data-privacy-open]').click();
+  await page.getByRole('button', { name: 'Только необходимые', exact: true }).click();
+  check(await page.locator('iframe').count() === 0, 'Revoked widgets remain in the document');
+  check(await section.locator('[data-external-enable]').isVisible(), 'Load action was not restored after refusal');
+  await page.goto('http://127.0.0.1:8000/contacts/');
+  await page.locator('[data-external-enable]').click();
+  const contactsFrame = page.locator('[data-external-widget=reviews] iframe');
+  check((await contactsFrame.boundingBox()).width >= 300, 'Contacts widget is narrower than supported on small phones');
+  check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), 'Contacts overflow on small phones');
+  check(!errors.length, errors.join('; '));
+  return { section: 'third, before projects', source: 'unmodified live Yandex widget', viewports, privacy: 'explicit external permission, analytics remains off, revocation passed', links: 'all reviews and write-review preserved', errors };
+}
