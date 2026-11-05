@@ -88,7 +88,7 @@ YANDEX_METRIKA_ID = os.environ.get("YANDEX_METRIKA_ID", "113716679").strip()
 if YANDEX_METRIKA_ID and not YANDEX_METRIKA_ID.isdigit():
     raise ImproperlyConfigured("YANDEX_METRIKA_ID must be numeric")
 ANALYTICS_ENABLED = os.environ.get("ANALYTICS_ENABLED", "false").lower() == "true"
-LEGAL_VERSION = "2026-11-05.1"
+LEGAL_VERSION = "2026-11-05.2"
 LEGAL_OPERATOR = {
     "name": os.environ.get("OPERATOR_NAME") or "[Полное наименование организации или ФИО индивидуального предпринимателя]",
     "inn": os.environ.get("OPERATOR_INN") or "[ИНН оператора]",

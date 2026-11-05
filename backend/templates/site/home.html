@@ -131,7 +131,7 @@
                 <div><dt>Сроки</dt><dd>Согласуем до работ</dd></div>
                 <div><dt>Регион</dt><dd>Калининград · область</dd></div>
               </dl>
-              <div class="rating-badge" data-external-widget="rating"><button type="button" data-privacy-open>Рейтинг VLICO на Яндекс Картах ↗</button></div><p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
+              {% include 'site/yandex-rating.html' %}<p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
             </div>
           </div>
 
@@ -139,7 +139,7 @@
         </div>
       </section>
 
-      <aside class="mobile-rating"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Отзывы о VLICO ↗</a><div class="rating-badge" data-external-widget="rating"><button type="button" data-privacy-open>Рейтинг Яндекса</button></div></aside>
+      <aside class="mobile-rating"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
 
       <section class="about section-dark" id="about" aria-labelledby="about-title">
         <div class="about-grid page-gutter">

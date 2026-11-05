@@ -25,14 +25,15 @@ class PublicSiteTests(TestCase):
             titles.add(response.context['seo']['title'])
         self.assertEqual(len(titles), 6)
 
-    def test_public_contacts_and_external_widgets_are_opt_in(self):
+    def test_public_contacts_and_widgets_are_server_rendered(self):
         for path in ('/', '/contacts/'):
             response = self.client.get(path)
             self.assertContains(response, 'https://t.me/vlico_39')
             self.assertContains(response, 'https://wa.me/79097888844')
             self.assertContains(response, 'tel:+79097888844')
             self.assertContains(response, 'data-external-widget="reviews"')
-            self.assertNotContains(response, '<iframe')
+            self.assertContains(response, '<iframe')
+            self.assertContains(response, 'https://yandex.ru/maps-reviews-widget/164382623295?comments')
             self.assertNotContains(response, 'mc.yandex.ru/metrika/tag.js')
         self.assertContains(self.client.get('/contacts/'), 'Клубная улица, 11Б')
         self.assertContains(self.client.get('/partners/'), '/request/partner/')

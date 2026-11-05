@@ -44,7 +44,7 @@ Client materials state that VLICO has worked since 2009, completed more than 10,
 
 ## Delivery stages
 
-Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 now provides six service pages, cooperation, verified contacts, opt-in Yandex reviews, consent-aware analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
+Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 now provides six service pages, cooperation, verified contacts, live Yandex reviews, consent-aware site analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
 
 The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.
 

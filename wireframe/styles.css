@@ -537,11 +537,11 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   .mobile-nav nav a:last-child { border-bottom: 0; }
   .site-header.is-scrolled .mobile-nav summary span { background: var(--ink); }
 
-  .hero { height: 100svh; min-height: 760px; max-height: none; }
-  .hero-content { min-height: 760px; padding-top: 91px; }
-  .hero-kicker { top: 95px; max-width: 280px; font-size: 11px; }
-  .hero-wordmark { top: 34%; left: 0; font-size: 31vw; letter-spacing: -.125em; }
-  .hero-bottom { right: var(--grid-gutter); bottom: 66px; left: var(--grid-gutter); display: flex; flex-direction: column; align-items: stretch; gap: 21px; }
+  .hero { height: auto; min-height: 100svh; max-height: none; }
+  .hero-content { display: flex; flex-direction: column; gap: 24px; height: auto; min-height: 100svh; padding-top: 104px; padding-bottom: 24px; }
+  .hero-kicker { position: static; max-width: 100%; font-size: 11px; }
+  .hero-wordmark { position: static; width: 100%; margin-top: 16px; font-size: 31vw; letter-spacing: -.125em; }
+  .hero-bottom { position: static; display: flex; flex-direction: column; align-items: stretch; gap: 28px; }
   .hero-offer { max-width: 100%; }
   .hero-offer h1 { max-width: 17ch; font-size: clamp(24px, 7vw, 32px); }
   .hero-offer > p { max-width: 47ch; margin-top: 11px; font-size: 11px; }
@@ -551,7 +551,7 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   .hero-side-label { margin-bottom: 6px; font-size: 11px; }
   .hero-side dl div { padding-block: 5px; font-size: 11px; }
   .hero-note { margin-top: 6px; font-size: 11px; }
-  .scroll-cue { bottom: 20px; font-size: 11px; }
+  .hero .scroll-cue { position: static; align-self: center; margin-top: auto; transform: none; font-size: 11px; }
 
   .about-grid { display: flex; flex-direction: column; align-items: stretch; gap: 34px; padding-block: 86px 92px; }
   .about-image { width: 85%; margin-left: auto; }
@@ -636,10 +636,7 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   .header-cta { margin-right: 38px; font-size: 11px; }
   .header-cta .header-cta-long { display: none; }
   .header-cta .header-cta-short { display: inline; }
-  .hero { min-height: 820px; }
-  .hero-content { min-height: 820px; }
-  .hero-wordmark { top: 32%; font-size: 30vw; }
-  .hero-bottom { bottom: 60px; }
+  .hero-wordmark { font-size: 30vw; }
   .hero-actions { gap: 14px; }
   .hero-actions .text-link { font-size: 11px; }
 }
@@ -651,4 +648,10 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   .motion-ready .hero-wordmark { opacity: .94; transform: translateY(-50%); }
   .motion-ready [data-image-frame] .image-reveal-cover { display: none; }
   .motion-ready [data-image-frame] img { transform: none !important; transition: none !important; }
+}
+
+/* Mobile hero elements share document flow, including with larger system text. */
+@media (max-width: 640px) {
+  .hero-wordmark, .motion-ready .hero-wordmark, .motion-ready .is-loaded .hero-wordmark { transform: none; }
+  .hero-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
 }

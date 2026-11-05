@@ -16,7 +16,7 @@ async page => {
       check(response.status() === 200, path + ' did not load');
       check(await page.locator('h1').count() === 1, path + ' needs exactly one H1');
       check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), path + ' overflows at ' + width);
-      check(await page.locator('iframe').count() === 0, 'Widget loaded before permission');
+      check((await page.locator('iframe').count() > 0) === (path === '/contacts/'), 'Unexpected widget presence');
       check(await page.locator('script[src*="mc.yandex.ru"]').count() === 0, 'Local analytics loaded');
       check(await page.locator('img').evaluateAll(async images => (await Promise.all(images.map(async img => { img.loading = 'eager'; try { await img.decode(); return img.naturalWidth > 0; } catch { return false; } }))).every(Boolean)), path + ' has broken images');
     }
@@ -44,8 +44,7 @@ async page => {
   await page.goto(base + '/request/consultation/?contact=private-query@example.test');
   check(vendorRequests === 0, 'Analytics ignored refusal');
   await page.locator('[data-privacy-open]').last().click();
-  await page.locator('[data-privacy-form] [name=analytics]').check();
-  await page.getByRole('button', { name: 'Сохранить выбор', exact: true }).click();
+  await page.getByRole('button', { name: 'Принять', exact: true }).click();
   await vendorRequested;
   check(vendorRequests === 1, 'Analytics script loaded more than once');
   const reference = await page.evaluate(() => crypto.randomUUID());
@@ -75,7 +74,7 @@ async page => {
   const serialized = JSON.stringify(calls);
   for (const sensitive of ['QA private name', 'private-contact', 'private-comment', 'private-query', reference]) check(!serialized.includes(sensitive), 'Analytics leaked ' + sensitive);
   await page.locator('[data-privacy-open]').last().click();
-  await page.getByRole('button', { name: 'Только необходимые', exact: true }).click();
+  await page.getByRole('button', { name: 'Отклонить', exact: true }).click();
   check(await page.evaluate(() => window.__metricCalls.some(call => call[1] === 'destruct')), 'Analytics did not stop');
   check(await page.locator('script[src*="mc.yandex.ru"]').count() === 0, 'Analytics script was not removed');
   await page.unroute('**/request/consultation/**'); await page.unroute('**/api/leads/'); await page.unroute('https://mc.yandex.ru/**');

@@ -3,15 +3,14 @@
   if (!configNode) return;
   const config = JSON.parse(configNode.textContent);
   const panel = document.querySelector('[data-privacy-panel]');
-  const form = document.querySelector('[data-privacy-form]');
   const ttl = 180 * 86400000;
-  let choice = { analytics: false, external: false }, accepted = false, counterReady = false, tag = null;
+  let choice = { analytics: false }, accepted = false, counterReady = false, tag = null;
   let returnFocus = null;
   const pendingLeads = new Map(), pendingGoals = [];
   try {
     const saved = JSON.parse(localStorage.getItem('vlicoPrivacy'));
     if (saved?.version === config.consent_version && saved.expires > Date.now()) {
-      choice = { analytics: saved.analytics === true, external: saved.external === true }; accepted = true;
+      choice = { analytics: saved.analytics === true }; accepted = true;
     }
   } catch { /* Optional services remain disabled when storage is unavailable. */ }
   const mayTrack = () => choice.analytics && config.analytics_enabled && Boolean(config.counter);
@@ -52,27 +51,6 @@
     script.onerror = () => { script.remove(); if (tag === script) tag = null; };
     document.head.append(script);
   }
-  const sources = {
-    rating: ['https://yandex.ru/sprav/widget/rating-badge/164382623295?type=rating', 'Актуальный рейтинг VLICO на Яндекс Картах'],
-    reviews: ['https://yandex.ru/maps-reviews-widget/164382623295?comments', 'Отзывы клиентов VLICO на Яндекс Картах'],
-  };
-  function updateWidgets() {
-    document.querySelectorAll('[data-external-widget]').forEach(host => {
-      const frame = host.querySelector('iframe');
-      if (!choice.external) { frame?.remove(); host.querySelectorAll(':scope > :not(iframe)').forEach(node => { node.hidden = false; }); return; }
-      if (frame) return;
-      const source = sources[host.dataset.externalWidget];
-      if (!source) return;
-      const iframe = document.createElement('iframe'); iframe.src = source[0]; iframe.title = source[1];
-      iframe.loading = 'lazy'; iframe.referrerPolicy = 'no-referrer'; iframe.setAttribute('frameborder', '0');
-      iframe.width = host.dataset.externalWidget === 'rating' ? '150' : '760';
-      iframe.height = host.dataset.externalWidget === 'rating' ? '50' : '960';
-      // Keep a real link available even when a third-party frame fails to load.
-      host.append(iframe);
-      host.querySelectorAll(':scope > button').forEach(node => { node.hidden = true; });
-      host.querySelector('.external-fallback')?.setAttribute('hidden', '');
-    });
-  }
   function apply() {
     if (mayTrack()) startAnalytics();
     else {
@@ -80,31 +58,20 @@
       counterReady = false; tag?.remove(); tag = null;
       pendingLeads.clear(); pendingGoals.length = 0;
     }
-    updateWidgets();
   }
   function show(trigger) {
     returnFocus = trigger || null;
-    form.elements.analytics.checked = choice.analytics;
-    form.elements.external.checked = choice.external;
     panel.hidden = false;
-    if (trigger) form.elements.analytics.focus();
+    if (trigger) panel.querySelector('[data-privacy-accept]').focus();
   }
-  function save(essential = false) {
-    choice = { analytics: !essential && form.elements.analytics.checked, external: !essential && form.elements.external.checked };
+  function save(analytics) {
+    choice = { analytics };
     try { localStorage.setItem('vlicoPrivacy', JSON.stringify({ ...choice, version: config.consent_version, expires: Date.now() + ttl })); } catch { /* Choice lasts only for this page. */ }
     panel.hidden = true; apply(); returnFocus?.focus();
   }
-  form.addEventListener('submit', event => { event.preventDefault(); save(); });
-  panel.querySelector('[data-privacy-essential]').addEventListener('click', () => save(true));
+  panel.querySelector('[data-privacy-accept]').addEventListener('click', () => save(true));
+  panel.querySelector('[data-privacy-essential]').addEventListener('click', () => save(false));
   document.addEventListener('click', event => {
-    const external = event.target.closest('[data-external-enable]');
-    if (external) {
-      returnFocus = null;
-      form.elements.analytics.checked = choice.analytics;
-      form.elements.external.checked = true;
-      save();
-      external.closest('[data-external-widget]')?.querySelector('iframe')?.focus({ preventScroll: true });
-    }
     const trigger = event.target.closest('[data-privacy-open]');
     if (trigger) show(trigger);
     const link = event.target.closest('[data-goal]');
