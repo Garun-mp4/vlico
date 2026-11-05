@@ -1,5 +1,6 @@
 import { STORAGE_KEY, initial, restore, visible, change, validate } from './model.js';
 import { el, fieldView, diagram, media, summaryView, quoteView } from './view.js';
+import { livePrice } from './live-price.js';
 
 document.querySelectorAll('[data-configurator]').forEach(form => {
   const schema = JSON.parse(document.getElementById('config-schema').textContent);
@@ -9,6 +10,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   const next = find('next'), back = find('back'), error = find('error'), status = find('status'), submitErrors = find('submit-errors');
   const fallback = find('fallback'), fields = schema.fields;
   let answers = restore(schema), step = 0, quote = null, busy = false;
+  let live;
   let lightPreview = null;
   const lightTypes = ['spots', 'light_lines', 'tracks', 'chandeliers', 'led'];
   const imageDialog = el('dialog', 'config-preview-dialog');
@@ -92,7 +94,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     find('step').textContent = `${String(step + 1).padStart(2, '0')} / 08 · ${current.name}`;
     form.querySelector('.config-progress').value = step + 1;
     back.hidden = step === 0; next.textContent = step === 7 ? 'Рассчитать стоимость →' : 'Продолжить →';
-    updateVisual(); if (focus) focusHeading();
+    updateVisual(); live?.refresh(); if (focus) focusHeading();
   }
   function fieldErrors(errors) {
     panel.querySelectorAll('.config-field-error').forEach(n => n.remove());
@@ -122,6 +124,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   function showQuote(q) {
     quote = q; form.elements.namedItem('pricing_version').value = q.version;
     find('quote').replaceChildren(quoteView(q)); shell.hidden = true; result.hidden = false; showContact(false); result.focus(); result.scrollIntoView({ block: 'start', behavior: 'instant' });
+    live?.cancel();
   }
   function setBusy(value) {
     busy = value;
@@ -151,16 +154,18 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     answers = change(answers, input.name, input.value, fields[input.name].kind === 'multi'); quote = null; save();
     if (input.name === 'lights' && lightTypes.includes(input.value) && input.checked) lightPreview = input.value;
     const name = input.name, value = input.value; render();
+    live.schedule(name);
     [...panel.querySelectorAll('input')].find(i => i.name === name && i.value === value)?.focus({ preventScroll: true });
   });
   panel.addEventListener('input', event => {
     const input = event.target; if (['radio', 'checkbox'].includes(input.type) || !input.name || busy) return;
     answers = change(answers, input.name, input.value); quote = null; input.removeAttribute('aria-invalid'); save(); updateVisual();
+    live.schedule(input.name);
   });
   next.addEventListener('click', () => { if (busy) return; const errors = validate(answers, schema.steps[step], fields); if (Object.keys(errors).length) { fieldErrors(errors); return; } if (step === 7) estimate(); else { step++; render(true); } });
   back.addEventListener('click', () => { if (!busy && step > 0) { step--; render(true); } });
-  find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); lightPreview = null; quote = null; step = 0; save(); render(true); });
-  find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); } });
+  find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); lightPreview = null; quote = null; step = 0; save(); render(true); live.schedule(); });
+  find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); live.schedule(); } });
   find('contact').addEventListener('click', () => { if (!quote || busy) return; showContact(true); contact.querySelector('input[name=name]')?.focus(); contact.scrollIntoView({ block: 'start', behavior: 'instant' }); });
   form.querySelector('[name=attachments]').addEventListener('change', event => { form.querySelector('[data-selected-files]').textContent = [...event.target.files].map(file => file.name).join(', '); });
   const contactDescriptions = new Map([...contact.querySelectorAll('[aria-describedby]')].map(input => [input, input.getAttribute('aria-describedby')]));
@@ -221,6 +226,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     xhr.onerror = xhr.ontimeout = () => { status.hidden = true; showSubmitErrors({ __all__: ['Связь прервалась. Повторите отправку: повторная попытка не создаст вторую заявку.'] }); finish(); };
     xhr.send(data);
   });
+  live = livePrice(form, shell, panel, payload, () => answers);
   if (bootstrap.quote) {
     showQuote(bootstrap.quote);
     if (Object.keys(bootstrap.errors).length) showContact(true);
@@ -229,5 +235,6 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     if (target >= 0) step = target;
     render();
     if (target >= 0) fieldErrors(bootstrap.errors);
+    live.schedule('', 0);
   }
 });

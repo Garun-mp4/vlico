@@ -138,3 +138,7 @@ The lighting step uses five generated views of the same room at consistent dusk 
 ## Curtain comparison
 
 Show four generated views of exactly one window and room: visible ceiling track, concealed ceiling niche, wall-mounted rod, and uncovered window without curtains. Use a closer window framing so the top fixing is readable. Keep unknown/help text-only; never illustrate it with a specific mounting system. Reuse 4:3 responsive images, selected preview and the enlarged-image dialog. Remove the old client photo and curtain cross-sections from the calculator; SVG now only explains room geometry. Preserve length-field conditions, pricing and saved selections.
+
+## Live calculator price
+
+Keep one price block above the desktop visual, sticky at 95px inside its sidebar. Large tabular mono numerals carry the known total; a short note distinguishes missing base data, partial positions and a completed preliminary estimate. Show the latest total difference and server-derived unit/whole-position prices beside relevant choices. No browser tariff table or guessed finish premium. During recalculation hide the previous number; errors offer an explicit retry. On phones the same block becomes one bottom panel, reserves its measured height in the calculator and includes the safe-area inset. Hide it while text fields have focus and outside the question shell; navigation stays in document flow. Full warnings remain available on desktop and on the final itemized result.

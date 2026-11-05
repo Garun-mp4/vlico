@@ -15,7 +15,10 @@
       <button class="lead-submit" type="submit" name="action" value="quote" formnovalidate>Рассчитать</button>
     </div>
     <div class="config-shell" data-config-shell hidden>
-      <aside class="config-visual" aria-label="Ваше решение" data-config-visual></aside>
+      <div class="config-sidebar">
+        <section class="config-price" data-config-price aria-label="Текущая стоимость" hidden></section>
+        <aside class="config-visual" aria-label="Ваше решение" data-config-visual></aside>
+      </div>
       <div class="config-workspace">
         <div class="config-topline"><span data-config-step></span><button type="button" class="config-reset" data-config-reset>Начать заново</button></div>
         <progress class="config-progress" max="8" value="1" aria-label="Прогресс расчёта"></progress>
