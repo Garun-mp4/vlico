@@ -9,9 +9,11 @@
 <link rel="stylesheet" href="{% static 'styles.css' %}">
 <link rel="stylesheet" href="{% static 'portfolio.css' %}">
 <link rel="stylesheet" href="{% static 'site.css' %}">
+<link rel="stylesheet" href="{% static 'header.css' %}">
+<script src="{% static 'header.js' %}" defer></script>
 </head>
 <body class="portfolio-page">
-<header class="public-header"><a href="{% url 'home' %}" aria-label="VLICO, на главную"><img src="{% static 'assets/vlico-logo.svg' %}" width="140" height="47" alt="VLICO"></a></header>
+{% include 'site/header.html' %}
 <main class="editorial-page">
 <h1>{% block heading %}Не удалось открыть страницу.{% endblock %}</h1>
 <p class="page-intro">{% block message %}Попробуйте открыть её ещё раз или свяжитесь с нами, чтобы обсудить ваш проект.{% endblock %}</p>

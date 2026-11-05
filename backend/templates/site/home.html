@@ -32,6 +32,8 @@
     <script defer src="{% static 'project-carousel.js' %}"></script>
     <script defer src="{% static 'main.js' %}"></script>
     <link rel="stylesheet" href="{% static 'site.css' %}">
+    <link rel="stylesheet" href="{% static 'header.css' %}">
+    <script defer src="{% static 'header.js' %}"></script>
     <script defer src="{% static 'site.js' %}"></script>
     <script src="{% static 'solutions-preview.js' %}" defer></script>
   </head>
@@ -71,35 +73,7 @@
       <span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
 
-    <header class="site-header">
-      <div class="header-inner page-gutter">
-        <a class="brand" href="#top" aria-label="VLICO, на главную">
-          <img src="{% static 'assets/vlico-logo.svg' %}" alt="VLICO" width="2172" height="724" />
-        </a>
-
-        <nav class="desktop-nav" aria-label="Основная навигация">
-          <a href="#about">О компании</a>
-          <a href="{% url 'projects' %}">Проекты</a>
-          <a href="{% url 'home' %}#calculator">Калькулятор</a>
-          <a href="{% url 'services' %}">Решения</a>
-        </nav>
-
-        <a class="header-cta" href="#contact"><span class="header-cta-long">Обсудить проект</span><span class="header-cta-short">Связаться</span><span aria-hidden="true">↗</span></a>
-
-        <details class="mobile-nav">
-          <summary aria-label="Открыть меню"><span></span><span></span></summary>
-          <nav aria-label="Мобильная навигация">
-            <a href="#about">О компании</a>
-            <a href="{% url 'projects' %}">Проекты</a>
-            <a href="{% url 'home' %}#calculator">Калькулятор</a>
-            <a href="{% url 'services' %}">Решения</a>
-            <a href="{% url 'partners' %}">Сотрудничество</a>
-            <a href="{% url 'contacts' %}">Контакты</a>
-            <a href="#contact">Обсудить проект</a>
-          </nav>
-        </details>
-      </div>
-    </header>
+    {% include 'site/header.html' with header_over_hero=True %}
 
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">

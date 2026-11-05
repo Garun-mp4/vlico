@@ -65,10 +65,11 @@ Major sections receive generous top and bottom space. Use hairline rules for pro
 
 ## Components and behavior
 
-- Header sits over the hero and turns into a flat cream navigation bar after scroll. Mobile navigation uses a compact disclosure menu.
+- All public pages share the same header. It sits over the homepage hero and turns into a flat cream bar after scroll; inner pages use the cream bar from the start. Project directions come from editable portfolio categories. The catalogue link and disclosure button remain separate, with a quick 180ms panel transition, keyboard/Escape support and a touch disclosure inside the mobile menu.
 - Hero shows a full-bleed ceiling photograph, dark warm overlay for legibility, large VLICO wordmark, offer copy, and same-page links. Do not put a phone field in the hero.
 - Project entries use real VLICO photos and only case facts present in the supplied brief. Avoid promo graphics and generated imagery presented as documented work.
 - Solution rows remain open and text-led. Hover shifts the row slightly and moves its arrow.
+- Desktop project-direction links reuse the solution preview engine: a small inertial image stays beside the dropdown without intercepting clicks. Known directions use their service illustration; custom directions use a published project cover, with no private draft imagery. Decorative previews stay disabled on touch, stop animating when idle, and remain stationary for reduced motion.
 - The contact form appears at the end of the page. Milestone 1 preserves its explicit demonstration state; milestone 3 replaces this with server submission and truthful loading, success and error states.
 - Use a brief page cover, subtle image settling, once-only scroll reveals, and small arrow transitions. Keep motion on opacity and transforms; respect `prefers-reduced-motion`.
 

@@ -11,6 +11,9 @@
 <script type="module" src="{% static 'calculator/controller.js' %}"></script>
 <link rel="stylesheet" href="{% static 'leads.css' %}">
 <link rel="stylesheet" href="{% static 'site.css' %}">
+<link rel="stylesheet" href="{% static 'header.css' %}">
+<script src="{% static 'header.js' %}" defer></script>
+<script src="{% static 'solutions-preview.js' %}" defer></script>
 <script src="{% static 'site.js' %}" defer></script>
 <script src="{% static 'leads.js' %}" defer></script>
 <script src="{% static 'portfolio.js' %}" defer>
@@ -19,17 +22,7 @@
 </head>
 <body class="portfolio-page">
 <a class="skip-link" href="#content">Перейти к содержимому</a>
-<header class="public-header">
-<a href="{% url 'home' %}" aria-label="VLICO, на главную">
-<img src="{% static 'assets/vlico-logo.svg' %}" width="140" height="47" alt="VLICO">
-</a>
-<nav aria-label="Основная навигация">
-<a href="{% url 'services' %}">Решения</a>
-<a href="{% url 'projects' %}">Проекты</a>
-<a href="{% url 'calculator' %}">Расчёт</a>
-<a href="{% url 'contacts' %}">Контакты</a>
-</nav>
-</header>
+{% include 'site/header.html' %}
 <main id="content">{% block content %}{% endblock %}</main>
 <footer class="public-footer">
 <a href="{% url 'home' %}">VLICO</a>

@@ -125,23 +125,26 @@ if ("IntersectionObserver" in window && !reducedMotion) {
   document.querySelectorAll(".reveal").forEach((element) => element.classList.add("is-visible"));
 }
 
-let scrollScheduled = false;
-const updateHeader = () => {
-  if (header) header.classList.toggle("is-scrolled", window.scrollY > 34);
-  scrollScheduled = false;
-};
+// The isolated static preview retains its header; Django uses shared header.js.
+if (!header?.hasAttribute('data-site-header')) {
+  let scrollScheduled = false;
+  const updateHeader = () => {
+    if (header) header.classList.toggle("is-scrolled", window.scrollY > 34);
+    scrollScheduled = false;
+  };
 
-window.addEventListener("scroll", () => {
-  if (!scrollScheduled) {
-    window.requestAnimationFrame(updateHeader);
-    scrollScheduled = true;
-  }
-}, { passive: true });
-updateHeader();
+  window.addEventListener("scroll", () => {
+    if (!scrollScheduled) {
+      window.requestAnimationFrame(updateHeader);
+      scrollScheduled = true;
+    }
+  }, { passive: true });
+  updateHeader();
 
-mobileMenu?.querySelectorAll("a").forEach((link) => {
-  link.addEventListener("click", () => mobileMenu.removeAttribute("open"));
-});
+  mobileMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => mobileMenu.removeAttribute("open"));
+  });
+}
 
 document.querySelectorAll("[data-interest]").forEach((link) => {
   link.addEventListener("click", () => {

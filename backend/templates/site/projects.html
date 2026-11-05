@@ -1,7 +1,7 @@
 {% extends 'site/base.html' %}{% block content %}<section class="portfolio-intro">
 <p>
-<a href="{% url 'home' %}">Главная</a> / Проекты</p>
-<h1>Потолки в реальных интерьерах.</h1>
+<a href="{% url 'home' %}">Главная</a> / {% if selected_category %}<a href="{% url 'projects' %}">Проекты</a> / {{ selected_category.title }}{% else %}Проекты{% endif %}</p>
+<h1>{% if selected_category %}{{ selected_category.title }}{% else %}Потолки в реальных интерьерах.{% endif %}</h1>
 <p>Частные пространства и коммерческие объекты. Потолки, освещение и детали, собранные в одну систему.</p>
 </section>
 <nav class="portfolio-filters" aria-label="Категории проектов"><a href="{% url 'projects' %}" {% if not selected_category %}aria-current="page"{% endif %}>Все проекты</a>{% for category in categories %}<a href="?category={{ category.pk }}" {% if selected_category.pk == category.pk %}aria-current="page"{% endif %}>{{ category.title }} <span>({{ category.project_count }})</span></a>{% endfor %}</nav>{% if selected_category %}<p class="portfolio-selection">Категория: {{ selected_category.title }}</p>{% endif %}<section class="portfolio-grid" aria-label="Проекты VLICO">{% for project in projects %}{% include 'site/project-card.html' %}{% empty %}<div class="portfolio-empty">

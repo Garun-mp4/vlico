@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 from urllib.parse import urlsplit
 from django.conf import settings
+from django.db.models import OuterRef, Subquery
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -12,12 +13,24 @@ from django.views.decorators.http import require_safe
 from .site_content import SERVICES, BY_SLUG, CONTACTS
 from .portfolio import published_projects
 from .legal import consent_revision
+from .models import ProjectCategory, ProjectMedia
 
 INDEXABLE = {"home", "services", "service", "partners", "contacts", "projects", "project", "calculator"}
 
 
 def absolute(path):
     return settings.SITE_URL + path
+
+
+def project_navigation():
+    covers = ProjectMedia.objects.filter(project__categories=OuterRef("pk"), project__status="published", is_cover=True).order_by("project__position", "project_id")
+    categories = list(ProjectCategory.objects.annotate(preview_pk=Subquery(covers.values("pk")[:1])))
+    services = {item["title"].casefold(): item for item in SERVICES}
+    for category in categories:
+        service = services.get(category.title.casefold())
+        category.preview_url = static(service["preview"]) if service else reverse("project_image", args=[category.preview_pk, "thumb"]) if category.preview_pk else ""
+        category.preview_illustration = service["illustration"] if service else False
+    return categories
 
 
 def public_context(request):
@@ -63,7 +76,8 @@ def public_context(request):
     public_tracking = not private or name == "request_form"
     config = {"counter": settings.YANDEX_METRIKA_ID, "analytics_enabled": settings.ANALYTICS_ENABLED and settings.APP_ENV == "production" and public_tracking,
         "canonical": canonical, "consent_version": consent_revision()}
-    return {"service_pages": SERVICES, "company": CONTACTS, "legal": settings.LEGAL_OPERATOR, "site_origin": settings.SITE_URL,
+    navigation = project_navigation() if name in INDEXABLE | {"privacy", "consent", "cookies", "request_form"} else []
+    return {"service_pages": SERVICES, "company": CONTACTS, "legal": settings.LEGAL_OPERATOR, "site_origin": settings.SITE_URL, "project_navigation": navigation,
         "seo": {"title": title, "description": description, "canonical": "" if private else canonical, "image": image, "indexable": settings.SITE_INDEXABLE and name in INDEXABLE, "schema": schema}, "site_config": config}
 
 

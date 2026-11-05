@@ -4,14 +4,16 @@ async page => {
   await page.setViewportSize({width:1440,height:1000});
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.goto('http://127.0.0.1:8000/');
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('.loader')).visibility==='hidden');
   if(await page.getByRole('button',{name:'Отклонить',exact:true}).isVisible())await page.getByRole('button',{name:'Отклонить',exact:true}).click();
   await page.evaluate(()=>document.fonts.ready);
   await page.addStyleTag({content:'html{scroll-behavior:auto!important}'});
-  const rows=page.locator('[data-service-preview]'),card=page.locator('.service-preview');
+  const rows=page.locator('#solutions [data-service-preview]'),card=page.locator('.service-preview:not(.service-preview--navigation)');
   check(await rows.count()===6,'Six previews required');
   await page.locator('#solutions').scrollIntoViewIfNeeded();
   for(let index=0;index<6;index++) {
-    const row=rows.nth(index);await row.scrollIntoViewIfNeeded();
+    const row=rows.nth(index);await row.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+    await page.waitForFunction(index=>getComputedStyle(document.querySelectorAll('#solutions [data-service-preview]')[index]).opacity==='1',index);
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await row.hover();
     const src=await row.getAttribute('data-service-preview');
@@ -59,11 +61,11 @@ async page => {
   await mobile.waitForFunction(()=>getComputedStyle(document.querySelector('.loader')).visibility==='hidden');
   if(await mobile.getByRole('button',{name:'Отклонить',exact:true}).isVisible())await mobile.getByRole('button',{name:'Отклонить',exact:true}).click();
   await mobile.locator('#solutions').scrollIntoViewIfNeeded();
-  check(!await mobile.locator('.service-preview').evaluate(el=>el.classList.contains('is-visible')),'Touch preview active');
+  check(await mobile.locator('.service-preview.is-visible').count()===0,'Touch preview active');
   check(mobilePreviews===0,'Mobile downloads decorative previews');
   check(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Mobile overflow');
   await mobile.screenshot({path:'.playwright-cli/service-preview-mobile.png'});
-  await mobile.locator('[data-service-preview]').first().tap();await mobile.waitForURL('**/services/shadow/');
+  await mobile.locator('#solutions [data-service-preview]').first().tap();await mobile.waitForURL('**/services/shadow/');
   await context.close();
   await page.route('**/assets/service-previews/**',route=>route.abort());
   await page.goto('http://127.0.0.1:8000/');
@@ -73,6 +75,7 @@ async page => {
   await rows.first().hover();
   check(!await card.evaluate(el=>el.classList.contains('is-visible')),'Broken image preview shown');
   await rows.first().click();await page.waitForURL('**/services/shadow/');
+  await page.unroute('**/assets/service-previews/**');
   check(!errors.length,errors.join(';'));
   return {sixImages:true,inertia,viewportBounds:true,keyboard:true,reducedMotion:true,links:true,mobilePreviews,imageFailureFallback:true,pageErrors:errors};
 }
