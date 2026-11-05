@@ -24,7 +24,7 @@
 </div>{% endif %}</dl>
 </section>{% if cover %}<figure class="case-cover">
 <a href="{% url 'project_image' cover.pk 'full' %}" data-gallery data-caption="{{ cover.caption }}" data-alt="{{ cover.alt }}">
-<img src="{% url 'project_image' cover.pk 'full' %}" alt="{{ cover.alt }}" width="{{ cover.width }}" height="{{ cover.height }}" fetchpriority="high">
+<img {% if cover.editing.ratio %}data-preserve-frame{% endif %} src="{% url 'project_image' cover.pk 'full' %}" alt="{{ cover.alt }}" width="{{ cover.width }}" height="{{ cover.height }}" fetchpriority="high">
 </a><figcaption>{{ cover.get_section_display }}{% if cover.caption %} · {{ cover.caption }}{% endif %}</figcaption></figure>{% endif %}
 <section class="case-story">
 {% if project.task or preview %}<div>

@@ -27,8 +27,47 @@ class ImageEditorTests(TestCase):
         self.assertGreater(image.getpixel((w//2,h//2))[2],200)
 
     def test_invalid_settings(self):
-        for data in ({"zoom":0},{"zoom":float("nan")},{"x":-1},{"y":101},{"rotation":45},{"mode":"script"}):
+        for data in ({"zoom":0},{"zoom":float("nan")},{"x":-1},{"y":101},{"rotation":45},{"mode":"script"},{"ratio":"2:0"},{"ratio":[]},{"ratio":None}):
             with self.assertRaises(ValidationError): validate_edit(data)
+
+    def test_formats_export_full_and_thumbnail_with_the_selected_geometry(self):
+        for ratio, expected in [('4:3',4/3),('3:4',3/4),('16:9',16/9),('9:16',9/16),('1:1',1),('original',4/3)]:
+            for mode in ('crop','fit'):
+                for rotation in (0,90):
+                    with self.subTest(ratio=ratio, mode=mode, rotation=rotation):
+                        source=BytesIO();Image.new('RGB',(640,480),'red').save(source,'PNG');source.seek(0)
+                        full,thumb,w,h=rendered_image(source,validate_edit({'ratio':ratio,'mode':mode,'rotation':rotation}))
+                        target=1/expected if ratio=='original' and rotation else expected
+                        self.assertAlmostEqual(w/h,target,delta=.01)
+                        self.assertLessEqual(max(w,h),1600)
+                        self.assertEqual(Image.open(full).size,(w,h))
+                        thumbnail=Image.open(thumb)
+                        self.assertLessEqual(max(thumbnail.size),640)
+                        self.assertAlmostEqual(thumbnail.width/thumbnail.height,target,delta=.01)
+
+    def test_changing_format_keeps_the_original_and_records_the_new_choice(self):
+        item=add_images(self.project.pk,[jpeg()], 'result',edit={'ratio':'3:4'})[0]
+        self.assertEqual(item.editing['ratio'],'3:4')
+        self.assertAlmostEqual(item.width/item.height,3/4,delta=.02)
+        with item.source.open('rb') as source: original=source.read()
+        item=edit_media(self.project.pk,item.pk,{'ratio':'16:9','mode':'fit'},item.updated_at.isoformat())
+        self.assertEqual(item.editing['ratio'],'16:9')
+        self.assertAlmostEqual(item.width/item.height,16/9,delta=.03)
+        with item.source.open('rb') as source: self.assertEqual(source.read(),original)
+        self.project.status='published';self.project.solution='Описание';self.project.save()
+        self.assertContains(self.client.get('/'), 'data-preserve-frame')
+        self.assertContains(self.client.get(self.project.get_absolute_url()), 'data-preserve-frame')
+
+    def test_legacy_edit_settings_default_to_four_by_three(self):
+        self.assertEqual(validate_edit({})['ratio'],'4:3')
+
+    def test_extreme_original_proportions_remain_encodable_after_zoom(self):
+        for dimensions in ((2000,1),(1,2000)):
+            source=BytesIO();Image.new('RGB',dimensions,'red').save(source,'PNG');source.seek(0)
+            full,thumb,w,h=rendered_image(source,validate_edit({'ratio':'original','zoom':3}))
+            self.assertGreaterEqual(min(w,h),1)
+            self.assertEqual(Image.open(full).size,(w,h))
+            self.assertGreaterEqual(min(Image.open(thumb).size),1)
 
     def test_upload_preserves_source_and_prevents_retry_duplicate(self):
         key=uuid.uuid4(); data={"alt":"Ceiling","caption":"Caption","section":"process","cover":True,"zoom":1.5}

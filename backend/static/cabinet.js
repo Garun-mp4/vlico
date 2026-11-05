@@ -27,7 +27,7 @@ if (editor && typeof editor.showModal === 'function') {
     });
   }
   const settings = () => ({
-    mode: field('mode').value, zoom: Number(field('zoom').value), x: Number(field('x').value), y: Number(field('y').value), rotation,
+    ratio: field('ratio').value, mode: field('mode').value, zoom: Number(field('zoom').value), x: Number(field('x').value), y: Number(field('y').value), rotation,
     alt: field('alt').value, caption: field('caption').value, section: field('section').value, cover: field('cover').checked
   });
   function draw() {
@@ -42,14 +42,20 @@ if (editor && typeof editor.showModal === 'function') {
     ctx.translate(rotated.width / 2, rotated.height / 2);
     ctx.rotate(rotation * Math.PI / 180);
     ctx.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
-    context.fillStyle = '#f2f1e9'; context.fillRect(0, 0, 800, 600);
     const w = rotated.width, h = rotated.height;
+    const ratios = {'4:3':4/3, '3:4':3/4, '16:9':16/9, '9:16':9/16, '1:1':1};
+    const ratio = data.ratio === 'original' ? w/h : (ratios[data.ratio] || 4/3);
+    canvas.width = Math.max(1, Math.round(Math.min(800, 800*ratio)));
+    canvas.height = Math.max(1, Math.round(canvas.width/ratio));
+    canvas.style.setProperty('--editor-ratio', canvas.width/canvas.height);
+    canvas.setAttribute('aria-label', `Предпросмотр: ${field('ratio').selectedOptions[0].textContent}`);
+    context.fillStyle = '#f2f1e9'; context.fillRect(0, 0, canvas.width, canvas.height);
     if (data.mode === 'fit') {
-      const scale = Math.min(800 / w, 600 / h);
-      context.drawImage(rotated, (800-w*scale)/2, (600-h*scale)/2, w*scale, h*scale);
+      const scale = Math.min(canvas.width / w, canvas.height / h);
+      context.drawImage(rotated, (canvas.width-w*scale)/2, (canvas.height-h*scale)/2, w*scale, h*scale);
     } else {
-      const cw = Math.min(w, h*4/3) / data.zoom, ch = cw*3/4;
-      context.drawImage(rotated, (w-cw)*data.x/100, (h-ch)*data.y/100, cw, ch, 0, 0, 800, 600);
+      const cw = Math.min(w, h*ratio) / data.zoom, ch = cw/ratio;
+      context.drawImage(rotated, (w-cw)*data.x/100, (h-ch)*data.y/100, cw, ch, 0, 0, canvas.width, canvas.height);
     }
     editor.querySelector('[data-editor-zoom-value]').textContent = data.zoom.toFixed(2) + '×';
     ['zoom', 'x', 'y'].forEach(name => { field(name).disabled = data.mode === 'fit' || busy; });
@@ -66,7 +72,7 @@ if (editor && typeof editor.showModal === 'function') {
     editor.querySelector('[data-editor-counter]').textContent = current.file ? `Фото ${index+1} из ${queue.length} · сохранено ${saved}` : 'Редактирование сохранённой фотографии';
     const data = current.edit || {};
     rotation = data.rotation || 0;
-    for (const [name, value] of Object.entries({mode:'crop', zoom:1, x:50, y:50, ...data})) {
+    for (const [name, value] of Object.entries({ratio:'4:3', mode:'crop', zoom:1, x:50, y:50, ...data})) {
       if (field(name)) field(name).value = value;
     }
     field('alt').value = current.alt || '';

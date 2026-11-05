@@ -3,9 +3,10 @@
 <ol class="upload-queue" data-upload-queue aria-label="Очередь фотографий"></ol>
 <form data-editor-form>
 <div class="image-editor-layout">
-<div><canvas width="800" height="600" data-editor-canvas role="img" aria-label="Предпросмотр кадра 4 на 3"></canvas><p class="subtle">Так фотография будет выглядеть на сайте. Формат 4:3; исходник сохраняется для повторного редактирования.</p><p class="subtle" data-editor-size></p><div class="editor-tools"><button type="button" class="button" data-editor-rotate>Повернуть на 90°</button><button type="button" class="button" data-editor-reset>Сбросить кадр</button></div></div>
+<div><canvas width="800" height="600" data-editor-canvas role="img" aria-label="Предпросмотр выбранного кадра"></canvas><p class="subtle">Выбранный кадр сохраняется в галерее проекта. В карточках фото показывается целиком в общей рамке; при необходимости добавляются поля. Исходник доступен для повторного редактирования.</p><p class="subtle" data-editor-size></p><div class="editor-tools"><button type="button" class="button" data-editor-rotate>Повернуть на 90°</button><button type="button" class="button" data-editor-reset>Сбросить кадр</button></div></div>
 <div class="editor-controls editor-form">
-<div><label for="editor-mode">Как разместить фотографию</label><select id="editor-mode" name="mode"><option value="crop">Заполнить кадр 4:3</option><option value="fit">Сохранить целиком с полями</option></select></div>
+<div><label for="editor-ratio">Формат фотографии</label><select id="editor-ratio" name="ratio"><option value="4:3">Горизонтальный · 4:3</option><option value="16:9">Широкий · 16:9</option><option value="1:1">Квадрат · 1:1</option><option value="3:4">Вертикальный · 3:4</option><option value="9:16">Вертикальный узкий · 9:16</option><option value="original">Исходные пропорции</option></select></div>
+<div><label for="editor-mode">Как разместить фотографию</label><select id="editor-mode" name="mode"><option value="crop">Заполнить выбранный формат</option><option value="fit">Сохранить целиком с полями</option></select></div>
 <div><label for="editor-zoom">Масштаб <output data-editor-zoom-value>1.00×</output></label><input id="editor-zoom" name="zoom" type="range" min="1" max="3" step="0.01" value="1"></div>
 <div><label for="editor-x">Положение по горизонтали</label><input id="editor-x" name="x" type="range" min="0" max="100" step="1" value="50"></div>
 <div><label for="editor-y">Положение по вертикали</label><input id="editor-y" name="y" type="range" min="0" max="100" step="1" value="50"></div>

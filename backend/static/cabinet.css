@@ -180,7 +180,7 @@ summary {cursor:pointer;text-underline-offset:4px}
 .image-editor-header h2 {margin:0 0 7px;font:600 24px system-ui,sans-serif;}
 .image-editor-header p {font-size:14px;color:#5c5b54;margin:0;}
 .image-editor-layout {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:28px;}
-.image-editor canvas {display:block;width:100%;height:auto;aspect-ratio:4/3;background:#eae8dd;}
+.image-editor canvas {display:block;width:min(100%,calc(65dvh * var(--editor-ratio,1.333333)));height:auto;margin-inline:auto;background:#eae8dd;}
 .image-editor .editor-form {gap:12px;}
 .image-editor .editor-form input[type=range] {padding:0;min-height:34px;accent-color:#075f40;}
 .image-editor .editor-form input[type=checkbox] {width:18px;}

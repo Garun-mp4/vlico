@@ -7,6 +7,9 @@ from django.db import transaction
 from .models import Project, ProjectMedia
 
 
+RATIOS = {"4:3": 4/3, "3:4": 3/4, "16:9": 16/9, "9:16": 9/16, "1:1": 1, "original": None}
+
+
 def validate_edit(data):
     if not isinstance(data, dict):
         raise ValidationError("Некорректные параметры изображения.")
@@ -26,6 +29,10 @@ def validate_edit(data):
     result["mode"] = data.get("mode", "crop")
     if result["mode"] not in {"crop", "fit"}:
         raise ValidationError("Выберите кадрирование или сохранение фотографии целиком.")
+    ratio = data.get("ratio", "4:3")
+    if not isinstance(ratio, str) or ratio not in RATIOS:
+        raise ValidationError("Выберите допустимый формат фотографии.")
+    result["ratio"] = ratio
     return result
 
 
@@ -34,21 +41,25 @@ def rendered_image(source, edit):
     if edit["rotation"]:
         image = image.rotate(-edit["rotation"], expand=True)
     width, height = image.size
+    ratio = RATIOS[edit.get("ratio", "4:3")] or width/height
     if edit["mode"] == "fit":
-        size = (min(1600, max(width, int(height*4/3))), 0)
-        size = (max(64, size[0]//4*4), max(48, size[0]//4*3))
+        frame_width = max(width, height*ratio)
+        frame_height = frame_width/ratio
+        scale = min(1, 1600/max(frame_width, frame_height))
+        size = (max(1, round(frame_width*scale)), max(1, round(frame_height*scale)))
         image = ImageOps.pad(image, size, color="#f2f1e9", method=Image.Resampling.LANCZOS)
     else:
-        crop_w = min(width, height*4/3) / edit["zoom"]
-        crop_h = crop_w*3/4
+        crop_w = min(width, height*ratio) / edit["zoom"]
+        crop_h = crop_w/ratio
         left = (width-crop_w)*edit["x"]/100
         top = (height-crop_h)*edit["y"]/100
-        image = image.crop((left, top, left+crop_w, top+crop_h))
-        image.thumbnail((1600, 1200), Image.Resampling.LANCZOS)
+        scale = min(1, 1600/max(crop_w, crop_h))
+        size = (max(1, round(crop_w*scale)), max(1, round(crop_h*scale)))
+        image = image.resize(size, Image.Resampling.LANCZOS, box=(left, top, left+crop_w, top+crop_h))
     full = BytesIO()
     image.save(full, "WEBP", quality=85)
     dimensions = image.size
-    image.thumbnail((640, 480), Image.Resampling.LANCZOS)
+    image.thumbnail((640, 640), Image.Resampling.LANCZOS)
     thumb = BytesIO()
     image.save(thumb, "WEBP", quality=80)
     return ContentFile(full.getvalue(), name="image.webp"), ContentFile(thumb.getvalue(), name="thumb.webp"), *dimensions

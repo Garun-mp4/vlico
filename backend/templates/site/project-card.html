@@ -1,5 +1,5 @@
 <article class="portfolio-card">{% with cover=project.cover_media %}{% if cover %}{% if card_gallery and project.media.count > 1 %}{% include 'site/project-card-gallery.html' %}{% else %}<a href="{% url 'project' project.slug %}" class="portfolio-card-image">
-<img src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy">
+<img {% if cover.editing.ratio %}data-preserve-frame{% endif %} src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy">
 </a>{% endif %}{% endif %}{% endwith %}<div class="portfolio-card-info">
 <h2>
 <a href="{% url 'project' project.slug %}">{{ project.title }}</a>
