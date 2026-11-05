@@ -62,6 +62,6 @@ PostgreSQL holds the notification queue. A dedicated Compose process sends Teleg
 
 ## Project categories and homepage publication
 
-Project categories are independently managed in the cabinet and support multiple selections per project. Six initial ceiling/light categories can be edited or deleted without changing services or losing projects. Public category tags and filters use published projects only. All published projects now appear on the homepage automatically in configured order; the former featured-only selection is removed from the editing workflow.
+Project categories are independently managed in the cabinet and support multiple selections per project. Six initial ceiling/light categories can be edited or deleted without changing services or losing projects. Public category tags and filters use published projects only. The first six published projects appear on the homepage in configured order, with a three-column desktop preview and a link to the complete catalogue; the former featured-only selection is removed from the editing workflow.
 
 Public visitors do not attach files, including in the calculator and project inquiry. Existing private lead attachments remain accessible to authorized staff; portfolio photo management is unchanged.

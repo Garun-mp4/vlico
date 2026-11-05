@@ -394,3 +394,24 @@ a:focus-visible,button:focus-visible {
 .project-carousel-track:focus-visible,.project-carousel-slide:focus-visible {outline-offset:-4px;}
 @media(hover:hover) {.project-carousel-arrow:hover:not(:disabled) {background:var(--canvas-soft);}}
 @media(prefers-reduced-motion:reduce) {.project-carousel-arrow {transition:none;}}
+
+/* The landing page is a six-project preview; the full catalogue keeps its layout. */
+.projects {padding-bottom:0;}
+.home-project-heading {margin-bottom:28px;}
+.home-project-grid {padding-top:0;padding-bottom:32px;}
+.home-project-footer {padding:0 var(--grid-gutter) 80px;}
+@media(min-width:641px) {
+  .home-project-heading h2 {font-size:clamp(32px,3.6vw,52px);margin-bottom:18px;}
+  .home-project-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 28px;}
+  .home-project-grid .portfolio-card {min-width:0;display:flex;flex-direction:column;}
+  .home-project-grid .portfolio-card-image img,.home-project-grid .project-carousel-slide img {aspect-ratio:3/2;}
+  .home-project-grid .portfolio-card-info {display:flex;flex-direction:column;flex:1;padding-top:16px;margin-top:14px;}
+  .home-project-grid .portfolio-card h2 {font-size:clamp(19px,1.5vw,24px);line-height:1.35;margin-bottom:10px;}
+  .home-project-grid .portfolio-card-info p {margin-bottom:12px;}
+  .home-project-grid .portfolio-card-info p:empty {display:none;}
+  .home-project-grid .project-categories {margin-bottom:10px;}
+  .home-project-grid .project-card-summary {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.7;}
+  .home-project-grid .portfolio-card-info>.text-link {margin-top:auto;}
+}
+@media(min-width:1100px) {.home-project-grid {grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:640px) {.home-project-footer {padding-bottom:64px;}}

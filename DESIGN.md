@@ -150,3 +150,7 @@ The footer VLICO wordmark fills the available grid width with equal gutters and 
 ## Hero layout safety
 
 Use distinct content rows for the location label, large VLICO wordmark, offer/conditions and scroll cue on every breakpoint. Keep the desktop offer and conditions in separate columns of one row below the wordmark. Let the hero grow when the viewport is short or text is enlarged; do not position these content groups independently with top/bottom percentages.
+
+## Homepage project preview
+
+Show at most six published projects on the landing page: three columns from 1100px, two from 641px, one below. Desktop/tablet previews use a compact 3:2 photo and a two-line description; mobile retains the 4:3 image. Preserve arrows, dragging and swipe within each project. Place the full-catalogue link below the grid. Project detail and catalogue pages retain their existing layouts.

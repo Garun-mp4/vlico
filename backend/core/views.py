@@ -8,7 +8,7 @@ def home(request):
     from .portfolio import published_projects
     from .lead_views import initial_lead_form
     from .configurator import configurator_context
-    return render(request, "site/home.html", {"homepage_projects": published_projects(), "lead_form": initial_lead_form(request), **configurator_context(request)})
+    return render(request, "site/home.html", {"homepage_projects": published_projects()[:6], "lead_form": initial_lead_form(request), **configurator_context(request)})
 
 @require_safe
 def health(request):
