@@ -121,7 +121,7 @@ def calculate_answers(data, version=None):
     material, texture, _ = SURFACES[data["material"]]
     unpriced_finish = texture in {"satin", "gloss"}
     if unpriced_finish:
-        warnings.append("Доступность и стоимость выбранной фактуры уточним по образцам. Отдельная ставка пока не утверждена.")
+        warnings.append("Доступность и стоимость выбранной фактуры уточним при подборе образцов.")
     for name, label in (("area", "Площадь неизвестна"), ("perimeter", "Периметр неизвестен")):
         if not data.get(name): warnings.append(label)
     if data["material"] == "unknown": warnings.append("Нужно выбрать материал")
@@ -137,7 +137,7 @@ def calculate_answers(data, version=None):
     normalized["cornices"] = data.get("cornices") if data["cornice"] == "hidden" else 0
     if data["cornice"] == "hidden" and not data.get("cornices"): warnings.append("Неизвестна длина скрытого карниза")
     if data["cornice"] in {"standard", "unknown"}: warnings.append("Карниз: стоимость уточняется отдельно")
-    if "chandeliers" in data["lights"]: warnings.append("Монтаж люстры: отдельного тарифа нет, уточним стоимость")
+    if "chandeliers" in data["lights"]: warnings.append("Монтаж люстры рассчитывается отдельно")
     if "led" in data["lights"]:
         warnings.append("Контур парящего профиля учтён в примыкании; оборудование уточняется отдельно" if data["edge"] == "floating" else "Контурная подсветка: стоимость уточняется отдельно")
     if "unknown" in data["lights"]: warnings.append("Состав освещения ещё не выбран")

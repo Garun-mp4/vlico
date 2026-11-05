@@ -50,18 +50,18 @@
       event.preventDefault();
       if (busy || form.dataset.submitted === 'true') return;
       const data = new FormData(form); data.set('source_page', location.pathname); data.set('attribution', JSON.stringify(attribution));
-      busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Сохраняем заявку…';
+      busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Отправляем заявку…';
       const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.setRequestHeader('Accept', 'application/json'); xhr.timeout = 90000;
       const finish = () => { busy = false; if (form.dataset.submitted !== 'true') submit.disabled = false; };
       xhr.onload = () => {
         let result; try { result = JSON.parse(xhr.responseText); } catch { result = {}; }
         if (xhr.status >= 200 && xhr.status < 300 && result.ok) {
-          status.textContent = `${result.message} Номер: ${result.reference}`; form.dataset.submitted = 'true';
+          status.textContent = `${result.message}`; form.dataset.submitted = 'true';
           form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
           document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind, reference: result.reference } }));
         } else {
           status.hidden = true;
-          showErrors(result.errors || { __all__: [xhr.status === 403 ? 'Сессия формы устарела. Сохраните введённое и обновите страницу.' : 'Сервис временно недоступен. Данные остались в форме; попробуйте отправить снова.'] });
+          showErrors(result.errors || { __all__: [xhr.status === 403 ? 'Страница с формой устарела. Сохраните введённое и обновите страницу.' : 'Не удалось отправить заявку. Данные остались в форме; попробуйте отправить снова.'] });
         }
         finish();
       };

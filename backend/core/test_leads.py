@@ -66,7 +66,7 @@ class LeadTests(TestCase):
 
     def test_project_request_without_javascript_accepts_no_file(self):
         response = self.client.post(reverse('request_form', args=['project']), payload('project'))
-        self.assertContains(response, 'Заявка сохранена')
+        self.assertContains(response, 'Заявка принята')
         self.assertEqual(Lead.objects.count(), 1)
         self.assertEqual(Delivery.objects.count(), 1)
         self.assertFalse(LeadAttachment.objects.exists())
@@ -204,7 +204,7 @@ class LeadTests(TestCase):
         self.assertContains(response,"Тестовый посетитель")
         self.assertEqual(Lead.objects.count(),0)
         data["action"]="submit"
-        self.assertContains(self.client.post(reverse("calculator"),data),"Заявка сохранена")
+        self.assertContains(self.client.post(reverse("calculator"),data),"Заявка принята")
         self.assertEqual(Lead.objects.count(),1)
 
     def test_attribution_ignores_bad_shapes_and_control_characters(self):

@@ -20,7 +20,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   closePreview.addEventListener('click', () => imageDialog.close());
   const dialogHeader = el('div', 'config-preview-dialog-header'); dialogHeader.append(dialogHeading, closePreview);
   const dialogImage = el('div');
-  imageDialog.append(dialogHeader, dialogImage, el('p', 'lead-help', 'Визуализация решения, созданная с помощью ИИ. Фактуру и конструкцию подберём после замера.'));
+  imageDialog.append(dialogHeader, dialogImage, el('p', 'lead-help', 'Иллюстрация выбранного решения. Фактуру и конструкцию подберём для вашего помещения.'));
   form.append(imageDialog);
   function previewSurface() { return ['pvc', 'pvc_satin', 'pvc_gloss', 'fabric'].includes(answers.material) ? answers.material : 'pvc'; }
   function previewChoice() {
@@ -63,7 +63,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       const key = choice ? `${choice.field}:${choice.value}` : { 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
       const m = key && media(key, form.dataset.assets, answers);
       if (choice) visual.append(el('p', 'config-preview-name', `Предпросмотр: ${fields[choice.field].choices.find(([code]) => code === choice.value)[1]}`));
-      if (m) { visual.append(m); visual.append(el('p', 'lead-help', 'Иллюстрация решения · создано с помощью ИИ')); }
+      if (m) { visual.append(m); visual.append(el('p', 'lead-help', 'Иллюстрация выбранного решения')); }
       if (choice && m) { const zoom = el('button', 'config-back config-preview-zoom', 'Рассмотреть крупнее ↗'); zoom.type = 'button'; zoom.addEventListener('click', openSolutionPreview); visual.append(zoom); }
       if (step === 4 && choice) {
         visual.append(el('p', 'lead-help', 'В предпросмотре один вид освещения. Выбранные решения можно сочетать; общую схему разработаем отдельно.'));
@@ -201,7 +201,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
         group.append(line); input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', [contactDescriptions.get(input), line.id].filter(Boolean).join(' '));
       }
     };
-    const data = payload(); setBusy(true); status.hidden = false; status.textContent = 'Сохраняем заявку…';
+    const data = payload(); setBusy(true); status.hidden = false; status.textContent = 'Отправляем заявку…';
     contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
     const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.timeout = 90000;
     const finish = () => { setBusy(false); if (!form.dataset.submitted) contact.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = false; }); };
@@ -209,14 +209,14 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       let body; try { body = JSON.parse(xhr.responseText); } catch { body = {}; }
       if (!body || typeof body !== 'object' || Array.isArray(body)) body = {};
       if (xhr.status >= 200 && xhr.status < 300 && body.ok) {
-        status.textContent = `${body.message} Номер: ${body.reference}`; form.dataset.submitted = 'true';
+        status.textContent = `${body.message}`; form.dataset.submitted = 'true';
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Storage optional. */ }
         finish(); form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
         document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: 'calculator', reference: body.reference } }));
       } else {
         status.hidden = true;
         if (body.quote) { showQuote(body.quote); showContact(true); }
-        showSubmitErrors(body.errors || { __all__: ['Не удалось сохранить заявку. Ответы и контакты остались в форме. Попробуйте снова.'] }); finish();
+        showSubmitErrors(body.errors || { __all__: ['Не удалось отправить заявку. Ответы и контакты остались в форме. Попробуйте снова.'] }); finish();
       }
     };
     xhr.onerror = xhr.ontimeout = () => { status.hidden = true; showSubmitErrors({ __all__: ['Связь прервалась. Повторите отправку: повторная попытка не создаст вторую заявку.'] }); finish(); };

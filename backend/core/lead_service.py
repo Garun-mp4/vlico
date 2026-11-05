@@ -35,7 +35,7 @@ def save_submission(request, form):
         raise SubmissionError(dict(form.errors))
     data = form.cleaned_data
     if request.FILES:
-        raise SubmissionError({"__all__": ["Прикрепление файлов больше не используется. Обновите страницу и отправьте заявку без вложений."]})
+        raise SubmissionError({"__all__": ["Обновите страницу и отправьте заявку без прикреплённых файлов."]})
     answers = calculation_form(request.POST) if data["kind"] == "calculator" else None
     if answers and not answers.is_valid():
         raise SubmissionError(dict(answers.errors))

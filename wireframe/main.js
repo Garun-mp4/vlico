@@ -1,11 +1,6 @@
 const header = document.querySelector(".site-header");
 const mobileMenu = document.querySelector(".mobile-nav");
-const contactForm = document.querySelector("#contact-form");
-const phoneInput = document.querySelector("#contact-phone");
-const nameInput = document.querySelector("#contact-name");
 const interestInput = document.querySelector("#contact-interest");
-const formError = document.querySelector("#contact-error");
-const formStatus = document.querySelector("#contact-status");
 const pageRoot = document.documentElement;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let loaderActive = pageRoot.classList.contains("loader-pending") && !reducedMotion;
@@ -153,36 +148,6 @@ document.querySelectorAll("[data-interest]").forEach((link) => {
     if (interestInput) interestInput.value = link.dataset.interest ?? "";
   });
 });
-
-if (!contactForm?.hasAttribute("data-lead-form")) {
-contactForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const digits = phoneInput?.value.replace(/\D/g, "") ?? "";
-  const validName = Boolean(nameInput?.value.trim());
-  const validPhone = digits.length >= 10;
-
-  nameInput?.setAttribute("aria-invalid", String(!validName));
-  phoneInput?.setAttribute("aria-invalid", String(!validPhone));
-  formError.hidden = validName && validPhone;
-  formStatus.hidden = true;
-
-  if (!validName || !validPhone) {
-    (!validName ? nameInput : phoneInput)?.focus();
-    return;
-  }
-
-  formStatus.textContent = "Данные проверены. В этом макете отправка заявки не подключена.";
-  formStatus.hidden = false;
-});
-
-contactForm?.querySelectorAll("input").forEach((input) => {
-  input.addEventListener("input", () => {
-    input.removeAttribute("aria-invalid");
-    if (!formError.hidden) formError.hidden = true;
-    if (!formStatus.hidden) formStatus.hidden = true;
-  });
-});
-}
 
 // A bounded, 30 fps SVG mask: pointer inertia and a brief organic settling motion.
 const footerWordmark = document.querySelector('[data-footer-wordmark]');

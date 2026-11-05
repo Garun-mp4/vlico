@@ -6,7 +6,7 @@ async page => {
     const body = route.request().postData() || '';
     check(!body.includes('filename=') && !body.includes('name="attachments"'), 'Upload data is still being sent');
     sent.push(route.request().url());
-    return route.fulfill({ status:201,contentType:'application/json',body:JSON.stringify({ok:true,kind:'project',reference:'ui-no-file-test',message:'Заявка сохранена.'}) });
+    return route.fulfill({ status:201,contentType:'application/json',body:JSON.stringify({ok:true,kind:'project',reference:'ui-no-file-test',message:'Заявка принята. Мы свяжемся с вами по указанному контакту.'}) });
   });
   for (const path of ['/', '/request/consultation/', '/request/measurement/', '/request/project/', '/request/partner/']) {
     await page.goto('http://127.0.0.1:8000' + path);
@@ -18,6 +18,8 @@ async page => {
     await form.locator('[name=consent]').check();
     await form.locator('button[type=submit]').click();
     await page.waitForFunction(() => document.querySelector('[data-lead-form]').dataset.submitted === 'true');
+    const confirmation = await form.locator('[data-lead-status]').innerText();
+    check(confirmation.includes('Заявка принята.') && !confirmation.includes('ui-no-file-test'), 'Confirmation exposes an internal reference at ' + path);
   }
   await page.goto('http://127.0.0.1:8000/calculator/');
   check(await page.locator('input[type=file]').count() === 0, 'Calculator still has an upload control');

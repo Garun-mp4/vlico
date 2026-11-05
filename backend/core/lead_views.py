@@ -17,10 +17,10 @@ def initial_lead_form(request, kind="consultation"):
 def accept(request):
     try:
         if int(request.META.get("CONTENT_LENGTH") or 0) > 2 * 1024 * 1024:
-            raise SubmissionError({"__all__": ["Общий размер запроса превышает 2 МБ."]}, 413)
+            raise SubmissionError({"__all__": ["Сообщение получилось слишком длинным. Сократите его и попробуйте отправить снова."]}, 413)
         throttle(request)
         lead, created = save_submission(request, LeadForm(request.POST))
-        return {"ok": True, "reference": str(lead.pk), "created": created, "kind": lead.kind, "message": "Заявка сохранена. Мы свяжемся с вами по указанному контакту."}, 201 if created else 200
+        return {"ok": True, "reference": str(lead.pk), "created": created, "kind": lead.kind, "message": "Заявка принята. Мы свяжемся с вами по указанному контакту."}, 201 if created else 200
     except SubmissionError as exc:
         body = {"ok": False, "errors": exc.errors}
         if exc.quote:

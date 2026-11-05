@@ -1,8 +1,9 @@
 from types import SimpleNamespace
 from urllib.parse import urlsplit
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import json_script
@@ -113,3 +114,7 @@ def sitemap(request):
 
 def not_found(request, exception):
     return render(request, "site/404.html", {"seo": {"title": "Страница не найдена", "description": "Перейдите на главную или откройте опубликованные проекты VLICO.", "indexable": False}, "site_config": {"analytics_enabled": False, "consent_version": consent_revision()}}, status=404)
+
+
+def csrf_failure(request, reason=""):
+    return HttpResponse(render_to_string("site/form-expired.html"), status=403)

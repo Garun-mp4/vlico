@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{% block title %}Не удалось открыть страницу{% endblock %} · VLICO</title>
+<link rel="icon" href="{% static 'assets/vlico-logo.svg' %}">
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+<link rel="stylesheet" href="{% static 'portfolio.css' %}">
+<link rel="stylesheet" href="{% static 'site.css' %}">
+</head>
+<body class="portfolio-page">
+<header class="public-header"><a href="{% url 'home' %}" aria-label="VLICO, на главную"><img src="{% static 'assets/vlico-logo.svg' %}" width="140" height="47" alt="VLICO"></a></header>
+<main class="editorial-page">
+<h1>{% block heading %}Не удалось открыть страницу.{% endblock %}</h1>
+<p class="page-intro">{% block message %}Попробуйте открыть её ещё раз или свяжитесь с нами, чтобы обсудить ваш проект.{% endblock %}</p>
+<div class="page-actions"><a href="{% url 'home' %}">На главную ↗</a><a href="{% url 'contacts' %}">Связаться с VLICO ↗</a></div>
+</main>
+</body>
+</html>

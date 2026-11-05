@@ -30,6 +30,7 @@ async page => {
  if(await root.locator('[name=contact]').inputValue()!=='ui-test@example.invalid')throw Error('Contact lost on retry');
  await root.locator('[data-config-submit]').click();await page.waitForFunction(()=>document.querySelector('[data-configurator]').dataset.submitted==='true');
  if(submits!==2)throw Error('Duplicate submit');
+ if((await root.locator('[data-config-status]').innerText()).includes('ui-mocked'))throw Error('Confirmation exposes an internal reference');
  await page.unroute('**/api/leads/');checks.push('mocked submit error, retry and confirmed UI success; no external notification sent');
  await page.setViewportSize({width:320,height:900});if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Result/contact overflow');
  return checks;

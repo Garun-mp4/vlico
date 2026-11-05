@@ -30,11 +30,11 @@
     <div class="config-result" data-config-result {% if not calc_quote %}hidden{% endif %} tabindex="-1">
       <p class="eyebrow">ВАШЕ РЕШЕНИЕ</p><h3>Ваш предварительный расчёт готов</h3>
       <div data-config-quote>{% if calc_quote %}{% include 'site/quote.html' with quote=calc_quote %}{% endif %}</div>
-      <p class="lead-help">Предварительные ставки для согласования, не подтверждённый прайс VLICO. Окончательную смету согласуем после замера.</p>
+      <p class="lead-help">Расчёт поможет оценить бюджет. Точную стоимость с учётом размеров и особенностей помещения согласуем после замера.</p>
       <div class="config-result-actions"><button type="button" class="lead-submit" data-config-contact>Получить точный расчёт</button><button type="button" class="config-back" data-config-edit>Изменить параметры</button></div>
     </div>
     <div class="config-contact" data-config-contact-form>
-      <h3>Получить точный расчёт</h3><p class="lead-help">Отправим специалисту выбранную конфигурацию. Планировку можно приложить, если она есть.</p>
+      <h3>Получить точный расчёт</h3><p class="lead-help">Оставьте контакт, и специалист обсудит с вами выбранный потолок, освещение и детали расчёта.</p>
       {% with lead_form=calc_lead_form %}{% include 'site/lead-fields.html' %}{% endwith %}
       {% if calc_errors %}<div class="lead-errors" role="alert">{% for field, messages in calc_errors.items %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endfor %}</div>{% endif %}
       <div class="lead-errors" data-config-submit-errors role="alert" hidden></div>

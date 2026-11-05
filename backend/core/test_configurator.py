@@ -46,7 +46,7 @@ class ConfiguratorTests(TestCase):
                     self.assertIsNone(quote["total"])
                     self.assertEqual(quote["items"], [])
                     self.assertFalse(quote["complete"])
-                    self.assertIn("ставка", " ".join(quote["warnings"]))
+                    self.assertIn("стоимость выбранной фактуры уточним", " ".join(quote["warnings"]))
 
     def test_selected_finish_reaches_real_lead_snapshot(self):
         response = self.client.post(reverse("lead_submit"), payload("calculator", pricing_version=self.version.pk, **answers(material="pvc_gloss")))
