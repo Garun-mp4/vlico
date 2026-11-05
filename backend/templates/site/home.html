@@ -33,6 +33,7 @@
     <script defer src="{% static 'main.js' %}"></script>
     <link rel="stylesheet" href="{% static 'site.css' %}">
     <script defer src="{% static 'site.js' %}"></script>
+    <script src="{% static 'solutions-preview.js' %}" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Перейти к содержимому</a>
@@ -180,7 +181,7 @@
           </div>
 
           <div class="solution-list">
-            {% for item in service_pages %}<a class="solution-row reveal" href="{% url 'service' item.slug %}"><span class="solution-index">0{{ forloop.counter }}</span><span class="solution-name">{{ item.title }}</span><span class="solution-detail">Подробнее о решении</span><span class="solution-arrow" aria-hidden="true">↗</span></a>{% endfor %}
+            {% for item in service_pages %}<a class="solution-row reveal" href="{% url 'service' item.slug %}" data-service-preview="{% static item.preview %}" data-preview-illustration="{{ item.illustration|yesno:'true,false' }}"><span class="solution-index">0{{ forloop.counter }}</span><span class="solution-name">{{ item.title }}</span><span class="solution-detail">Подробнее о решении</span><span class="solution-arrow" aria-hidden="true">↗</span></a>{% endfor %}
           </div>
         </div>
       </section>

@@ -32,3 +32,11 @@
 @media(max-width:359px) {.reviews-block {padding-right:10px;padding-left:10px;}.editorial-page>.reviews-block {margin-right:-10px;margin-left:-10px;}.external-fallback {padding:20px;}}
 
 .privacy-actions>button {min-width:120px;}
+.service-preview {position:fixed;top:0;left:0;z-index:45;aspect-ratio:4/3;pointer-events:none;visibility:hidden;opacity:0;overflow:hidden;background:var(--canvas-soft);border:1px solid var(--canvas);box-shadow:0 12px 32px #19191a26;transform-origin:center;transition:opacity 160ms ease,visibility 0s linear 160ms;}
+.service-preview.is-visible {opacity:1;visibility:visible;transition-delay:0s;}
+.service-preview-image {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 35%;opacity:0;transition:opacity 140ms ease;}
+.service-preview-image.is-current {opacity:1;}
+.service-preview-label {position:absolute;left:10px;bottom:10px;padding:5px 8px;background:#19191ad9;color:#fff;font-size:10px;line-height:1.4;}
+.service-preview-label[hidden] {display:none;}
+.solution-row:focus-visible {outline:2px solid var(--brand);outline-offset:4px;}
+@media(prefers-reduced-motion:reduce) {.service-preview,.service-preview-image {transition:none;}}
