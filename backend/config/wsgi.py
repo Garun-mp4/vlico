@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from django.core.wsgi import get_wsgi_application
 
-_env_path = Path(__file__).resolve().parents[2] / ".env"
+_env_path = Path(os.environ.get("VLICO_ENV_FILE", Path(__file__).resolve().parents[2] / ".env"))
 if _env_path.is_file():
     for _line in _env_path.read_text(encoding="utf-8").splitlines():
         _line = _line.strip()
