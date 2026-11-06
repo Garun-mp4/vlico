@@ -1,8 +1,6 @@
 from decimal import Decimal
 from html import escape
 
-from django.utils import timezone
-
 from .configurator import ConfiguratorForm, FEATURES, LIGHTS, STEP_FIELDS
 from .lead_forms import KINDS
 from .pricing import CalculationForm
@@ -136,7 +134,7 @@ def message_blocks(lead):
         add("Что не входит в расчёт", quote["exclusions"])
 
     source = "Калькулятор" if lead.kind == "calculator" else ("Главная" if lead.source_page in {"", "/"} else lead.source_page)
-    add(body=f"{source} · {timezone.localtime(lead.created_at):%d.%m.%Y, %H:%M}", style="i")
+    add(body=source, style="i")
     return blocks
 
 
