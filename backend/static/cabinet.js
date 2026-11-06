@@ -1,3 +1,6 @@
+const logoutDialog = document.querySelector('#logout-dialog');
+document.querySelector('[data-logout-open]')?.addEventListener('click', () => logoutDialog.showModal());
+
 const editor = document.querySelector('[data-image-editor]');
 const uploadForm = document.querySelector('[data-upload]');
 if (editor && typeof editor.showModal === 'function') {
