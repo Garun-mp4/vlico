@@ -4,7 +4,7 @@
 
 ## Запуск на Windows
 
-1. Перед запуском Docker Desktop на этом компьютере прочитать `C:\Users\admin\.codex\docs\docker-desktop-windows.md`. Убедиться, что `docker info` отвечает и на C: не менее 15 ГБ свободно.
+1. Запустить Docker Desktop и проверить доступность Docker командой `docker info`.
 2. Из корня проекта: `powershell -ExecutionPolicy Bypass -File scripts/init-local.ps1`. Скрипт создаёт `.env` со случайными секретами и сохраняет существующий файл без изменений.
 3. `docker compose up -d --build --wait`
 4. Открыть http://localhost:8000/. Диагностика: `docker compose ps`, `docker compose logs --tail=50 web`, http://localhost:8000/health/.
@@ -57,7 +57,7 @@ docker compose exec web python manage.py showmigrations
 
 Кнопка «Выйти» в кабинете запрашивает подтверждение.
 
-Откройте http://localhost:8000/cabinet/. На этом checkout создан локальный редактор `vlico`; данные входа находятся в игнорируемом `.local-access.txt`. В других окружениях добавьте VLICO_EDITOR_PASSWORD в приватный `.env`, пересоздайте web и выполните:
+Кабинет доступен по адресу http://localhost:8000/cabinet/. Для создания редактора задайте `VLICO_EDITOR_PASSWORD` в приватном `.env`, пересоздайте сервис `web` и выполните:
 
 ```powershell
 docker compose exec web python manage.py create_editor --username vlico
