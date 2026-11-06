@@ -101,12 +101,10 @@ YANDEX_METRIKA_ID = os.environ.get("YANDEX_METRIKA_ID", "113716679").strip()
 if YANDEX_METRIKA_ID and not YANDEX_METRIKA_ID.isdigit():
     raise ImproperlyConfigured("YANDEX_METRIKA_ID must be numeric")
 ANALYTICS_ENABLED = os.environ.get("ANALYTICS_ENABLED", "false").lower() == "true"
-LEGAL_VERSION = "2026-11-06.2"
+LEGAL_VERSION = "2026-11-06.3"
 LEGAL_OPERATOR = {
     "name": os.environ.get("OPERATOR_NAME") or "Индивидуальный предприниматель Гизерский Владлен Владимирович",
     "inn": os.environ.get("OPERATOR_INN") or "390610984618",
-    "registration": os.environ.get("OPERATOR_REGISTRATION") or "Не предоставлен",
-    "address": os.environ.get("OPERATOR_ADDRESS") or "Не предоставлен",
     "email": os.environ.get("PRIVACY_EMAIL") or "i@gizersky.ru",
     "version": LEGAL_VERSION,
 }

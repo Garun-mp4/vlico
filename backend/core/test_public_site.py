@@ -107,6 +107,8 @@ class PublicSiteTests(TestCase):
             self.assertIn(value, consent)
         self.assertNotIn('[Указать', privacy + consent)
         self.assertNotIn('[Наименование', privacy + consent)
+        for unavailable_detail in ('ОГРНИП:', 'КПП не предусмотрен', 'не предоставлен', 'не установлена', 'не указана'):
+            self.assertNotIn(unavailable_detail.casefold(), (privacy + consent).casefold())
         response = self.client.get('/request/consultation/')
         self.assertContains(response, 'href="/consent/"')
         self.assertContains(response, 'name="legal_version"')
