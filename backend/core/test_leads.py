@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
+import smtplib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -8,6 +9,7 @@ from urllib.error import HTTPError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import mail
 from django.db import IntegrityError
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.db import close_old_connections, connections
@@ -16,6 +18,7 @@ from threading import Barrier
 from django.urls import reverse
 from django.utils import timezone
 from .lead_cabinet import BUSINESS_PERMISSIONS
+from .email_delivery import deliver_email_one
 from .lead_forms import LeadForm
 from .lead_service import save_submission
 from .models import Lead, LeadAttachment, Delivery, PricingVersion, Project, SubmissionBucket
@@ -55,6 +58,14 @@ class LeadTests(TestCase):
             self.assertIsNotNone(lead.consent_at)
             self.assertEqual(lead.deliveries.count(), 1)
         self.assertFalse(LeadAttachment.objects.exists())
+
+    @override_settings(EMAIL_DELIVERY_ENABLED=True)
+    def test_email_notification_is_queued_separately_and_keeps_lead(self):
+        response = self.client.post(reverse("lead_submit"), payload("project"))
+        self.assertEqual(response.status_code, 201)
+        lead = Lead.objects.get(pk=response.json()["reference"])
+        self.assertEqual(set(lead.deliveries.values_list("channel", flat=True)), {"telegram", "email"})
+        self.assertEqual(lead.deliveries.get(channel="email").status, "pending")
 
     def test_public_forms_have_no_upload_controls(self):
         for path in ('/', '/calculator/', '/request/consultation/', '/request/measurement/', '/request/project/', '/request/partner/'):
@@ -321,6 +332,44 @@ class DeliveryTests(TestCase):
                 with self.assertRaises(DeliveryError) as caught:api_call("sendMessage",{"text":"Test"})
             self.assertEqual(caught.exception.code,code);self.assertEqual(caught.exception.retryable,retryable)
             self.assertNotIn("placeholder",str(caught.exception))
+
+
+@override_settings(
+    EMAIL_DELIVERY_ENABLED=True,
+    LEAD_NOTIFICATION_EMAIL="inbox@example.test",
+    EMAIL_HOST_USER="sender@example.test",
+    EMAIL_HOST_PASSWORD="test-app-password",
+    DEFAULT_FROM_EMAIL="sender@example.test",
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+)
+class EmailDeliveryTests(TestCase):
+    def setUp(self):
+        self.lead = Lead.objects.create(
+            kind="consultation", name="Посетитель", contact="+79000000000",
+            comment="Нужен расчёт", consent_at=timezone.now(),
+        )
+        self.delivery = Delivery.objects.create(lead=self.lead, channel="email")
+
+    def test_email_is_sent_once_and_marked_delivered(self):
+        mail.outbox = []
+        self.assertTrue(deliver_email_one())
+        self.assertFalse(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "sent")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["inbox@example.test"])
+        self.assertIn(self.lead.contact, mail.outbox[0].body)
+        self.assertIn(self.lead.comment, mail.outbox[0].body)
+        self.assertIn(str(self.lead.pk), mail.outbox[0].body)
+        self.assertTrue(self.delivery.external_id.startswith("<"))
+
+    def test_unknown_send_result_requires_manual_review(self):
+        with patch("core.email_delivery.get_connection") as get_connection:
+            get_connection.return_value.send_messages.side_effect = smtplib.SMTPServerDisconnected()
+            self.assertTrue(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "failed")
+        self.assertEqual(self.delivery.error_code, "delivery_uncertain")
 
 
 class ConcurrentLeadTests(TransactionTestCase):

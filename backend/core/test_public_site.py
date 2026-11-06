@@ -99,6 +99,14 @@ class PublicSiteTests(TestCase):
     def test_legal_pages_forms_and_unchecked_consent(self):
         for path in ('/privacy/', '/consent/', '/cookies/'):
             self.assertContains(self.client.get(path), 'настройк' if path == '/privacy/' else 'соглас' if path == '/consent/' else 'Cookie')
+        privacy = self.client.get('/privacy/').content.decode()
+        consent = self.client.get('/consent/').content.decode()
+        for value in ('390610984618', 'i@gizersky.ru', 'vlico_39@mail.ru', 'ООО «СпейсВэб»', '90 дней', '30 дней'):
+            self.assertIn(value, privacy)
+        for value in ('390610984618', 'i@gizersky.ru', 'vlico_39@mail.ru', '90 дней'):
+            self.assertIn(value, consent)
+        self.assertNotIn('[Указать', privacy + consent)
+        self.assertNotIn('[Наименование', privacy + consent)
         response = self.client.get('/request/consultation/')
         self.assertContains(response, 'href="/consent/"')
         self.assertContains(response, 'name="legal_version"')

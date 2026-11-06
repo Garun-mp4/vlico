@@ -3,6 +3,7 @@ import time
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from core.telegram_delivery import deliver_one
+from core.email_delivery import deliver_email_one
 
 
 class Command(BaseCommand):
@@ -16,7 +17,7 @@ class Command(BaseCommand):
         while True:
             heartbeat.touch()
             close_old_connections()
-            processed = deliver_one()
+            processed = deliver_email_one() or deliver_one()
             if options["once"]:
                 self.stdout.write("Processed one queued delivery." if processed else "No delivery processed.")
                 return

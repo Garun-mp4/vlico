@@ -67,6 +67,8 @@ def save_submission(request, form):
                 service=service, project=project, comment=data.get("comment", ""), context=context, source_page=safe_path(request.POST.get("source_page", "/")),
                 attribution=submission_attribution(request), calculation=quote, pricing_version=version, consent_at=timezone.now())
             Delivery.objects.create(lead=lead)
+            if settings.EMAIL_DELIVERY_ENABLED:
+                Delivery.objects.create(lead=lead, channel="email")
             return lead, True
     except IntegrityError:
         existing = Lead.objects.filter(idempotency_key=data["idempotency_key"]).first()

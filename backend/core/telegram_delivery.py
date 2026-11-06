@@ -29,6 +29,11 @@ ERROR_LABELS = {
     "network_unavailable": "Нет соединения с Telegram",
     "delivery_uncertain": "Результат отправки неизвестен. Проверьте Telegram перед повтором",
     "attachment_unavailable": "Файл недоступен в хранилище",
+    "email_not_configured": "Не настроены параметры почтового уведомления",
+    "email_auth_failed": "Почтовый сервер отклонил логин или пароль приложения",
+    "email_recipient_rejected": "Почтовый сервер отклонил адрес получателя",
+    "email_smtp_rejected": "Почтовый сервер отклонил письмо",
+    "email_smtp_temporary": "Почтовый сервер временно не принял письмо",
 }
 
 
@@ -138,12 +143,12 @@ def legacy_message_parts(lead):
     return parts
 
 
-def claim_delivery():
+def claim_delivery(channel="telegram"):
     now = timezone.now()
     with transaction.atomic():
         # A crashed process may have sent its request before recording the answer.
         Delivery.objects.filter(status="sending", locked_until__lt=now).update(status="failed", error_code="delivery_uncertain", lease_token=None, locked_until=None)
-        item = Delivery.objects.select_for_update(skip_locked=True).filter(Q(next_attempt_at__lte=now) | Q(next_attempt_at__isnull=True), channel="telegram", status="pending", attempts__lt=MAX_ATTEMPTS).order_by("next_attempt_at", "pk").first()
+        item = Delivery.objects.select_for_update(skip_locked=True).filter(Q(next_attempt_at__lte=now) | Q(next_attempt_at__isnull=True), channel=channel, status="pending", attempts__lt=MAX_ATTEMPTS).order_by("next_attempt_at", "pk").first()
         if not item:
             return None
         item.status, item.lease_token = "sending", uuid.uuid4()

@@ -82,6 +82,16 @@ DATA_UPLOAD_MAX_NUMBER_FILES = 8
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_DELIVERY_ENABLED = os.environ.get("TELEGRAM_DELIVERY_ENABLED", "false").lower() == "true"
+EMAIL_DELIVERY_ENABLED = os.environ.get("EMAIL_DELIVERY_ENABLED", "false").lower() == "true"
+LEAD_NOTIFICATION_EMAIL = os.environ.get("LEAD_NOTIFICATION_EMAIL") or "vlico_39@mail.ru"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.mail.ru")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "465"))
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "true").lower() == "true"
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "false").lower() == "true"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") or "vlico_39@mail.ru"
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+EMAIL_TIMEOUT = 20
 
 SITE_URL = os.environ.get("SITE_URL", "https://vlico39.ru").rstrip("/")
 _site_parts = urlsplit(SITE_URL)
@@ -91,12 +101,12 @@ YANDEX_METRIKA_ID = os.environ.get("YANDEX_METRIKA_ID", "113716679").strip()
 if YANDEX_METRIKA_ID and not YANDEX_METRIKA_ID.isdigit():
     raise ImproperlyConfigured("YANDEX_METRIKA_ID must be numeric")
 ANALYTICS_ENABLED = os.environ.get("ANALYTICS_ENABLED", "false").lower() == "true"
-LEGAL_VERSION = "2026-11-05.3"
+LEGAL_VERSION = "2026-11-06.2"
 LEGAL_OPERATOR = {
-    "name": os.environ.get("OPERATOR_NAME") or "[Полное наименование организации или ФИО индивидуального предпринимателя]",
-    "inn": os.environ.get("OPERATOR_INN") or "[ИНН оператора]",
-    "registration": os.environ.get("OPERATOR_REGISTRATION") or "[ОГРН / ОГРНИП]",
-    "address": os.environ.get("OPERATOR_ADDRESS") or "[Адрес оператора для юридически значимых обращений]",
+    "name": os.environ.get("OPERATOR_NAME") or "Индивидуальный предприниматель Гизерский Владлен Владимирович",
+    "inn": os.environ.get("OPERATOR_INN") or "390610984618",
+    "registration": os.environ.get("OPERATOR_REGISTRATION") or "Не предоставлен",
+    "address": os.environ.get("OPERATOR_ADDRESS") or "Не предоставлен",
     "email": os.environ.get("PRIVACY_EMAIL") or "i@gizersky.ru",
     "version": LEGAL_VERSION,
 }

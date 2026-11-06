@@ -142,7 +142,7 @@ class LeadAttachment(Timestamped):
 
 class Delivery(Timestamped):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="deliveries")
-    channel = models.CharField(max_length=20, default="telegram")
+    channel = models.CharField(max_length=20, choices=[("telegram", "Telegram"), ("email", "Электронная почта")], default="telegram")
     status = models.CharField(max_length=12, choices=[(x, x) for x in ("pending", "sending", "sent", "failed")], default="pending")
     attempts = models.PositiveIntegerField(default=0)
     next_attempt_at = models.DateTimeField(null=True, blank=True)

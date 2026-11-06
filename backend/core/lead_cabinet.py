@@ -53,7 +53,7 @@ def leads(request):
     delivery_state = request.GET.get("delivery", "")
     failed_delivery_count = Delivery.objects.filter(status="failed").count()
     if delivery_state == "failed":
-        items = items.filter(deliveries__status="failed")
+        items = items.filter(deliveries__status="failed").distinct()
     else:
         delivery_state = ""
     return render(request, "cabinet/leads.html", {
