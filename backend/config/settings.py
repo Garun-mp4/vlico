@@ -71,6 +71,8 @@ if APP_ENV != "local":
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
+if os.environ.get("TRUST_X_FORWARDED_PROTO", "false").lower() == "true":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 LOGIN_URL = "cabinet_login"
 SESSION_COOKIE_AGE = 8 * 60 * 60
