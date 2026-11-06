@@ -129,7 +129,7 @@ class Lead(Timestamped):
     consent_at = models.DateTimeField(null=True, blank=True)
     payload_hash = models.CharField(max_length=64, blank=True)
     context = models.JSONField(default=dict, blank=True)
-    status = models.CharField(max_length=12, choices=[("new", "Новая"), ("contacted", "В работе"), ("closed", "Закрыта")], default="new")
+    status = models.CharField(max_length=12, choices=[("new", "Новая"), ("contacted", "В работе"), ("closed", "Закрыта"), ("archived", "В архиве")], default="new")
 
 
 class LeadAttachment(Timestamped):

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -43,10 +43,27 @@ def leads(request):
         except ValueError:
             pass
         items = items.filter(condition)
+    counts = dict(Lead.objects.values("status").annotate(total=Count("pk")).values_list("status", "total"))
+    status_options = [(value, label, counts.get(value, 0)) for value, label in Lead._meta.get_field("status").choices]
     state = request.GET.get("status", "")
-    if state in {"new", "contacted", "closed"}:
+    if state in {value for value, _, _ in status_options}:
         items = items.filter(status=state)
-    return render(request, "cabinet/leads.html", {"page": Paginator(items, 25).get_page(request.GET.get("page")), "query": query, "state": state})
+    else:
+        state = ""
+    delivery_state = request.GET.get("delivery", "")
+    failed_delivery_count = Delivery.objects.filter(status="failed").count()
+    if delivery_state == "failed":
+        items = items.filter(deliveries__status="failed")
+    else:
+        delivery_state = ""
+    return render(request, "cabinet/leads.html", {
+        "page": Paginator(items, 25).get_page(request.GET.get("page")),
+        "query": query,
+        "state": state,
+        "status_options": status_options,
+        "delivery_state": delivery_state,
+        "failed_delivery_count": failed_delivery_count,
+    })
 
 
 @never_cache
@@ -74,7 +91,7 @@ def status(request, pk):
         lead = get_object_or_404(Lead.objects.select_for_update(), pk=pk)
         if request.POST.get("revision") != lead.updated_at.isoformat():
             messages.error(request, "Заявка изменена в другой вкладке. Обновите страницу.")
-        elif request.POST.get("status") in {"new", "contacted", "closed"}:
+        elif request.POST.get("status") in {value for value, _ in Lead._meta.get_field("status").choices}:
             lead.status = request.POST["status"]
             lead.save(update_fields=["status", "updated_at"])
             messages.success(request, "Статус заявки сохранён.")
