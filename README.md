@@ -23,7 +23,20 @@
 
 ## Виртуальный хостинг SpaceWeb
 
-Для Apache/mod_wsgi с Python 3.8 используется `requirements-spaceweb.txt`; эта конфигурация старше локального профиля и выбрана для совместимости с тарифом. Хранить `.env` в корне приложения вне `public_html`: WSGI загружает его перед стартом Django. В каталоге сайта остаются только `.htaccess` и небольшой WSGI-адаптер; приложение, виртуальное окружение, база и медиа находятся отдельно. После установки зависимостей выполнить `manage.py migrate` и `manage.py collectstatic`. Для доставки заявок создать cron-задачу на `scripts/deliver-leads-once.sh` с интервалом в одну минуту.
+Для Apache/mod_wsgi с Python 3.8 используется `requirements-spaceweb.txt`; эта конфигурация старше локального профиля и выбрана для совместимости с тарифом. Хранить `.env` в корне приложения вне `public_html`: WSGI загружает его перед стартом Django. Приложение, виртуальное окружение, база и медиа находятся отдельно от корня сайта. После установки зависимостей выполнить `manage.py migrate` и `manage.py collectstatic`. Для доставки заявок создать cron-задачу на `scripts/deliver-leads-once.sh` с интервалом в одну минуту.
+
+Если на виртуальном хостинге доступен Python CGI, но нельзя включить mod_wsgi, можно запускать WSGI-приложение через CGI-адаптер `scripts/spaceweb-cgi-runner.py`. Скопировать адаптер и обычный `wsgi.py` в `public_html`, установить адаптеру права на исполнение (`chmod 755 spaceweb-cgi-runner.py`) и использовать правила Apache:
+
+```apache
+AddDefaultCharset utf-8
+AddHandler cgi-script .py
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/spaceweb-cgi-runner\.py
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /spaceweb-cgi-runner.py/$1 [QSA,L]
+```
+
+CGI запускает отдельный процесс Python на каждый запрос. Этот способ проверен на тестовом сайте SpaceWeb; для сайтов с высокой нагрузкой предпочтителен mod_wsgi или VPS. Собрать статику командой `collectstatic`; при настройке `WhiteNoise` запросы к статике тоже могут обрабатываться через CGI.
 
 Python 3.8 и Django 4.2 больше не получают обычные обновления безопасности. Этот профиль подходит для запуска на текущем тарифе, но для долгосрочного публичного размещения предпочтительна поддерживаемая версия Python на VPS.
 
