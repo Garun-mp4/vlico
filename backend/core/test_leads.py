@@ -227,6 +227,29 @@ class DeliveryTests(TestCase):
         with patch("core.telegram_delivery.api_call",return_value="42") as api:
             self.assertTrue(deliver_one());self.assertFalse(deliver_one())
         self.delivery.refresh_from_db();self.assertEqual(self.delivery.status,"sent");self.assertEqual(api.call_count,1)
+        self.assertEqual(api.call_args.args[0], "sendPhoto")
+        self.assertIn(self.lead.contact, api.call_args.args[1]["caption"])
+        self.assertEqual(api.call_args.kwargs["photo"].name, "form.png")
+
+    def test_long_calculator_message_retries_without_resending_cover(self):
+        self.lead.kind = "calculator"
+        self.lead.comment = "😀" * 600
+        self.lead.save()
+        with patch("core.telegram_delivery.api_call", side_effect=["42", DeliveryError("telegram_429", True)]) as api:
+            self.assertTrue(deliver_one())
+        cover, text = api.call_args_list
+        self.assertEqual(cover.args[0], "sendPhoto")
+        self.assertEqual(cover.kwargs["photo"].name, "calculator.png")
+        self.assertEqual(text.args[0], "sendMessage")
+        self.assertEqual(text.args[1]["reply_parameters"]["message_id"], 42)
+        self.assertIn(self.lead.comment, text.args[1]["text"])
+
+        Delivery.objects.filter(pk=self.delivery.pk).update(next_attempt_at=timezone.now())
+        with patch("core.telegram_delivery.api_call", return_value="43") as api:
+            self.assertTrue(deliver_one())
+        api.assert_called_once_with(*text.args, **text.kwargs)
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "sent")
 
     def test_temporary_failure_retries_with_limit_and_keeps_lead(self):
         with patch("core.telegram_delivery.api_call",side_effect=DeliveryError("telegram_unavailable",True)):

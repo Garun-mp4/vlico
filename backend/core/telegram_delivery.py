@@ -1,5 +1,6 @@
 from datetime import timedelta
 import json
+from pathlib import Path
 import socket
 import uuid
 from urllib.error import HTTPError, URLError
@@ -13,6 +14,8 @@ from .models import Delivery
 
 MAX_ATTEMPTS = 5
 LEASE_SECONDS = 120
+COVER_DIR = Path(__file__).with_name("telegram_covers")
+CAPTION_LIMIT = 1024
 ERROR_LABELS = {
     "not_configured": "Проверьте настройки бота и получателя",
     "telegram_401": "Telegram отклонил токен бота",
@@ -37,18 +40,26 @@ class LeaseLost(Exception):
     pass
 
 
-def api_call(method, fields, attachment=None):
+def api_call(method, fields, attachment=None, *, photo=None):
     if not settings.TELEGRAM_BOT_TOKEN or not settings.TELEGRAM_CHAT_ID:
         raise DeliveryError("not_configured")
     fields = {"chat_id": settings.TELEGRAM_CHAT_ID, **fields}
-    if attachment:
+    if attachment or photo:
         boundary = "vlico" + uuid.uuid4().hex
         body = bytearray()
         for key, value in fields.items():
             body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
-        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="plan{attachment.file.name[attachment.file.name.rfind("."):]}"\r\nContent-Type: {attachment.content_type}\r\n\r\n'.encode())
+        if photo:
+            field, filename, mime_type = "photo", photo.name, "image/png"
+            file = photo
+        else:
+            field = "document"
+            filename = "plan" + Path(attachment.file.name).suffix
+            mime_type = attachment.content_type
+            file = attachment.file
+        body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{filename}"\r\nContent-Type: {mime_type}\r\n\r\n'.encode())
         try:
-            with attachment.file.open("rb") as source:
+            with file.open("rb") as source:
                 body.extend(source.read())
         except OSError:
             raise DeliveryError("attachment_unavailable")
@@ -144,6 +155,30 @@ def checkpoint(item, progress):
         raise LeaseLost
 
 
+def send_lead_message(item, progress):
+    lead = item.lead
+    parts = message_parts(lead)
+    messages = progress["messages"]
+    cover_id = progress.get("cover")
+    if not messages and not cover_id:
+        calculator = lead.kind == "calculator"
+        photo = COVER_DIR / ("calculator.png" if calculator else "form.png")
+        if len(parts) == 1 and len(parts[0].encode("utf-16-le")) // 2 <= CAPTION_LIMIT:
+            messages.append(api_call("sendPhoto", {"caption": parts[0]}, photo=photo))
+            checkpoint(item, progress)
+            return
+        label = "Калькулятор" if calculator else dict(KINDS).get(lead.kind, lead.kind)
+        caption = f"Новая заявка №{lead.pk} · {label}"
+        cover_id = progress["cover"] = api_call("sendPhoto", {"caption": caption}, photo=photo)
+        checkpoint(item, progress)
+    for part in parts[len(messages):]:
+        fields = {"text": part, "link_preview_options": {"is_disabled": True}}
+        if cover_id:
+            fields["reply_parameters"] = {"message_id": int(cover_id), "allow_sending_without_reply": True}
+        messages.append(api_call("sendMessage", fields))
+        checkpoint(item, progress)
+
+
 def deliver_one():
     if not settings.TELEGRAM_DELIVERY_ENABLED:
         return False
@@ -151,11 +186,11 @@ def deliver_one():
     if not item:
         return False
     progress = {"messages": list(item.progress.get("messages", [])), "files": list(item.progress.get("files", []))}
+    if item.progress.get("cover"):
+        progress["cover"] = item.progress["cover"]
     try:
         lead = item.lead
-        for text in message_parts(lead)[len(progress["messages"]):]:
-            progress["messages"].append(api_call("sendMessage", {"text": text, "link_preview_options": {"is_disabled": True}}))
-            checkpoint(item, progress)
+        send_lead_message(item, progress)
         for attachment in lead.attachments.order_by("pk"):
             if attachment.pk in progress["files"]:
                 continue
