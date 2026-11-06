@@ -36,7 +36,7 @@ TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "DIR
 WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": os.environ.get("POSTGRES_DB", "vlico"),
     "USER": os.environ.get("POSTGRES_USER", "vlico"), "PASSWORD": os.environ["POSTGRES_PASSWORD"],
-    "HOST": os.environ.get("POSTGRES_HOST", "db"), "PORT": "5432", "CONN_MAX_AGE": 60,
+    "HOST": os.environ.get("POSTGRES_HOST", "db"), "PORT": os.environ.get("POSTGRES_PORT", "5432"), "CONN_MAX_AGE": 60,
     "OPTIONS": {"connect_timeout": 5}}}
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
