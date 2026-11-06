@@ -230,6 +230,9 @@ class DeliveryTests(TestCase):
         self.assertEqual(api.call_args.args[0], "sendPhoto")
         self.assertIn(self.lead.contact, api.call_args.args[1]["caption"])
         self.assertEqual(api.call_args.kwargs["photo"].name, "form.png")
+        self.assertEqual(api.call_args.args[1]["parse_mode"], "HTML")
+        button = api.call_args.args[1]["reply_markup"]["inline_keyboard"][0][0]
+        self.assertTrue(button["url"].endswith(reverse("cabinet_lead", args=[self.lead.pk])))
 
     def test_long_calculator_message_retries_without_resending_cover(self):
         self.lead.kind = "calculator"
@@ -283,11 +286,24 @@ class DeliveryTests(TestCase):
         self.delivery.refresh_from_db();self.assertEqual(self.delivery.status,"sent")
 
     def test_message_contains_context_and_respects_utf16_limits(self):
-        self.lead.comment="😀"*2500
-        self.lead.context={"project_title":"Кейс", "service_title":"Свет"}
-        parts=message_parts(self.lead)
-        self.assertIn("Кейс","".join(parts));self.assertIn(str(self.lead.pk),"".join(parts))
-        for part in parts:self.assertLessEqual(len(part.encode("utf-16-le"))//2,3800)
+        self.lead.comment = "<b>Тест</b> & " + "😀" * 1100
+        self.lead.context = {"project_title": "Кейс", "service_title": "Свет"}
+        parts = message_parts(self.lead)
+        html = "\n".join(part for part, _ in parts)
+        self.assertIn("Кейс", html)
+        self.assertIn(str(self.lead.pk)[:8], html)
+        self.assertIn("&lt;b&gt;Тест&lt;/b&gt; &amp;", html)
+        for _, size in parts:
+            self.assertLessEqual(size, 3800)
+
+    def test_legacy_retry_does_not_resend_confirmed_notification(self):
+        self.delivery.progress = {"messages": ["42"], "files": []}
+        self.delivery.save()
+        with patch("core.telegram_delivery.api_call") as api:
+            self.assertTrue(deliver_one())
+        api.assert_not_called()
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "sent")
 
     @override_settings(TELEGRAM_BOT_TOKEN="placeholder-for-transport-test", TELEGRAM_CHAT_ID="123")
     def test_transport_rate_limit_permanent_error_and_ambiguous_timeout(self):

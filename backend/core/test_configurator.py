@@ -5,6 +5,7 @@ from .configurator import ConfiguratorForm, calculate_answers
 from .models import PricingVersion, Lead
 from .pricing import default_rates
 from .test_leads import payload
+from .telegram_templates import message_parts
 
 
 def answers(**changes):
@@ -51,11 +52,29 @@ class ConfiguratorTests(TestCase):
     def test_selected_finish_reaches_real_lead_snapshot(self):
         response = self.client.post(reverse("lead_submit"), payload("calculator", pricing_version=self.version.pk, **answers(material="pvc_gloss")))
         self.assertEqual(response.status_code, 201)
-        quote = Lead.objects.get().calculation
+        lead = Lead.objects.get()
+        quote = lead.calculation
         self.assertEqual(quote["inputs"]["material"], "pvc")
         self.assertEqual(quote["inputs"]["texture"], "gloss")
         self.assertIn("Глянцевый ПВХ", str(quote["configuration"]))
         self.assertIsNone(quote["total"])
+        message = message_parts(lead)[0][0]
+        self.assertIn("<b>Нужен индивидуальный расчёт</b>", message)
+        self.assertIn("<b>3. Поверхность</b>\nГлянцевый ПВХ", message)
+        self.assertNotIn("Расшифровка расчёта", message)
+
+    def test_telegram_groups_answers_and_saved_price(self):
+        response = self.client.post(reverse("lead_submit"), payload(
+            "calculator", pricing_version=self.version.pk,
+            **answers(size_mode="area", area="20", edge="shadow", lights=["spots", "tracks"], spots="6"),
+        ))
+        self.assertEqual(response.status_code, 201)
+        message = message_parts(Lead.objects.get())[0][0]
+        self.assertIn("частичная сумма", message)
+        self.assertIn("Периметр неизвестен, поэтому примыкание не включено", message)
+        self.assertIn("<b>5. Освещение</b>\n• Точечные светильники — 6 шт.\n• Магнитные треки — длина не указана", message)
+        self.assertIn("<b>8. Расположение</b>\nКалининград", message)
+        self.assertIn("<blockquote expandable><b>Расшифровка расчёта</b>", message)
 
     def test_unknown_area_material_and_perimeter_are_honest(self):
         q = self.quote(size_mode="area", area="20", perimeter="")

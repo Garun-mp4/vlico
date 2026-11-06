@@ -8,9 +8,11 @@ from urllib.request import Request, urlopen
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
+from django.urls import reverse
 from django.utils import timezone
 from .lead_forms import KINDS
 from .models import Delivery
+from .telegram_templates import lead_title, message_parts, utf16_length
 
 MAX_ATTEMPTS = 5
 LEASE_SECONDS = 120
@@ -48,6 +50,8 @@ def api_call(method, fields, attachment=None, *, photo=None):
         boundary = "vlico" + uuid.uuid4().hex
         body = bytearray()
         for key, value in fields.items():
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value, ensure_ascii=False)
             body.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
         if photo:
             field, filename, mime_type = "photo", photo.name, "image/png"
@@ -100,7 +104,7 @@ def api_call(method, fields, attachment=None, *, photo=None):
     return str(result["result"]["message_id"])
 
 
-def message_parts(lead):
+def legacy_message_parts(lead):
     quote = lead.calculation
     lines = ["VLICO · Новая заявка", f"ID: {lead.pk}", f"Время: {timezone.localtime(lead.created_at):%d.%m.%Y %H:%M}",
         f"Тип: {dict(KINDS).get(lead.kind, lead.kind)}", f"Имя: {lead.name}", f"Контакт: {lead.contact}"]
@@ -157,22 +161,30 @@ def checkpoint(item, progress):
 
 def send_lead_message(item, progress):
     lead = item.lead
-    parts = message_parts(lead)
     messages = progress["messages"]
     cover_id = progress.get("cover")
+    # Confirmed parts from older workers must keep their original boundaries on retry.
+    legacy = bool(messages or cover_id) and not progress.get("structured")
+    if legacy:
+        parts = [(part, utf16_length(part)) for part in legacy_message_parts(lead)]
+        formatting = {}
+    else:
+        progress["structured"] = True
+        parts = message_parts(lead)
+        url = settings.SITE_URL + reverse("cabinet_lead", kwargs={"pk": lead.pk})
+        formatting = {"parse_mode": "HTML", "reply_markup": {
+            "inline_keyboard": [[{"text": "Открыть заявку", "url": url}]],
+        }}
     if not messages and not cover_id:
-        calculator = lead.kind == "calculator"
-        photo = COVER_DIR / ("calculator.png" if calculator else "form.png")
-        if len(parts) == 1 and len(parts[0].encode("utf-16-le")) // 2 <= CAPTION_LIMIT:
-            messages.append(api_call("sendPhoto", {"caption": parts[0]}, photo=photo))
+        photo = COVER_DIR / ("calculator.png" if lead.kind == "calculator" else "form.png")
+        if len(parts) == 1 and parts[0][1] <= CAPTION_LIMIT:
+            messages.append(api_call("sendPhoto", {"caption": parts[0][0], **formatting}, photo=photo))
             checkpoint(item, progress)
             return
-        label = "Калькулятор" if calculator else dict(KINDS).get(lead.kind, lead.kind)
-        caption = f"Новая заявка №{lead.pk} · {label}"
-        cover_id = progress["cover"] = api_call("sendPhoto", {"caption": caption}, photo=photo)
+        cover_id = progress["cover"] = api_call("sendPhoto", {"caption": lead_title(lead)}, photo=photo)
         checkpoint(item, progress)
-    for part in parts[len(messages):]:
-        fields = {"text": part, "link_preview_options": {"is_disabled": True}}
+    for part, _ in parts[len(messages):]:
+        fields = {"text": part, "link_preview_options": {"is_disabled": True}, **formatting}
         if cover_id:
             fields["reply_parameters"] = {"message_id": int(cover_id), "allow_sending_without_reply": True}
         messages.append(api_call("sendMessage", fields))
@@ -186,8 +198,9 @@ def deliver_one():
     if not item:
         return False
     progress = {"messages": list(item.progress.get("messages", [])), "files": list(item.progress.get("files", []))}
-    if item.progress.get("cover"):
-        progress["cover"] = item.progress["cover"]
+    for key in ("cover", "structured"):
+        if key in item.progress:
+            progress[key] = item.progress[key]
     try:
         lead = item.lead
         send_lead_message(item, progress)
