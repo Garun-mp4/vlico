@@ -70,8 +70,10 @@ def calculator_steps(inputs):
 
     surface = dict(ConfiguratorForm.base_fields["material"].choices)[inputs["surface"]]
     answers = (room, "\n".join(dimensions), surface, label("edge"), lighting, curtains, installation, location)
+    if len(STEP_FIELDS) != len(answers):
+        raise ValueError("Calculator step labels and answers must have the same length")
     return [(f"{index}. {step[0]}", answer)
-            for index, (step, answer) in enumerate(zip(STEP_FIELDS, answers, strict=True), 1)]
+            for index, (step, answer) in enumerate(zip(STEP_FIELDS, answers), 1)]
 
 
 def saved_estimate_steps(inputs):

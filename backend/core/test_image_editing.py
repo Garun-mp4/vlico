@@ -122,5 +122,6 @@ class ImageEditorTests(TestCase):
         from pathlib import Path
         from django.conf import settings
         item=add_images(self.project.pk,[jpeg()],"result",edit={})[0]
-        self.assertTrue(Path(item.source.path).is_relative_to(Path(self.directory.name)))
-        self.assertTrue(Path(item.source.path).is_relative_to(settings.PRIVATE_MEDIA_ROOT))
+        stored_path = Path(item.source.path).resolve()
+        stored_path.relative_to(Path(self.directory.name).resolve())
+        stored_path.relative_to(Path(settings.PRIVATE_MEDIA_ROOT).resolve())

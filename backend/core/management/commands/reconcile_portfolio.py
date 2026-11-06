@@ -47,7 +47,11 @@ class Command(BaseCommand):
                     known.add(hashlib.sha256(stream.read()).hexdigest())
             for photo in entry.get("photos", []):
                 path = (root/photo["path"]).resolve()
-                if not path.is_relative_to(root) or not path.is_file():
+                try:
+                    path.relative_to(root)
+                except ValueError:
+                    raise CommandError("Missing source inside source root: " + photo["path"])
+                if not path.is_file():
                     raise CommandError("Missing source inside source root: " + photo["path"])
                 content = path.read_bytes()
                 upload = SimpleUploadedFile(path.name, content)

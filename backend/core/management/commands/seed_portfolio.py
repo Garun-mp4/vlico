@@ -15,6 +15,7 @@ class Command(BaseCommand):
         for position, (slug, title) in enumerate(services):
             Service.objects.get_or_create(slug=slug, defaults={"title": title, "position": position})
         data = json.loads((Path(__file__).resolve().parents[2]/"data"/"portfolio-drafts.json").read_text())
+        source_root = source.resolve() if source else None
         for index, entry in enumerate(data):
             photos = entry.pop("photos", [])
             service_slugs = entry.pop("services", [])
@@ -28,8 +29,10 @@ class Command(BaseCommand):
                     paths = [p["path"] for p in photos if p.get("section", "result") == group]
                     uploads = []
                     for relative in paths:
-                        path = (source / relative).resolve()
-                        if not path.is_relative_to(source.resolve()):
+                        path = (source_root / relative).resolve()
+                        try:
+                            path.relative_to(source_root)
+                        except ValueError:
                             raise CommandError("Source path escapes source root")
                         if path.is_file():
                             uploads.append(SimpleUploadedFile(path.name, path.read_bytes()))
