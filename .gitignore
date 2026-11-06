@@ -18,6 +18,7 @@ __pycache__/
 *.pyc
 /data/
 /staticfiles/
+/backend/staticfiles/
 /backups/
 фото-работ/
 Фото проектов/
