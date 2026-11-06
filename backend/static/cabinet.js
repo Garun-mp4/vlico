@@ -1,6 +1,26 @@
 const logoutDialog = document.querySelector('#logout-dialog');
 document.querySelector('[data-logout-open]')?.addEventListener('click', () => logoutDialog.showModal());
 
+const loginPassword = document.querySelector('.login-panel input[type="password"]');
+const passwordToggle = document.querySelector('[data-password-toggle]');
+if (loginPassword && passwordToggle) {
+  const showIcon = passwordToggle.querySelector('[data-password-show]');
+  const hideIcon = passwordToggle.querySelector('[data-password-hide]');
+  const updatePasswordToggle = () => {
+    const visible = loginPassword.type === 'text';
+    passwordToggle.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
+    passwordToggle.setAttribute('aria-pressed', String(visible));
+    showIcon.hidden = visible;
+    hideIcon.hidden = !visible;
+  };
+  passwordToggle.hidden = false;
+  updatePasswordToggle();
+  passwordToggle.addEventListener('click', () => {
+    loginPassword.type = loginPassword.type === 'password' ? 'text' : 'password';
+    updatePasswordToggle();
+  });
+}
+
 const editor = document.querySelector('[data-image-editor]');
 const uploadForm = document.querySelector('[data-upload]');
 if (editor && typeof editor.showModal === 'function') {

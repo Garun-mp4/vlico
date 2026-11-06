@@ -108,6 +108,13 @@ summary {cursor:pointer;text-underline-offset:4px}
 .messages {margin-bottom:24px}
 .login-panel {max-width:440px;margin:40px auto}
 .login-panel>.editor-form {margin-top:26px}
+.password-field {position:relative}
+.password-field input {padding-right:54px!important}
+.password-toggle {position:absolute;top:50%;right:7px;transform:translateY(-50%);display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--muted);cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.password-toggle:hover {background:var(--canvas);color:var(--ink)}
+.password-toggle:focus-visible {outline:2px solid var(--accent);outline-offset:1px}
+.password-toggle svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.password-toggle[hidden],.password-toggle svg[hidden] {display:none}
 .section-heading {display:flex;justify-content:space-between;align-items:baseline;gap:16px}
 /* One photo workspace: upload, thumbnail actions and ordering. */
 .gallery-card {padding:24px;border:1px solid var(--rule);border-radius:12px;background:#fbfaf6;scroll-margin-top:20px}
