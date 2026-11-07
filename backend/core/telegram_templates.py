@@ -1,5 +1,6 @@
 from decimal import Decimal
 from html import escape
+from django import forms
 
 from django.utils import timezone
 
@@ -24,56 +25,39 @@ def measured(value, unit, missing):
 
 
 def calculator_steps(inputs):
-    def label(key):
-        return dict(ConfiguratorForm.base_fields[key].choices).get(inputs[key], inputs[key])
-
-    room = label("room")
-    if inputs.get("room_other"):
-        room += f" — {inputs['room_other']}"
-
-    dimensions = [f"Форма: {label('shape').lower()}"]
-    if inputs.get("length") is not None and inputs.get("width") is not None:
-        dimensions.append(f"Длина × ширина: {number(inputs['length'])} × {number(inputs['width'])} м")
-    if inputs.get("area") is None:
-        dimensions.append(f"Примерная площадь: {label('area_range')}" if inputs.get("area_range") else "Размеры неизвестны")
-    else:
-        dimensions.append(f"Площадь: {number(inputs['area'])} м²")
-        dimensions.append(f"Периметр: {measured(inputs.get('perimeter'), 'м', 'не указан')}")
-
-    def options(key, choices, quantities):
-        lines = []
-        for code in inputs[key]:
-            title = dict(choices)[code]
-            if code in quantities:
-                unit, missing = quantities[code]
-                title += f" — {measured(inputs.get(code), unit, missing)}"
-            lines.append(title)
-        return "\n".join(f"• {line}" for line in lines) if len(lines) > 1 else lines[0]
-
-    lighting = options("lights", LIGHTS, {
-        "spots": ("шт.", "количество не указано"),
-        "light_lines": ("м", "длина не указана"),
-        "tracks": ("м", "длина не указана"),
-        "chandeliers": ("шт.", "количество не указано"),
-        "led": ("м", "длина не указана"),
-    })
-    curtains = label("cornice")
-    if inputs["cornice"] in {"standard", "hidden"}:
-        curtains += f" — {measured(inputs.get('cornices'), 'м', 'длина не указана')}"
-    installation = options("features", FEATURES, {
-        "pipes": ("шт.", "количество не указано"),
-        "vents": ("шт.", "количество не указано"),
-    })
-    location = label("location")
-    if inputs.get("locality"):
-        location += f" · {inputs['locality']}"
-
-    surface = dict(ConfiguratorForm.base_fields["material"].choices)[inputs["surface"]]
-    answers = (room, "\n".join(dimensions), surface, label("edge"), lighting, curtains, installation, location)
-    if len(STEP_FIELDS) != len(answers):
-        raise ValueError("Calculator step labels and answers must have the same length")
-    return [(f"{index}. {step[0]}", answer)
-            for index, (step, answer) in enumerate(zip(STEP_FIELDS, answers), 1)]
+    output = []
+    quantities = {"spots": ("шт.", "количество не указано"), "light_lines": ("м", "длина не указана"),
+                  "tracks": ("м", "длина не указана"), "chandeliers": ("шт.", "количество не указано"),
+                  "led": ("м", "длина не указана")}
+    for index, (name, title, _help, fields) in enumerate(STEP_FIELDS, 1):
+        values = []
+        for key in fields:
+            value = inputs.get(key)
+            if value in (None, "", []):
+                continue
+            field = ConfiguratorForm.base_fields[key]
+            if isinstance(field, forms.MultipleChoiceField):
+                options = []
+                for item in value:
+                    text = dict(field.choices).get(item, item)
+                    if item in quantities:
+                        unit, missing = quantities[item]
+                        text += f" — {measured(inputs.get(item), unit, missing)}"
+                    options.append(text)
+                value = "\n".join(f"• {item}" for item in options) if len(options) > 1 else options[0]
+            elif isinstance(field, forms.ChoiceField):
+                selected = inputs.get("surface") if key == "material" and inputs.get("surface") else value
+                value = dict(field.choices).get(selected, selected)
+            if key in {"material", "lights", "features", "location"}:
+                values.append(value)
+                continue
+            label = field.label
+            if key.endswith("_area") or key in {"area", "object_area"}:
+                value = f"{number(value)} м²"
+            values.append(f"{label}: {value}")
+        if values:
+            output.append((f"{index}. {name}", "\n".join(values)))
+    return output
 
 
 def saved_estimate_steps(inputs):

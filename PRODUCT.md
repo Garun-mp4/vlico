@@ -17,6 +17,7 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 
 ## Page structure
 - Full-screen, photo-led offer with a large VLICO wordmark.
+- A first-screen offer links to its dedicated special-offers section.
 - Editorial company statement about planning ceiling and lighting as one system.
 - Original Yandex reviews as the third main section, with three visible previews, the live rating and links to read or write reviews.
 - Selected work, including the documented Rumyantseva penthouse and Podlesnaya hotel project.
@@ -29,11 +30,11 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 - The server-site forms persist real leads without public file uploads; Telegram is a notification channel. The isolated legacy static preview retains its demonstration-only form.
 - The owner authorized provisional numeric calculator rates for local review. Label the result preliminary and show its composition and exclusions. A final estimate follows measurement; installation timing is agreed separately.
 - State free measurement only for Kaliningrad. Discuss travel elsewhere in the region separately.
-- Do not reuse the unconfirmed promotion in the supplied mockups.
+- The owner confirmed the offer “Подбор освещения под ваш интерьер — в подарок”. Do not add dates, eligibility limits, or other conditions without confirmation.
 - Keep the preview `noindex` and publish only the `wireframe/` directory. Do not expose the rest of `from-client/`.
 
 ## Evidence
-Client materials state that VLICO has worked since 2009, completed more than 10,000 objects, and installed more than 500,000 m² of ceilings. These figures still need confirmation before publication. The client brief documents a penthouse at Rumyantseva 11 and the Podlesnaya hotel in Zelenogradsk. The hotel brief gives 10 floors, 49 rooms, and 5,500 m² of ceiling work, and says not to publish the price. No local case video was found.
+The owner confirmed 17 years of experience for publication. Client materials also state more than 10,000 objects and more than 500,000 m² of ceilings; those figures still need confirmation. The client brief documents a penthouse at Rumyantseva 11 and the Podlesnaya hotel in Zelenogradsk. The hotel brief gives 10 floors, 49 rooms, and 5,500 m² of ceiling work, and says not to publish the price. No local case video was found.
 
 ## Product principles
 - Make the service, pricing method, timing, region, and next step clear in the first screen.

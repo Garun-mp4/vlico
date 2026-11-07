@@ -31,6 +31,7 @@ def number(label, maximum=1000, integer=False):
 
 class ConfiguratorForm(forms.Form):
     schema = forms.CharField(initial="v2", widget=forms.HiddenInput)
+    object_type = forms.ChoiceField(label="Что рассчитываем?", initial="room", choices=[("room", "Отдельное помещение"), ("apartment", "Вся квартира"), ("house", "Весь дом")], widget=forms.RadioSelect)
     room = choice("Для какого помещения выбираете потолок?", ROOMS)
     room_other = forms.CharField(label="Что за помещение?", required=False, max_length=100)
     size_mode = choice("Как удобнее указать размеры?", [("dimensions", "Знаю длину и ширину"), ("area", "Знаю площадь"), ("unknown", "Не знаю размеры")])
@@ -38,6 +39,20 @@ class ConfiguratorForm(forms.Form):
     length = number("Длина, м", 100)
     width = number("Ширина, м", 100)
     area = number("Площадь, м²", 10000)
+    object_area = number("Общая площадь объекта, м²", 10000)
+    zones_enabled = forms.ChoiceField(label="Нужны разные решения по зонам?", required=False, choices=[("no", "Нет, одно решение для объекта"), ("yes", "Да, настроить зоны")], widget=forms.RadioSelect)
+    zone_1_name = forms.CharField(label="Зона 1 — название", required=False, max_length=80)
+    zone_1_area = number("Зона 1 — площадь, м²", 10000)
+    zone_1_material = forms.ChoiceField(label="Зона 1 — материал", required=False, choices=[(code, row[2]) for code, row in SURFACES.items()])
+    zone_1_edge = forms.ChoiceField(label="Зона 1 — примыкание", required=False, choices=[("standard", "Классическое"), ("shadow", "Теневое"), ("floating", "Парящее"), ("unknown", "Пока не знаю")])
+    zone_2_name = forms.CharField(label="Зона 2 — название", required=False, max_length=80)
+    zone_2_area = number("Зона 2 — площадь, м²", 10000)
+    zone_2_material = forms.ChoiceField(label="Зона 2 — материал", required=False, choices=[(code, row[2]) for code, row in SURFACES.items()])
+    zone_2_edge = forms.ChoiceField(label="Зона 2 — примыкание", required=False, choices=[("standard", "Классическое"), ("shadow", "Теневое"), ("floating", "Парящее"), ("unknown", "Пока не знаю")])
+    zone_3_name = forms.CharField(label="Зона 3 — название", required=False, max_length=80)
+    zone_3_area = number("Зона 3 — площадь, м²", 10000)
+    zone_3_material = forms.ChoiceField(label="Зона 3 — материал", required=False, choices=[(code, row[2]) for code, row in SURFACES.items()])
+    zone_3_edge = forms.ChoiceField(label="Зона 3 — примыкание", required=False, choices=[("standard", "Классическое"), ("shadow", "Теневое"), ("floating", "Парящее"), ("unknown", "Пока не знаю")])
     perimeter = number("Периметр, м", 10000)
     area_range = forms.ChoiceField(label="Примерная площадь", required=False, choices=[("", "Не знаю"), ("small", "До 10 м²"), ("medium", "10–20 м²"), ("large", "20–35 м²"), ("xl", "Более 35 м²")])
     material = choice("Какую поверхность предпочитаете?", [(code, row[2]) for code, row in SURFACES.items()])
@@ -60,6 +75,8 @@ class ConfiguratorForm(forms.Form):
         self.partial = kwargs.pop('partial', False)
         if args and args[0] is not None:
             data = args[0].copy()
+            data.setdefault("object_type", "room")
+            data.setdefault("zones_enabled", "no")
             # Exclude stale dependent values before validation, including malformed ones.
             live = active_fields(data, data.getlist if hasattr(data, "getlist") else lambda key: data.get(key, []))
             for key in self.base_fields:
@@ -69,6 +86,15 @@ class ConfiguratorForm(forms.Form):
                     data[key] = data[key].replace(",", ".")
             args = (data, *args[1:])
         super().__init__(*args, **kwargs)
+        posted_type = args[0].get("object_type") if args and args[0] is not None else None
+        if posted_type in {"apartment", "house"}:
+            for name in ("room", "room_other", "size_mode", "shape", "length", "width", "area", "perimeter", "area_range"):
+                self.fields[name].required = False
+            if (args[0].get("zones_enabled") if args and args[0] is not None else None) == "yes":
+                self.fields["material"].required = False
+                self.fields["edge"].required = False
+        else:
+            self.fields["object_area"].required = False
         if self.partial:
             for field in self.fields.values():
                 field.required = False
@@ -81,7 +107,37 @@ class ConfiguratorForm(forms.Form):
             values = data.get(name, [])
             if len(values) > 1 and set(values) & {"none", "unknown"}:
                 self.add_error(name, "Выберите конкретные варианты либо один ответ «нет / не знаю».")
-        if data.get("size_mode") == "dimensions" and data.get("shape") == "rectangle":
+        if data.get("object_type") != "room":
+            data["size_mode"] = "area"
+            data["shape"] = "unknown"
+            data["room"] = "other"
+            data.setdefault("lights", ["unknown"])
+            data.setdefault("features", ["unknown"])
+            data.setdefault("cornice", "unknown")
+            if data.get("object_area") is None and not self.partial:
+                self.add_error("object_area", "Укажите общую площадь квартиры или дома.")
+            data["area"] = data.get("object_area")
+            data["perimeter"] = None
+            if data.get("zones_enabled") == "yes":
+                zones, total = [], Decimal("0")
+                for index in range(1, 4):
+                    name, size = data.get(f"zone_{index}_name"), data.get(f"zone_{index}_area")
+                    material, edge = data.get(f"zone_{index}_material"), data.get(f"zone_{index}_edge")
+                    filled = any((name, size, material, edge))
+                    if not filled:
+                        continue
+                    if not self.partial and not all((name, size, material, edge)):
+                        for key in (f"zone_{index}_name", f"zone_{index}_area", f"zone_{index}_material", f"zone_{index}_edge"):
+                            if not data.get(key): self.add_error(key, "Заполните параметры зоны или очистите её целиком.")
+                    if size:
+                        total += size
+                    zones.append({"name": name or f"Зона {index}", "area": size, "material": material, "edge": edge})
+                if not self.partial and not zones:
+                    self.add_error("zones_enabled", "Добавьте хотя бы одну зону или выберите одно решение для объекта.")
+                if data.get("object_area") and total > data["object_area"]:
+                    self.add_error("object_area", "Сумма площадей зон не может превышать площадь объекта.")
+                data["zones"] = zones
+        elif data.get("size_mode") == "dimensions" and data.get("shape") == "rectangle":
             for name in ("length", "width"):
                 if data.get(name) is None and not self.partial:
                     self.add_error(name, "Укажите размер или выберите другой способ ввода.")
@@ -98,8 +154,19 @@ class ConfiguratorForm(forms.Form):
 
 
 def active_fields(data, getlist):
-    live = {"schema", "room", "size_mode", "shape", "material", "edge", "lights", "cornice", "features", "location"}
-    if data.get("room") == "other": live.add("room_other")
+    live = {"schema", "object_type", "room", "size_mode", "shape", "material", "edge", "lights", "cornice", "features", "location", "zones_enabled"}
+    multi = data.get("object_type") in {"apartment", "house"}
+    if multi:
+        live.add("object_area")
+        if data.get("zones_enabled") == "yes":
+            for i in range(1, 4): live.update((f"zone_{i}_name", f"zone_{i}_area", f"zone_{i}_material", f"zone_{i}_edge"))
+    else:
+        live.discard("zones_enabled")
+        live.discard("object_area")
+    if multi:
+        live.difference_update({"room", "room_other", "size_mode", "shape", "length", "width", "area", "perimeter", "area_range"})
+        if data.get("zones_enabled") == "yes": live.difference_update({"material", "edge"})
+    elif data.get("room") == "other": live.add("room_other")
     if data.get("size_mode") == "unknown": live.add("area_range")
     elif data.get("size_mode") == "dimensions" and data.get("shape") == "rectangle": live.update(("length", "width"))
     else: live.update(("area", "perimeter"))
@@ -118,6 +185,34 @@ def calculate_answers(data, version=None):
     if data.get("schema") != "v2":
         return calculate(data, version)
     warnings = []
+    if data.get("object_type") in {"apartment", "house"} and data.get("zones_enabled") == "yes":
+        warnings = ["Расчёт по зонам предварительный: периметры и состав работ уточняются специалистом."]
+        zones = data.get("zones", [])
+        items, total = [], Decimal("0.00")
+        priced_area = Decimal("0")
+        for zone in zones:
+            if not zone.get("area") or not zone.get("material") or zone["material"] == "unknown":
+                warnings.append(f"Зона «{zone['name']}»: площадь или тарифная поверхность не указаны.")
+                continue
+            material, _, _ = SURFACES[zone["material"]]
+            if material == "unknown":
+                warnings.append(f"Зона «{zone['name']}»: материал уточнит специалист.")
+                continue
+            partial = calculate({"area": zone["area"], "material": material, "edge": zone.get("edge") or "standard", "perimeter": None}, version)
+            for item in partial["items"]:
+                item["title"] = f"{item['title']} · {zone['name']}"
+                items.append(item)
+                if item["total"] is not None: total += Decimal(item["total"])
+            priced_area += zone["area"]
+            if zone.get("edge") in {None, "unknown"}:
+                warnings.append(f"Зона «{zone['name']}»: примыкание требует согласования.")
+        if data.get("object_area") and priced_area < data["object_area"]:
+            warnings.append("Не вся площадь распределена по зонам; показана только известная часть стоимости.")
+        q = {"version": version.pk, "version_title": version.title, "currency": "RUB", "items": items,
+             "total": str(total) if items else None, "complete": False, "exclusions": "Показана стоимость известных площадей потолка по активной версии тарифов. Периметры, свет, карнизы, узлы и монтаж уточняются специалистом."}
+        q.update(complete=False, warnings=list(dict.fromkeys(warnings)), configuration=summary(data),
+                 inputs={key: json_safe(value) for key, value in data.items()}, schema="v2")
+        return q
     material, texture, _ = SURFACES[data["material"]]
     unpriced_finish = texture in {"satin", "gloss"}
     if unpriced_finish:
@@ -149,14 +244,26 @@ def calculate_answers(data, version=None):
         quote["items"] = []
         quote["total"] = None
     quote.update(complete=not warnings, warnings=warnings, configuration=summary(data),
-                 inputs={key: str(value) if isinstance(value, Decimal) else value for key, value in data.items()}, schema="v2")
+                 inputs={key: json_safe(value) for key, value in data.items()}, schema="v2")
     quote["inputs"].update(material=material, texture=texture, surface=data["material"])
     return quote
 
 
+def json_safe(value):
+    if isinstance(value, Decimal): return str(value)
+    if isinstance(value, dict): return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)): return [json_safe(item) for item in value]
+    return value
+
+
 def summary(data):
     rows = []
+    multi = data.get("object_type") in {"apartment", "house"}
     for name, field in ConfiguratorForm.base_fields.items():
+        if multi and name in {"room", "room_other", "size_mode", "shape", "length", "width", "area", "perimeter", "area_range"}:
+            continue
+        if multi and data.get("zones_enabled") == "yes" and name in {"material", "edge"}:
+            continue
         value = data.get(name)
         if name == "schema" or value is None or value == "" or value == []: continue
         if isinstance(field, forms.MultipleChoiceField): value = ", ".join(dict(field.choices)[v] for v in value)
@@ -174,6 +281,8 @@ def preview_answers(form, version):
     for name in ('material', 'edge', 'shape', 'cornice', 'location'):
         data[name] = data.get(name) or 'unknown'
     quote = calculate_answers(data, version)
+    if data.get("object_type") in {"apartment", "house"} and data.get("zones_enabled") == "yes":
+        return quote, {}
     warnings = quote['warnings']
     if not form.cleaned_data.get('location'):
         warnings = [w for w in warnings if not w.startswith('Выезд и возможность')]
@@ -192,8 +301,8 @@ def preview_answers(form, version):
 
 
 STEP_FIELDS = [
-    ("Помещение", "Для какого помещения выбираете потолок?", "Тип комнаты не меняет цену сам по себе.", ["room", "room_other"]),
-    ("Размеры", "Какие размеры у помещения?", "Примерных размеров достаточно. Точные уточним на замере.", ["size_mode", "shape", "length", "width", "area", "perimeter", "area_range"]),
+    ("Объект", "Что рассчитываем?", "Для квартиры и дома можно указать общую площадь, а отдельные комнаты не перечислять.", ["object_type", "room", "room_other"]),
+    ("Размеры", "Какие размеры у объекта?", "Для квартиры или дома укажите общую площадь. Зоны с разными решениями можно настроить отдельно.", ["object_area", "size_mode", "shape", "length", "width", "area", "perimeter", "area_range", "zones_enabled", "zone_1_name", "zone_1_area", "zone_1_material", "zone_1_edge", "zone_2_name", "zone_2_area", "zone_2_material", "zone_2_edge", "zone_3_name", "zone_3_area", "zone_3_material", "zone_3_edge"]),
     ("Поверхность", "Какую поверхность предпочитаете?", "Одна комната, один ракурс — меняется только потолок. Сравните отражения и характер поверхности.", ["material"]),
     ("Примыкание", "Как потолок встретится со стеной?", "Сравните один и тот же угол комнаты: закрытый стык, теневой зазор или мягкая подсветка.", ["edge"]),
     ("Освещение", "Какое освещение планируете?", "Одна комната с разным светом. Можно выбрать несколько решений. Не знаете количество — оставьте поле пустым.", ["lights", "spots", "light_lines", "tracks", "chandeliers", "led"]),

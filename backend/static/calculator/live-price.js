@@ -48,7 +48,8 @@ export function livePrice(form, shell, panel, payload, answers) {
       const q = body.quote; state = 'ready'; options = body.options || {};
       label.textContent = q.total === null ? 'Предварительная стоимость' : 'Учтено в расчёте:';
       total.textContent = q.total === null ? 'Стоимость уточняется' : money(q.total);
-      note.textContent = q.total === null ? (!answers().material || !Number(q.inputs.area) ? 'Укажите размеры и выберите материал — покажем стоимость' : 'Для выбранного материала стоимость уточняется') : q.complete ? 'Все ответы получены · предварительная стоимость' : `Неполный расчёт. ${q.warnings[0]}`;
+      const multiZones = ['apartment', 'house'].includes(answers().object_type) && answers().zones_enabled === 'yes';
+      note.textContent = q.total === null ? (multiZones ? 'Заполните площади зон и выберите поверхности для предварительного расчёта' : (!answers().material || !Number(q.inputs.area) ? 'Укажите размеры и выберите материал — покажем стоимость' : 'Для выбранного материала стоимость уточняется')) : q.complete ? 'Все ответы получены · предварительная стоимость' : `Неполный расчёт. ${q.warnings[0]}`;
       delta.textContent = '';
       if (previous && previous.version !== q.version) delta.textContent = 'Тарифы обновились. Стоимость пересчитана.';
       else if (previous?.total !== null && previous && q.total !== null && changed) {

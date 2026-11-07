@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f2f1e9" />
     {% include 'site/seo.html' %}
     <link rel="icon" href="{% static 'assets/vlico-logo.svg' %}" type="image/svg+xml" />
-    <link rel="preload" as="image" href="{% static 'assets/hero-vlico-interior.webp' %}" fetchpriority="high" />
+    <link rel="preload" as="image" href="{% static 'assets/hero-vlico-client.webp' %}" fetchpriority="high" />
     <link rel="preload" as="font" href="{% static 'assets/fonts/ibm-plex-mono-cyrillic-400.woff2' %}" type="font/woff2" crossorigin />
     <link rel="preload" as="font" href="{% static 'assets/fonts/ibm-plex-mono-latin-400.woff2' %}" type="font/woff2" crossorigin />
     <script>
@@ -78,7 +78,7 @@
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-image-frame image-frame image-frame-dark" data-image-frame>
-          <img class="hero-image" src="{% static 'assets/hero-vlico-interior.webp' %}" alt="" width="1600" height="900" fetchpriority="high" />
+          <img class="hero-image" src="{% static 'assets/hero-vlico-client.webp' %}" alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
           <div class="image-reveal-cover" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         </div>
         <div class="hero-shade" aria-hidden="true"></div>
@@ -86,7 +86,7 @@
 
         <div class="hero-content page-gutter">
           <p class="hero-kicker reveal">НАТЯЖНЫЕ ПОТОЛКИ · КАЛИНИНГРАД И ОБЛАСТЬ</p>
-          <div class="hero-wordmark" aria-hidden="true">VLICO</div>
+          <a class="hero-wordmark" href="#special-offer" aria-label="VLICO — специальное предложение"><span aria-hidden="true"><span class="hero-letter">V</span><span class="hero-letter">L</span><span class="hero-letter">I</span><span class="hero-letter">C</span><span class="hero-letter">O</span></span></a>
 
           <div class="hero-bottom">
             <div class="hero-offer reveal">
@@ -96,17 +96,19 @@
                 <a class="text-link text-link-light" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
                 <a class="text-link text-link-light" href="#calculator">Рассчитать стоимость <span aria-hidden="true">↓</span></a>
                 <a class="text-link text-link-light" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
+                <a class="text-link text-link-light" href="#special-offer">Специальные предложения <span aria-hidden="true">↓</span></a>
               </div>
             </div>
 
             <div class="hero-side reveal">
               <p class="hero-side-label">УСЛОВИЯ ПРОЕКТА</p>
               <dl>
-                <div><dt>Стоимость</dt><dd>Расчёт после замера</dd></div>
-                <div><dt>Сроки</dt><dd>Согласуем до работ</dd></div>
-                <div><dt>Регион</dt><dd>Калининград · область</dd></div>
+                <div><dt>Стоимость</dt><dd>Детальная смета без скрытых доплат</dd></div>
+                <div><dt>Сроки</dt><dd>Согласовываем до начала монтажа</dd></div>
+                <div><dt>География</dt><dd>Калининград и область</dd></div>
+                <div><dt>Решения</dt><dd>Потолочные системы и профессиональное освещение</dd></div>
               </dl>
-              {% include 'site/yandex-rating.html' %}<p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
+              {% include 'site/yandex-rating.html' %}<div class="hero-offer-note">Подбор освещения под ваш интерьер — в подарок</div><p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
             </div>
           </div>
 
@@ -130,13 +132,18 @@
             <p class="eyebrow reveal">ПОДХОД VLICO</p>
             <h2 class="display-heading reveal" id="about-title">ХОРОШИЙ СВЕТ НАЧИНАЕТСЯ С ПЛАНА ПОТОЛКА.</h2>
             <div class="about-text reveal">
-              <p>Сначала разбираемся в помещении и сценариях освещения. Затем согласуем профили, светильники, треки и карнизы, чтобы все элементы точно встретились при монтаже.</p>
+              <p>17 лет опыта в проектах с премиальными потолочными системами, архитектурным освещением и сложными дизайнерскими решениями. Сначала разбираемся в помещении и сценариях освещения. Затем согласуем профили, светильники, треки и карнизы, чтобы все элементы точно встретились при монтаже.</p>
             <p>Потолок, освещение, карнизы и оборудование собираются в одну согласованную систему.</p>
             </div>
-            <a class="text-link text-link-light about-link reveal" href="#solutions">Как устроены решения <span aria-hidden="true">↓</span></a>
+            <a class="text-link text-link-light about-link reveal" href="{% url 'projects' %}">Смотреть все проекты <span aria-hidden="true">↗</span></a>
+            <div class="about-projects reveal" aria-label="Фотографии опубликованных проектов VLICO">
+              {% for project in homepage_projects|slice:'0:3' %}{% with cover=project.cover_media %}{% if cover %}<a class="about-project-thumb" href="{% url 'project' project.slug %}"><img src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy" decoding="async"><span>{{ project.title }}</span></a>{% endif %}{% endwith %}{% endfor %}
+            </div>
           </div>
         </div>
       </section>
+
+      <section class="special-offer section-sand" id="special-offer" aria-labelledby="special-offer-title"><div class="page-gutter"><p class="eyebrow">СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</p><h2 id="special-offer-title">Подбор освещения под ваш интерьер — в подарок</h2><p>Обсудим интерьер и подберём решение по свету вместе с потолочной системой.</p><a class="lead-submit" href="{% url 'request_form' 'consultation' %}">Записаться на консультацию ↗</a></div></section>
 
       {% include 'site/reviews.html' %}
 

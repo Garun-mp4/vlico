@@ -36,6 +36,57 @@ class ConfiguratorTests(TestCase):
         self.assertEqual(self.quote(material="fabric")["total"], "43240.00")
         self.assertIn("Совместимость", " ".join(self.quote(material="fabric", edge="shadow")["warnings"]))
 
+    def test_whole_apartment_uses_overall_area_without_room_dimensions(self):
+        data = {"schema": "v2", "object_type": "apartment", "object_area": "82", "zones_enabled": "no",
+                "material": "pvc", "edge": "standard", "lights": ["none"], "cornice": "none",
+                "features": ["none"], "location": "city"}
+        form = ConfiguratorForm(data)
+        self.assertTrue(form.is_valid(), form.errors)
+        quote = calculate_answers(form.cleaned_data, self.version)
+        self.assertEqual(quote["inputs"]["area"], "82")
+        self.assertIsNotNone(quote["total"])
+        self.assertIn("Вся квартира", str(quote["configuration"]))
+
+    def test_zones_price_known_areas_and_mark_incomplete_area_honestly(self):
+        data = {"schema": "v2", "object_type": "house", "object_area": "100", "zones_enabled": "yes",
+                "zone_1_name": "Гостиная", "zone_1_area": "30", "zone_1_material": "pvc", "zone_1_edge": "shadow",
+                "zone_2_name": "Кухня", "zone_2_area": "20", "zone_2_material": "fabric", "zone_2_edge": "standard",
+                "lights": ["none"], "cornice": "none", "features": ["none"], "location": "city"}
+        form = ConfiguratorForm(data)
+        self.assertTrue(form.is_valid(), form.errors)
+        quote = calculate_answers(form.cleaned_data, self.version)
+        self.assertFalse(quote["complete"])
+        self.assertIsNotNone(quote["total"])
+        self.assertEqual(len(quote["items"]), 2)
+        self.assertTrue(any("Не вся площадь" in warning for warning in quote["warnings"]))
+        self.assertIn("Гостиная", str(quote["configuration"]))
+
+    def test_zones_cannot_exceed_object_area(self):
+        data = {"schema": "v2", "object_type": "apartment", "object_area": "20", "zones_enabled": "yes",
+                "zone_1_name": "Гостиная", "zone_1_area": "12", "zone_1_material": "pvc", "zone_1_edge": "standard",
+                "zone_2_name": "Кухня", "zone_2_area": "10", "zone_2_material": "pvc", "zone_2_edge": "standard",
+                "lights": ["none"], "cornice": "none", "features": ["none"], "location": "city"}
+        form = ConfiguratorForm(data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("object_area", form.errors)
+
+    def test_zone_quote_and_saved_lead_include_every_answer_for_no_js_flow(self):
+        data = {"schema": "v2", "object_type": "apartment", "object_area": "60", "zones_enabled": "yes",
+                "zone_1_name": "Гостиная", "zone_1_area": "25", "zone_1_material": "pvc", "zone_1_edge": "shadow",
+                "zone_2_name": "Кухня", "zone_2_area": "15", "zone_2_material": "fabric", "zone_2_edge": "standard",
+                "lights": ["none"], "cornice": "none", "features": ["none"], "location": "city"}
+        quote_page = self.client.post(reverse("calculator"), {**data, "action": "quote"})
+        self.assertEqual(quote_page.status_code, 200)
+        self.assertContains(quote_page, "Гостиная")
+        submission = payload("calculator", pricing_version=self.version.pk, **data)
+        response = self.client.post(reverse("lead_submit"), submission)
+        self.assertEqual(response.status_code, 201, response.content)
+        lead = Lead.objects.get(pk=response.json()["reference"])
+        self.assertEqual(lead.calculation["inputs"]["zones"][0]["name"], "Гостиная")
+        self.assertEqual(lead.calculation["inputs"]["object_area"], "60")
+        from .telegram_templates import message_parts
+        self.assertIn("Гостиная", "\n".join(part for part, _ in message_parts(lead)))
+
     def test_surface_choice_keeps_material_and_texture_separate(self):
         for surface, material, texture in (("pvc", "pvc", "matte"), ("pvc_satin", "pvc", "satin"), ("pvc_gloss", "pvc", "gloss"), ("fabric", "fabric", "textile")):
             with self.subTest(surface=surface):

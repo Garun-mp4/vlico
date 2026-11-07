@@ -11,6 +11,7 @@ colors:
   night: "#191a19"
   night-ink: "#f2f1e9"
   brand: "#27be82"
+  hero-light: "#fff2d3"
 typography:
   family: "IBM Plex Mono"
   headings: "Manrope"
@@ -50,7 +51,7 @@ The result should feel like an architecture and interiors portfolio, with the ce
 - Use `#f2f1e9` for the primary canvas and `#eae8dd` for the softer sand surface.
 - Use `#19191a` for text on light backgrounds and `#f2f1e9` on dark backgrounds.
 - Reserve `#27be82` for the VLICO mark, active states, and a rare detail.
-- Draw vertical grid guides and section rules in the existing warm gray. Avoid cards with rounded corners, pill buttons, gradients, and stacked shadows.
+- Draw vertical grid guides and section rules in the existing warm gray. Avoid cards with rounded corners, pill buttons, decorative gradients, and stacked shadows. In the homepage hero, keep the warm light response confined to the hovered letter.
 - Grade photography with restrained warmth and reduced saturation. Keep architectural lines legible. Use grain lightly and only over the hero image.
 
 ## Typography
@@ -158,4 +159,4 @@ Use distinct content rows for the location label, large VLICO wordmark, offer/co
 
 Show at most six published projects on the landing page: three columns from 1100px, two from 641px, one below. Desktop/tablet previews use a compact 3:2 photo and a two-line description; mobile retains the 4:3 image. Preserve arrows, dragging and swipe within each project. Place the full-catalogue link below the grid. Project detail and catalogue pages retain their existing layouts.
 
-The hero uses the client-supplied `hero-vlico-interior.webp` with its original warmth and soft focus, without additional image filters. Cover sizing is centered on desktop and positioned at 62% horizontally on mobile to retain the window and ceiling lighting.
+The homepage hero uses only the supplied `bg-image-vlico.jpg`, optimized as `wireframe/assets/hero-vlico-client.webp`; keep the original file intact. Preload this single photo at high priority and retain the existing contrast scrim. On fine pointers, warm light appears only on the letter under the pointer. Keyboard focus keeps a visible outline without lighting other letters. Do not add a second photo or an autoplay loop. Disable transitions under reduced motion. Keep the wordmark inside its content gutter at every viewport size.

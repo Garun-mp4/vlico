@@ -13,6 +13,10 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   let live;
   let lightPreview = null;
   const lightTypes = ['spots', 'light_lines', 'tracks', 'chandeliers', 'led'];
+  const activeSteps = () => schema.steps
+    .map((item, schemaIndex) => ({ ...item, schemaIndex }))
+    .filter(item => item.fields.some(name => visible(name, answers)));
+  const currentStep = () => activeSteps()[step];
   const imageDialog = el('dialog', 'config-preview-dialog');
   const dialogHeading = el('h3'); dialogHeading.id = 'config-preview-dialog-title';
   imageDialog.setAttribute('aria-labelledby', dialogHeading.id);
@@ -24,10 +28,11 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   form.append(imageDialog);
   function previewSurface() { return ['pvc', 'pvc_satin', 'pvc_gloss', 'fabric'].includes(answers.material) ? answers.material : 'pvc'; }
   function previewChoice() {
-    if (step === 2) return { field: 'material', value: previewSurface() };
-    if (step === 3 && answers.edge !== 'unknown') return { field: 'edge', value: answers.edge || 'standard' };
-    if (step === 5 && answers.cornice !== 'unknown') return { field: 'cornice', value: answers.cornice || 'standard' };
-    if (step === 4) {
+    const index = currentStep()?.schemaIndex;
+    if (index === 2) return { field: 'material', value: previewSurface() };
+    if (index === 3 && answers.edge !== 'unknown') return { field: 'edge', value: answers.edge || 'standard' };
+    if (index === 5 && answers.cornice !== 'unknown') return { field: 'cornice', value: answers.cornice || 'standard' };
+    if (index === 4) {
       const value = answers.lights.includes(lightPreview) ? lightPreview : answers.lights.find(code => lightTypes.includes(code)) || (answers.lights.length ? null : 'spots');
       if (value) return { field: 'lights', value };
     }
@@ -55,17 +60,23 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
   function focusHeading() { panel.querySelector('h3')?.focus({ preventScroll: true }); shell.scrollIntoView({ block: 'start', behavior: 'instant' }); }
   function updateVisual() {
     visual.replaceChildren(el('p', 'eyebrow', 'VLICO / ВАШЕ РЕШЕНИЕ'));
-    if (step === 1) {
-      visual.append(diagram(answers.shape, 'Схема выбранной формы помещения', answers));
-      visual.append(el('p', 'lead-help', answers.size_mode === 'dimensions' && answers.shape === 'rectangle' ? 'Площадь = длина × ширина. Периметр = 2 × (длина + ширина).' : 'Из площади нельзя вывести точный периметр. Непрямоугольную геометрию уточним на замере.'));
+    const index = currentStep()?.schemaIndex;
+    if (index === 1) {
+      if (['apartment', 'house'].includes(answers.object_type)) {
+        visual.append(el('p', 'config-visual-title', answers.object_type === 'house' ? 'Весь дом' : 'Вся квартира'), el('p', 'lead-help', 'Укажите общую площадь. По зонам можно распределить разные потолочные решения.'));
+        visual.append(summaryView(answers, schema));
+      } else {
+        visual.append(diagram(answers.shape, 'Схема выбранной формы помещения', answers));
+        visual.append(el('p', 'lead-help', answers.size_mode === 'dimensions' && answers.shape === 'rectangle' ? 'Площадь = длина × ширина. Периметр = 2 × (длина + ширина).' : 'Из площади нельзя вывести точный периметр. Непрямоугольную геометрию уточним на замере.'));
+      }
     } else {
       const choice = previewChoice();
-      const key = choice ? `${choice.field}:${choice.value}` : { 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[step];
+      const key = choice ? `${choice.field}:${choice.value}` : { 4: `lights:${answers.lights.find(v => !['none', 'unknown'].includes(v))}`, 5: `cornice:${answers.cornice}` }[index];
       const m = key && media(key, form.dataset.assets, answers);
       if (choice) visual.append(el('p', 'config-preview-name', `Предпросмотр: ${fields[choice.field].choices.find(([code]) => code === choice.value)[1]}`));
       if (m) { visual.append(m); visual.append(el('p', 'lead-help', 'Иллюстрация выбранного решения')); }
       if (choice && m) { const zoom = el('button', 'config-back config-preview-zoom', 'Рассмотреть крупнее ↗'); zoom.type = 'button'; zoom.addEventListener('click', openSolutionPreview); visual.append(zoom); }
-      if (step === 4 && choice) {
+      if (index === 4 && choice) {
         visual.append(el('p', 'lead-help', 'В предпросмотре один вид освещения. Выбранные решения можно сочетать; общую схему разработаем отдельно.'));
         const selected = answers.lights.filter(code => lightTypes.includes(code));
         if (selected.length > 1) {
@@ -78,22 +89,25 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
           visual.append(choices);
         }
       }
-      if (step === 3 && answers.edge === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём примыкание вместе.'), el('p', 'lead-help', 'Покажем образцы профилей и предложим решение под ваш интерьер.'));
-      if (step === 5 && answers.cornice === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём оформление штор.'), el('p', 'lead-help', 'Обсудим внешний вид, крепление и размеры окна на замере.'));
-      if (step === 0 && !answers.room) { visual.append(el('p', 'config-visual-title', 'Начнём с вашей комнаты.'), el('p', 'lead-help', 'Сначала пространство, затем детали. Контакты понадобятся только если вы захотите обсудить результат.')); }
+      if (index === 3 && answers.edge === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём примыкание вместе.'), el('p', 'lead-help', 'Покажем образцы профилей и предложим решение под ваш интерьер.'));
+      if (index === 5 && answers.cornice === 'unknown') visual.append(el('p', 'config-visual-title', 'Подберём оформление штор.'), el('p', 'lead-help', 'Обсудим внешний вид, крепление и размеры окна на замере.'));
+      if (index === 0 && !answers.room) { visual.append(el('p', 'config-visual-title', 'Начнём с вашей комнаты.'), el('p', 'lead-help', 'Сначала пространство, затем детали. Контакты понадобятся только если вы захотите обсудить результат.')); }
       else visual.append(summaryView(answers, schema));
     }
-    visual.append(el('p', 'config-visual-note', 'Один потолок · предварительный расчёт'));
+    const scope = answers.object_type === 'apartment' ? 'Вся квартира' : answers.object_type === 'house' ? 'Весь дом' : 'Одно помещение';
+    visual.append(el('p', 'config-visual-note', `${scope} · предварительный расчёт`));
   }
   function render(focus = false) {
     result.hidden = true; showContact(false); shell.hidden = false; error.hidden = true;
-    const current = schema.steps[step]; panel.replaceChildren();
+    const steps = activeSteps();
+    step = Math.min(step, steps.length - 1);
+    const current = steps[step]; panel.replaceChildren();
     const h = el('h3', '', current.title); h.tabIndex = -1; panel.append(h, el('p', 'config-step-help', current.help));
     for (const name of current.fields.filter(name => visible(name, answers))) panel.append(fieldView(name, fields[name], answers, form.dataset.assets));
     if (fields[current.fields[0]].label === current.title) panel.querySelector('legend').classList.add('config-sr');
-    find('step').textContent = `${String(step + 1).padStart(2, '0')} / 08 · ${current.name}`;
-    form.querySelector('.config-progress').value = step + 1;
-    back.hidden = step === 0; next.textContent = step === 7 ? 'Рассчитать стоимость →' : 'Продолжить →';
+    find('step').textContent = `${String(step + 1).padStart(2, '0')} / ${String(steps.length).padStart(2, '0')} · ${current.name}`;
+    const progress = form.querySelector('.config-progress'); progress.max = steps.length; progress.value = step + 1;
+    back.hidden = step === 0; next.textContent = step === steps.length - 1 ? 'Рассчитать стоимость →' : 'Продолжить →';
     updateVisual(); live?.refresh(); if (focus) focusHeading();
   }
   function fieldErrors(errors) {
@@ -140,14 +154,14 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
       const response = await fetch(form.dataset.estimateApi, { method: 'POST', body: payload(), signal: controller.signal, headers: { Accept: 'application/json' } });
       const body = await response.json();
       if (!response.ok) {
-        const key = Object.keys(body.errors || {})[0], target = schema.steps.findIndex(s => s.fields.includes(key));
+        const key = Object.keys(body.errors || {})[0], target = activeSteps().findIndex(s => s.fields.includes(key));
         if (target >= 0) { step = target; render(true); fieldErrors(body.errors); }
         else throw new Error('response');
         return;
       }
       showQuote(body.quote);
     } catch { error.textContent = 'Не удалось получить расчёт. Проверьте соединение и попробуйте снова. Ответы сохранены.'; error.hidden = false; }
-    finally { clearTimeout(timer); setBusy(false); next.textContent = step === 7 ? 'Рассчитать стоимость →' : 'Продолжить →'; }
+    finally { clearTimeout(timer); setBusy(false); next.textContent = step === activeSteps().length - 1 ? 'Рассчитать стоимость →' : 'Продолжить →'; }
   }
   panel.addEventListener('change', event => {
     const input = event.target; if (!input.name || busy || !['radio', 'checkbox'].includes(input.type)) return;
@@ -162,7 +176,7 @@ document.querySelectorAll('[data-configurator]').forEach(form => {
     answers = change(answers, input.name, input.value); quote = null; input.removeAttribute('aria-invalid'); save(); updateVisual();
     live.schedule(input.name);
   });
-  next.addEventListener('click', () => { if (busy) return; const errors = validate(answers, schema.steps[step], fields); if (Object.keys(errors).length) { fieldErrors(errors); return; } if (step === 7) estimate(); else { step++; render(true); } });
+  next.addEventListener('click', () => { if (busy) return; const steps = activeSteps(); const errors = validate(answers, steps[step], fields); if (Object.keys(errors).length) { fieldErrors(errors); return; } if (step === steps.length - 1) estimate(); else { step++; render(true); } });
   back.addEventListener('click', () => { if (!busy && step > 0) { step--; render(true); } });
   find('reset').addEventListener('click', () => { if (busy) return; answers = initial(); lightPreview = null; quote = null; step = 0; save(); render(true); live.schedule(); });
   find('edit').addEventListener('click', () => { if (!busy) { step = 0; quote = null; render(true); live.schedule(); } });

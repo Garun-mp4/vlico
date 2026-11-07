@@ -66,15 +66,23 @@ export function fieldView(name, spec, a, assets) {
 }
 export function summaryView(a, schema) {
   const dl = el('dl', 'config-summary');
-  const labels = { room: 'Помещение', material: 'Поверхность', edge: 'Примыкание', lights: 'Освещение', cornice: 'Шторы', features: 'Монтаж', location: 'Расположение' };
-  for (const name of ['room', 'material', 'edge', 'lights', 'cornice', 'features', 'location']) {
+  const labels = { object_type: 'Объект', object_area: 'Площадь объекта', room: 'Помещение', material: 'Поверхность', edge: 'Примыкание', lights: 'Освещение', cornice: 'Шторы', features: 'Монтаж', location: 'Расположение' };
+  for (const name of ['object_type', 'object_area', 'room', 'material', 'edge', 'lights', 'cornice', 'features', 'location']) {
+    if (['apartment', 'house'].includes(a.object_type) && ['room'].includes(name)) continue;
+    if (['apartment', 'house'].includes(a.object_type) && a.zones_enabled === 'yes' && ['material', 'edge'].includes(name)) continue;
     const value = a[name], spec = schema.fields[name]; if (!value || !value.length) continue;
     const selected = Array.isArray(value) ? value : [value];
     const row = el('div'); row.append(el('dt', '', labels[name]), el('dd', '', spec.choices.filter(([code]) => selected.includes(code)).map(([, title]) => title).join(', '))); dl.append(row);
   }
-  let area = a.size_mode === 'unknown' ? null : numeric(a.area), perimeter = numeric(a.perimeter);
+  let area = ['apartment', 'house'].includes(a.object_type) ? numeric(a.object_area) : (a.size_mode === 'unknown' ? null : numeric(a.area)), perimeter = numeric(a.perimeter);
   if (a.size_mode === 'dimensions' && a.shape === 'rectangle') { area = numeric(a.length) * numeric(a.width); perimeter = 2 * (numeric(a.length) + numeric(a.width)); }
   if (area > 0 && Number.isFinite(area)) { const row = el('div'); row.append(el('dt', '', 'Размеры'), el('dd', '', `${area.toLocaleString('ru-RU', { maximumFractionDigits: 2 })} м²${perimeter > 0 && Number.isFinite(perimeter) ? ' · ' + perimeter.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' м по периметру' : ' · периметр уточним'}`)); dl.append(row); }
+  const zones = [1, 2, 3].filter(i => a[`zone_${i}_name`] || a[`zone_${i}_area`]);
+  if (zones.length) { const row = el('div'); const names = zones.map(i => {
+    const mat = schema.fields[`zone_${i}_material`].choices.find(([code]) => code === a[`zone_${i}_material`])?.[1];
+    const edge = schema.fields[`zone_${i}_edge`].choices.find(([code]) => code === a[`zone_${i}_edge`])?.[1];
+    return `${a[`zone_${i}_name`] || `Зона ${i}`}${a[`zone_${i}_area`] ? ` · ${a[`zone_${i}_area`]} м²` : ''}${mat ? ` · ${mat}` : ''}${edge ? ` · ${edge}` : ''}`;
+  }).join('; '); row.append(el('dt', '', 'Зоны'), el('dd', '', names)); dl.append(row); }
   return dl;
 }
 export const money = value => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(value)) + ' ₽';
