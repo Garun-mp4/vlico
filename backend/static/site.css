@@ -112,16 +112,12 @@
 }
 .special-offer-copy { max-width: 620px; }
 .special-offer .special-offer-kicker {
-  display: flex;
-  align-items: center;
-  gap: 18px;
   margin: 0 0 clamp(32px, 4vw, 58px);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: .11em;
   line-height: 1.5;
 }
-.special-offer-kicker::after { width: 44px; height: 1px; background: currentColor; content: ""; }
 .special-offer .special-offer-title {
   max-width: none;
   margin: 0 0 clamp(22px, 2.8vw, 34px);
