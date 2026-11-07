@@ -55,13 +55,45 @@
   letter-spacing: -.06em;
   line-height: .9;
 }
-.hero-wordmark:is(:hover, :focus-visible) .hero-letter { animation: none; }
-.hero-wordmark .hero-letter { transition: color 260ms ease, text-shadow 320ms ease; }
+.hero-wordmark .hero-letter {
+  position: relative;
+  transition: color 170ms ease-out, text-shadow 190ms ease-out;
+}
 .hero-wordmark:focus-visible { outline: 2px solid rgba(255,255,255,.88); outline-offset: 8px; }
+.hero-wordmark .hero-letter::after {
+  content: attr(data-letter);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  background: linear-gradient(100deg, transparent 47%, rgba(255,255,242,.08) 48.4%, rgba(255,255,255,.72) 50%, rgba(255,218,157,.58) 51.6%, transparent 53%);
+  background-size: 240% 100%;
+  background-position: 12% 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  opacity: 0;
+  pointer-events: none;
+}
 @media (hover: hover) and (pointer: fine) {
-  .hero-wordmark:hover .hero-letter:hover { color: #fff8ec; text-shadow: 0 0 12px rgb(var(--hero-light-rgb) / 30%); }
+  .hero-wordmark:hover .hero-letter:hover {
+    color: #f8dfb8;
+    text-shadow: 0 0 9px rgb(var(--hero-light-rgb) / 34%), 0 0 22px rgb(var(--hero-light-rgb) / 12%);
+    transition-duration: 320ms, 360ms;
+  }
+  .hero-wordmark:hover .hero-letter:hover::after {
+    animation: hero-letter-glint 600ms ease-in-out both;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .hero-wordmark:hover .hero-letter:hover { color: #f8dfb8; text-shadow: 0 0 9px rgb(var(--hero-light-rgb) / 30%); }
+  .hero-wordmark:hover .hero-letter:hover::after { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-wordmark .hero-letter { transition: none; }
-  .hero-wordmark:hover .hero-letter:hover { text-shadow: 0 0 10px rgb(var(--hero-light-rgb) / 24%); }
+  .hero-wordmark .hero-letter,
+  .hero-wordmark:hover .hero-letter:hover { transition: none; }
+}
+@keyframes hero-letter-glint {
+  0% { background-position: 12% 0; opacity: 0; }
+  18% { opacity: .7; }
+  82% { opacity: .64; }
+  100% { background-position: 88% 0; opacity: 0; }
 }
