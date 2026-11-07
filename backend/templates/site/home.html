@@ -143,7 +143,34 @@
         </div>
       </section>
 
-      <section class="special-offer section-sand" id="special-offer" aria-labelledby="special-offer-title"><div class="page-gutter"><p class="eyebrow">СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</p><h2 id="special-offer-title">Подбор освещения под ваш интерьер — в подарок</h2><p>Обсудим интерьер и подберём решение по свету вместе с потолочной системой.</p><a class="lead-submit" href="{% url 'request_form' 'consultation' %}">Записаться на консультацию ↗</a></div></section>
+      <section class="special-offer section-sand" id="special-offer" aria-labelledby="special-offer-title">
+        <div class="special-offer-grid page-gutter">
+          <div class="special-offer-copy">
+            <p class="special-offer-kicker"><span>СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</span></p>
+            <h2 class="special-offer-title" id="special-offer-title">
+              <span>Подбор освещения</span>
+              <span>под ваш интерьер —</span>
+              <strong>в подарок</strong>
+            </h2>
+            <p class="special-offer-description">Обсудим интерьер и подберём решение по свету вместе с потолочной системой.</p>
+            <a class="lead-submit special-offer-action" href="{% url 'request_form' 'consultation' %}">
+              <span>Обсудить освещение</span>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M5 19 19 5M7 5h12v12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" /></svg>
+            </a>
+          </div>
+
+          <figure class="special-offer-visual">
+            <div class="special-offer-image-wrap">
+              <img src="{% static 'assets/special-offer-lighting-concept.jpg' %}" alt="Визуализация гостиной с потолочным световым треком и мягкой контурной подсветкой" width="1448" height="1086" loading="lazy" decoding="async" />
+              <div class="special-offer-stamp" aria-hidden="true">
+                <svg focusable="false" viewBox="0 0 32 32"><path d="M5 13h22v15H5zM3.5 9.5h25v4h-25zM16 9.5V28M16 9.5c-5.8 0-8.5-1.2-8.5-3.7A2.8 2.8 0 0 1 10.4 3C13 3 15 6.2 16 9.5Zm0 0c5.8 0 8.5-1.2 8.5-3.7A2.8 2.8 0 0 0 21.6 3C19 3 17 6.2 16 9.5Z" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="square" stroke-linejoin="miter" /></svg>
+                <span><small>ПОДБОР СВЕТА</small><strong>В ПОДАРОК</strong></span>
+              </div>
+            </div>
+            <figcaption class="special-offer-caption">ВИЗУАЛИЗАЦИЯ ИНТЕРЬЕРА</figcaption>
+          </figure>
+        </div>
+      </section>
 
       {% include 'site/reviews.html' %}
 
