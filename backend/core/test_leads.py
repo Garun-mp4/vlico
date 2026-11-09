@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
 import smtplib
+import ssl
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -47,7 +48,15 @@ class LeadTests(TestCase):
         self.editor.user_permissions.add(*Permission.objects.filter(content_type__app_label="core", codename__in=[name.split(".")[1] for name in BUSINESS_PERMISSIONS]))
         self.version = PricingVersion.objects.get(active=True)
 
-    def test_every_kind_saves_and_queues_without_files(self):
+    @override_settings(
+        EMAIL_DELIVERY_ENABLED=True,
+        LEAD_NOTIFICATION_EMAIL="partners@vlico39.ru",
+        EMAIL_HOST_USER="partners@vlico39.ru",
+        EMAIL_HOST_PASSWORD="test-only",
+        DEFAULT_FROM_EMAIL="VLICO <partners@vlico39.ru>",
+    )
+    def test_every_kind_saves_and_delivers_an_email_without_files(self):
+        mail.outbox = []
         for kind in ("consultation", "measurement", "partner", "project", "calculator"):
             data = payload(kind)
             if kind == "calculator": data.update(area="20", material="pvc", edge="shadow", perimeter="18", pricing_version=self.version.pk)
@@ -56,7 +65,14 @@ class LeadTests(TestCase):
             lead = Lead.objects.get(pk=response.json()["reference"])
             self.assertEqual(lead.contact, "+79000000001")
             self.assertIsNotNone(lead.consent_at)
-            self.assertEqual(lead.deliveries.count(), 1)
+            self.assertEqual(set(lead.deliveries.values_list("channel", flat=True)), {"telegram", "email"})
+            self.assertTrue(deliver_email_one())
+            self.assertEqual(lead.deliveries.get(channel="email").status, "sent")
+            self.assertEqual(mail.outbox[-1].to, ["partners@vlico39.ru"])
+            self.assertIn(str(lead.pk), mail.outbox[-1].body)
+            if kind == "calculator":
+                self.assertIn("Расчёт:", mail.outbox[-1].body)
+        self.assertEqual(len(mail.outbox), 5)
         self.assertFalse(LeadAttachment.objects.exists())
 
     @override_settings(EMAIL_DELIVERY_ENABLED=True)
@@ -339,7 +355,7 @@ class DeliveryTests(TestCase):
     LEAD_NOTIFICATION_EMAIL="inbox@example.test",
     EMAIL_HOST_USER="sender@example.test",
     EMAIL_HOST_PASSWORD="test-app-password",
-    DEFAULT_FROM_EMAIL="sender@example.test",
+    DEFAULT_FROM_EMAIL="VLICO <sender@example.test>",
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
 )
 class EmailDeliveryTests(TestCase):
@@ -358,10 +374,46 @@ class EmailDeliveryTests(TestCase):
         self.assertEqual(self.delivery.status, "sent")
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["inbox@example.test"])
+        self.assertEqual(mail.outbox[0].from_email, "VLICO <sender@example.test>")
+        self.assertEqual(mail.outbox[0].reply_to, [])
         self.assertIn(self.lead.contact, mail.outbox[0].body)
         self.assertIn(self.lead.comment, mail.outbox[0].body)
         self.assertIn(str(self.lead.pk), mail.outbox[0].body)
         self.assertTrue(self.delivery.external_id.startswith("<"))
+
+    def test_reply_to_accepts_only_a_valid_email_contact(self):
+        for contact, expected in (
+            ("visitor@example.com", ["visitor@example.com"]),
+            ("@telegram_user", []),
+            ("visitor@example.com\r\nBcc: other@example.com", []),
+        ):
+            with self.subTest(contact=contact):
+                Lead.objects.filter(pk=self.lead.pk).update(contact=contact)
+                Delivery.objects.filter(pk=self.delivery.pk).update(status="pending")
+                mail.outbox = []
+                self.assertTrue(deliver_email_one())
+                self.assertEqual(mail.outbox[0].reply_to, expected)
+                self.assertEqual(mail.outbox[0].to, ["inbox@example.test"])
+
+    def test_smtp_setup_errors_keep_lead_and_record_delivery_status(self):
+        for error, status, code in (
+            (smtplib.SMTPAuthenticationError(535, b"auth failed"), "failed", "email_auth_failed"),
+            (ConnectionRefusedError(), "pending", "email_smtp_temporary"),
+            (TimeoutError(), "pending", "email_smtp_temporary"),
+            (ssl.SSLCertVerificationError(), "pending", "email_smtp_temporary"),
+        ):
+            with self.subTest(error=error):
+                Delivery.objects.filter(pk=self.delivery.pk).update(
+                    status="pending", attempts=0, next_attempt_at=timezone.now(),
+                )
+                with patch("core.email_delivery.get_connection") as get_connection:
+                    get_connection.return_value.open.side_effect = error
+                    self.assertTrue(deliver_email_one())
+                    get_connection.return_value.send_messages.assert_not_called()
+                self.delivery.refresh_from_db()
+                self.assertEqual(self.delivery.status, status)
+                self.assertEqual(self.delivery.error_code, code)
+                self.assertTrue(Lead.objects.filter(pk=self.lead.pk).exists())
 
     def test_unknown_send_result_requires_manual_review(self):
         with patch("core.email_delivery.get_connection") as get_connection:
@@ -370,6 +422,15 @@ class EmailDeliveryTests(TestCase):
         self.delivery.refresh_from_db()
         self.assertEqual(self.delivery.status, "failed")
         self.assertEqual(self.delivery.error_code, "delivery_uncertain")
+
+    def test_recipient_rejection_keeps_lead_and_records_failure(self):
+        with patch("core.email_delivery.get_connection") as get_connection:
+            get_connection.return_value.send_messages.side_effect = smtplib.SMTPRecipientsRefused({})
+            self.assertTrue(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "failed")
+        self.assertEqual(self.delivery.error_code, "email_recipient_rejected")
+        self.assertTrue(Lead.objects.filter(pk=self.lead.pk).exists())
 
 
 class ConcurrentLeadTests(TransactionTestCase):

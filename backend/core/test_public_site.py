@@ -96,6 +96,7 @@ class PublicSiteTests(TestCase):
             self.assertContains(response, 'content="noindex,nofollow"', status_code=404)
             self.assertEqual(response['X-Robots-Tag'], 'noindex, nofollow')
 
+    @override_settings(EMAIL_HOST="smtp.mail.ru", LEAD_NOTIFICATION_EMAIL="vlico_39@mail.ru")
     def test_legal_pages_forms_and_unchecked_consent(self):
         for path in ('/privacy/', '/consent/', '/cookies/'):
             self.assertContains(self.client.get(path), 'настройк' if path == '/privacy/' else 'соглас' if path == '/consent/' else 'Cookie')
@@ -113,6 +114,14 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, 'href="/consent/"')
         self.assertContains(response, 'name="legal_version"')
         self.assertFalse(response.context['lead_form'].fields['consent'].initial)
+
+    @override_settings(EMAIL_HOST="smtp.spaceweb.ru", LEAD_NOTIFICATION_EMAIL="partners@vlico39.ru")
+    def test_spaceweb_notification_is_disclosed_in_policy_and_consent(self):
+        privacy = self.client.get("/privacy/")
+        self.assertContains(privacy, "SMTP SpaceWeb")
+        self.assertContains(privacy, 'href="mailto:partners@vlico39.ru"')
+        self.assertNotContains(privacy, "SMTP Mail.ru")
+        self.assertContains(self.client.get("/consent/"), "partners@vlico39.ru")
 
     def test_success_records_exact_consent_and_rejects_stale_or_missing_acceptance(self):
         for changes in ({'legal_version': 'old'}, {'legal_version': ''}, {'consent': ''}):

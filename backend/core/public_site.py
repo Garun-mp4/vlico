@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_safe
 from .site_content import SERVICES, BY_SLUG, CONTACTS
 from .portfolio import published_projects
-from .legal import consent_revision
+from .legal import consent_revision, legal_context
 from .models import ProjectCategory, ProjectMedia
 
 INDEXABLE = {"home", "services", "service", "partners", "contacts", "projects", "project", "calculator"}
@@ -77,7 +77,7 @@ def public_context(request):
     config = {"counter": settings.YANDEX_METRIKA_ID, "analytics_enabled": settings.ANALYTICS_ENABLED and settings.APP_ENV == "production" and public_tracking,
         "canonical": canonical, "consent_version": consent_revision()}
     navigation = project_navigation() if name in INDEXABLE | {"privacy", "consent", "cookies", "request_form"} else []
-    return {"service_pages": SERVICES, "company": CONTACTS, "legal": settings.LEGAL_OPERATOR, "site_origin": settings.SITE_URL, "project_navigation": navigation,
+    return {**legal_context(), "service_pages": SERVICES, "company": CONTACTS, "site_origin": settings.SITE_URL, "project_navigation": navigation,
         "seo": {"title": title, "description": description, "canonical": "" if private else canonical, "image": image, "indexable": settings.SITE_INDEXABLE and name in INDEXABLE, "schema": schema}, "site_config": config}
 
 

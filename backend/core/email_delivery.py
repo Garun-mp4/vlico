@@ -4,7 +4,9 @@ import smtplib
 import socket
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage, get_connection
+from django.core.validators import validate_email
 from django.urls import reverse
 from django.utils import timezone
 
@@ -70,12 +72,21 @@ def deliver_email_one():
         _mark_failure(item, "email_not_configured")
         return True
 
+    contact = item.lead.contact
+    try:
+        validate_email(contact)
+    except ValidationError:
+        reply_to = []
+    else:
+        reply_to = [contact]
+
     message_id = make_msgid()
     message = EmailMessage(
         subject=f"VLICO — {dict(KINDS).get(item.lead.kind, item.lead.kind)}",
         body=email_body(item.lead),
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[settings.LEAD_NOTIFICATION_EMAIL],
+        reply_to=reply_to,
         headers={"Message-ID": message_id},
     )
     connection = get_connection(fail_silently=False)
