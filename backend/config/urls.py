@@ -1,7 +1,7 @@
 from django.urls import path
 from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
-from core import public_site
+from core import article_cabinet, blog, public_site
 urlpatterns = [
     path("", views.home, name="home"),
     path("request/<str:kind>/", lead_views.request_form, name="request_form"),
@@ -20,6 +20,19 @@ urlpatterns = [
     path("sitemap.xml", public_site.sitemap, name="sitemap"),
     path("services/", public_site.services, name="services"),
     path("services/<slug:slug>/", public_site.service, name="service"),
+    path("article-media/<int:pk>/<str:variant>/", blog.image, name="blog_image"),
+    path("cabinet/articles/", article_cabinet.index, name="cabinet_articles"),
+    path("cabinet/articles/new/", article_cabinet.edit, name="cabinet_article_new"),
+    path("cabinet/articles/<int:pk>/", article_cabinet.edit, name="cabinet_article_edit"),
+    path("cabinet/articles/<int:pk>/preview/", article_cabinet.preview, name="cabinet_article_preview"),
+    path("cabinet/articles/<int:pk>/status/", article_cabinet.status, name="cabinet_article_status"),
+    path("cabinet/articles/<int:pk>/upload/", article_cabinet.upload, name="cabinet_article_upload"),
+    path("cabinet/articles/<int:pk>/reorder/", article_cabinet.reorder, name="cabinet_article_reorder"),
+    path("cabinet/articles/<int:pk>/photos/<int:media_pk>/", article_cabinet.media, name="cabinet_article_media"),
+    path("cabinet/articles/<int:pk>/photos/<int:media_pk>/crop/", article_cabinet.crop, name="cabinet_article_crop"),
+    path("blog/", blog.index, name="blog"),
+    path("blog/<slug:slug>/", blog.detail, name="blog_article"),
+    path("optiai-media/<str:filename>", blog.original_cover, name="blog_cover"),
     path("partners/", public_site.partners, name="partners"),
     path("contacts/", public_site.contacts, name="contacts"),
     path("consent/", public_site.consent, name="consent"),

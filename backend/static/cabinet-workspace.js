@@ -1,5 +1,6 @@
 /* Cabinet workflow: explicit text saves, independent gallery saves. */
 const projectForm = document.querySelector('#project-form');
+const articleForm = document.querySelector('[data-article-form]');
 let changed = false;
 let saving = false;
 let pendingPhotos = new Set();
@@ -27,7 +28,13 @@ function publicationState() {
   if (panelFeedback) panelFeedback.textContent = changed ? 'Сначала сохраните сведения: публикация и предпросмотр используют сохранённую версию.' : '';
 }
 document.querySelectorAll('[data-unsaved]:not(#project-form)').forEach(form => {
-  form.addEventListener('input', () => { changed=true; });
+  form.addEventListener('input', () => {
+    changed = true;
+    if (form === articleForm) {
+      saveState.textContent = 'Есть несохранённые изменения';
+      publicationState();
+    }
+  });
   form.addEventListener('submit', () => { changed=false; });
 });
 document.addEventListener('input', event => {
@@ -102,7 +109,7 @@ document.addEventListener('click', async event => {
 document.querySelectorAll('[data-status-form], [data-gallery-action], [data-photo-form]').forEach(form => {
   form.addEventListener('submit', event => {
     if (changed || saving) {
-      event.preventDefault(); panelFeedback.textContent='Сначала сохраните сведения о проекте.';
+      event.preventDefault(); panelFeedback.textContent='Сначала сохраните сведения.';
       panelFeedback.scrollIntoView({block:'center'}); return;
     }
     if (form.dataset.submitting) { event.preventDefault(); return; }
@@ -197,6 +204,7 @@ document.querySelector('[data-project-delete-form]')?.addEventListener('submit',
 const grid=document.querySelector('[data-reorder-url]');
 if(grid) {
   let dragged, busy=false;
+  const galleryForm = projectForm || articleForm;
   const feedback=document.querySelector('[data-gallery-feedback]');
   const cards=()=>[...grid.querySelectorAll(':scope > .media-item')];
   const addTile=grid.querySelector('[data-pick-photos]');
@@ -229,15 +237,17 @@ if(grid) {
     const old=cards(), from=old.indexOf(dragged), to=old.indexOf(target);
     if(from<to)target.after(dragged);else target.before(dragged);
     updateCover();
-    const body=new FormData();body.append('csrfmiddlewaretoken',csrf());body.append('revision',projectForm.elements.revision.value);
+    const body=new FormData();body.append('csrfmiddlewaretoken',csrf());body.append('revision',galleryForm.elements.revision.value);
     cards().forEach(el=>body.append('order',el.dataset.mediaId));
     busy=true;saving=true;publicationState();feedback.textContent='Сохраняем порядок…';grid.setAttribute('aria-busy','true');
-    // Lock project save until gallery revision is known.
-    const button=document.querySelector('[data-project-save]');button.disabled=true;
+    const button = document.querySelector('[data-project-save], [data-article-save]');
+    button.disabled = true;
     try {
       const response=await fetch(grid.dataset.reorderUrl,{method:'POST',body,headers:{Accept:'application/json'}});
       const result=await response.json();if(!response.ok)throw new Error(result.error);
-      projectForm.elements.revision.value=result.revision;feedback.textContent='Порядок фотографий сохранён';
+      galleryForm.elements.revision.value = result.revision;
+      if (articleForm) document.querySelectorAll('[data-status-form] [name=revision]').forEach(input => input.value = result.revision);
+      feedback.textContent='Порядок фотографий сохранён';
       cards().forEach(card=>{const edit=card.querySelector('[data-image-edit]');if(edit&&result.media_revisions?.[card.dataset.mediaId])edit.dataset.revision=result.media_revisions[card.dataset.mediaId];});
       cards().forEach((card,index)=>{card.querySelector('button[value=up]').disabled=index===0;card.querySelector('button[value=down]').disabled=index===cards().length-1;});
     }catch(error){old.forEach(card=>grid.insertBefore(card,addTile));updateCover();feedback.textContent=error.message.includes('Галерея')||error.message.includes('Состав')?error.message:'Не удалось подтвердить сохранение. На экране восстановлен прежний порядок. Обновите страницу и повторите.';}

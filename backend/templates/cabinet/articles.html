@@ -1,0 +1,46 @@
+{% extends 'cabinet/base.html' %}
+{% block title %}Статьи{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>Статьи</h1><p class="subtle">Управляйте публикациями и фотографиями для блога VLICO.</p></div>
+  {% if perms.core.add_article %}<a class="button primary" href="{% url 'cabinet_article_new' %}">Новая статья</a>{% endif %}
+</div>
+<form method="get" class="projects-toolbar article-filters" aria-label="Фильтры статей">
+  <label>Название <input type="search" name="q" value="{{ query }}" maxlength="200"></label>
+  <label>Статус <select name="status">
+    <option value="">Все, кроме корзины</option>
+    {% for value, label in states %}<option value="{{ value }}" {% if state == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></label>
+  <button class="button" type="submit">Найти</button>
+</form>
+<div class="category-list">
+  {% for article in articles %}
+  <article class="category-row">
+    <div><h2>{{ article.title }}</h2><span class="status {{ article.status }}">{{ article.get_status_display }}</span> <span class="subtle">Обновлено {{ article.updated_at|date:"d.m.Y" }}</span></div>
+    <div class="category-actions">
+      {% if article.status == 'deleted' %}
+        {% if perms.core.delete_article %}
+        <form method="post" action="{% url 'cabinet_article_status' article.pk %}" data-status-form>
+          {% csrf_token %}<input type="hidden" name="revision" value="{{ article.updated_at.isoformat }}">
+          <button class="button" name="action" value="restore">Восстановить черновик</button>
+        </form>
+        {% endif %}
+      {% else %}
+        {% if article.status == 'published' %}<a class="button" href="{% url 'blog_article' article.slug %}">На сайте</a>
+        {% else %}<a class="button" href="{% url 'cabinet_article_preview' article.pk %}">Предпросмотр</a>{% endif %}
+        {% if perms.core.change_article %}<a class="button" href="{% url 'cabinet_article_edit' article.pk %}">Редактировать</a>{% endif %}
+      {% endif %}
+    </div>
+  </article>
+  {% empty %}
+  <div class="empty-state"><h2>Статьи не найдены</h2><p>{% if state == 'deleted' %}Корзина пуста.{% else %}Измените фильтры или создайте статью.{% endif %}</p></div>
+  {% endfor %}
+</div>
+{% if articles.has_other_pages %}
+<nav class="lead-pagination" aria-label="Страницы списка">
+  {% if articles.has_previous %}<a class="back-link" href="?q={{ query|urlencode }}&amp;status={{ state|urlencode }}&amp;page={{ articles.previous_page_number }}">← Назад</a>{% endif %}
+  <span>{{ articles.number }} из {{ articles.paginator.num_pages }}</span>
+  {% if articles.has_next %}<a class="back-link" href="?q={{ query|urlencode }}&amp;status={{ state|urlencode }}&amp;page={{ articles.next_page_number }}">Далее →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

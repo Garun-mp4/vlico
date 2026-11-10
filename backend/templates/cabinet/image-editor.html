@@ -3,7 +3,7 @@
 <ol class="upload-queue" data-upload-queue aria-label="Очередь фотографий"></ol>
 <form data-editor-form>
 <div class="image-editor-layout">
-<div><canvas width="800" height="600" data-editor-canvas role="img" aria-label="Предпросмотр выбранного кадра"></canvas><p class="subtle">Выбранный кадр сохраняется в галерее проекта. В карточках фото показывается целиком в общей рамке; при необходимости добавляются поля. Исходник доступен для повторного редактирования.</p><p class="subtle" data-editor-size></p><div class="editor-tools"><button type="button" class="button" data-editor-rotate>Повернуть на 90°</button><button type="button" class="button" data-editor-reset>Сбросить кадр</button></div></div>
+<div><canvas width="800" height="600" data-editor-canvas role="img" aria-label="Предпросмотр выбранного кадра"></canvas><p class="subtle">Выбранный кадр сохраняется в галерее {% if article_gallery %}статьи{% else %}проекта{% endif %}. В карточках фото показывается целиком в общей рамке; при необходимости добавляются поля. Исходник доступен для повторного редактирования.</p><p class="subtle" data-editor-size></p><div class="editor-tools"><button type="button" class="button" data-editor-rotate>Повернуть на 90°</button><button type="button" class="button" data-editor-reset>Сбросить кадр</button></div></div>
 <div class="editor-controls editor-form">
 <div><label for="editor-ratio">Формат фотографии</label><select id="editor-ratio" name="ratio"><option value="4:3">Горизонтальный · 4:3</option><option value="16:9">Широкий · 16:9</option><option value="1:1">Квадрат · 1:1</option><option value="3:4">Вертикальный · 3:4</option><option value="9:16">Вертикальный узкий · 9:16</option><option value="original">Исходные пропорции</option></select></div>
 <div><label for="editor-mode">Как разместить фотографию</label><select id="editor-mode" name="mode"><option value="crop">Заполнить выбранный формат</option><option value="fit">Сохранить целиком с полями</option></select></div>
@@ -12,8 +12,8 @@
 <div><label for="editor-y">Положение по вертикали</label><input id="editor-y" name="y" type="range" min="0" max="100" step="1" value="50"></div>
 <div><label for="editor-alt">Описание фотографии</label><input id="editor-alt" name="alt" maxlength="250" placeholder="Например: световые линии в потолке кухни"></div>
 <div><label for="editor-caption">Подпись на сайте (необязательно)</label><input id="editor-caption" name="caption" maxlength="250"></div>
-<div><label for="editor-section">Раздел проекта</label><select id="editor-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select></div>
-<label class="check-label"><input name="cover" type="checkbox"> Сделать обложкой проекта</label>
+{% if article_gallery %}<select name="section" hidden><option value="result">Фото статьи</option></select>{% else %}<div><label for="editor-section">Раздел проекта</label><select id="editor-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select></div>{% endif %}
+<label class="check-label"><input name="cover" type="checkbox"> Сделать обложкой {% if article_gallery %}статьи{% else %}проекта{% endif %}</label>
 </div></div>
 <p role="status" aria-live="polite" data-editor-status></p>
 <div class="image-editor-footer"><button type="button" class="button" data-editor-skip>Пропустить фото</button><button type="submit" class="button primary" data-editor-save>Сохранить фотографию</button></div>

@@ -26,7 +26,7 @@ def save_media_order(project, ordered):
         item.position = position
         item.is_cover = position == 0
         item.updated_at = now
-    ProjectMedia.objects.bulk_update(ordered, ["position", "is_cover", "updated_at"])
+    project.media.model.objects.bulk_update(ordered, ["position", "is_cover", "updated_at"])
 
 
 def delete_project(project_id, revision):
@@ -107,7 +107,7 @@ def prepared_image(upload):
         raise ValidationError("Не удалось прочитать фотографию. Выберите исправный JPEG, PNG или WebP.") from exc
 
 
-def add_images(project_id, uploads, section, edit=None, upload_key=None):
+def add_images(project_id, uploads, section, edit=None, upload_key=None, *, owner_model=Project):
     if not uploads or len(uploads) > 8:
         raise ValidationError("Выберите от 1 до 8 фотографий за один раз.")
     if edit is not None:
@@ -120,20 +120,26 @@ def add_images(project_id, uploads, section, edit=None, upload_key=None):
     written = []
     try:
         with transaction.atomic():
-            project = Project.objects.select_for_update().get(pk=project_id)
+            project = owner_model.objects.select_for_update().get(pk=project_id)
+            if project.status == "deleted":
+                raise ValidationError("Сначала восстановите статью из корзины.")
+            media_model = project.media.model
+            owner_field = project.media.field.name
             if upload_key:
-                existing = ProjectMedia.objects.filter(upload_key=upload_key).first()
+                existing = media_model.objects.filter(upload_key=upload_key).first()
                 if existing:
-                    if existing.project_id != project_id:
+                    if getattr(existing, project.media.field.attname) != project_id:
                         raise ValidationError("Этот запрос загрузки уже использован.")
                     return [existing]
             media = list(project.media.all())
             if len(media) + len(prepared) > 40:
-                raise ValidationError("В проекте может быть до 40 фотографий.")
+                raise ValidationError("В галерее может быть до 40 фотографий.")
             start = max((m.position for m in media), default=-1) + 1
             created = []
             for index, (full, thumb, width, height) in enumerate(prepared):
-                item = ProjectMedia(project=project, position=start+index, section=section, width=width, height=height, alt=project.title, is_cover=not media and index == 0)
+                item = media_model(**{owner_field: project}, position=start+index, width=width, height=height, alt=project.title, is_cover=not media and index == 0)
+                if section is not None:
+                    item.section = section
                 if edit is not None:
                     item.source.save("source.webp", ContentFile(full.read()), save=False)
                     written.append((item.source.storage, item.source.name))
@@ -143,7 +149,8 @@ def add_images(project_id, uploads, section, edit=None, upload_key=None):
                     item.editing = settings
                     item.upload_key = upload_key
                     for key, value in metadata.items():
-                        setattr(item, key, value)
+                        if key != "section" or section is not None:
+                            setattr(item, key, value)
                     if edit.get("cover"):
                         project.media.update(is_cover=False)
                         item.is_cover = True

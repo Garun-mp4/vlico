@@ -5,23 +5,23 @@
     <span class="gallery-count">{{ media_forms|length }} / 40 фото</span>
   </header>
   {% if project.pk %}
-  <form class="upload-form" method="post" enctype="multipart/form-data" action="{% url 'cabinet_upload' project.pk %}" data-upload>
+  <form class="upload-form" method="post" enctype="multipart/form-data" action="{% url upload_route|default:'cabinet_upload' project.pk %}" data-upload>
     {% csrf_token %}
     <div class="drop-zone" data-drop-zone>
       <span class="upload-symbol" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></svg></span>
-      <div class="upload-copy"><h3>Загрузите фотографии</h3><p>Перетащите файлы сюда или <label class="file-pick" for="images">выберите на компьютере</label></p><p class="helptext" id="upload-limits">JPEG, PNG, WebP · до 12 МБ и 16 Мп · до 8 за раз</p></div>
+      <div class="upload-copy"><h3>Загрузите фотографии</h3><p>Перетащите файлы сюда или <label class="file-pick" for="images">выберите файлы</label></p><p class="helptext" id="upload-limits">JPEG, PNG, WebP · до 12 МБ и 16 Мп · до 8 за раз</p></div>
       <input id="images" class="file-input" type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Выбрать фотографии" aria-describedby="upload-limits">
     </div>
-    <div class="upload-options"><label for="upload-section">Раздел новых фотографий</label><select id="upload-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select><button class="button" type="submit" data-prepare-photos>Загрузить фотографии</button></div>
+    <div class="upload-options">{% if article_gallery %}<select name="section" hidden><option value="result">Фото статьи</option></select>{% else %}<label for="upload-section">Раздел новых фотографий</label><select id="upload-section" name="section"><option value="result">Готовый результат</option><option value="process">Процесс монтажа</option></select>{% endif %}<button class="button" type="submit" data-prepare-photos>Загрузить фотографии</button></div>
     <p role="status" data-upload-status></p>
   </form>
   <div role="status" class="gallery-feedback" data-gallery-feedback></div>
-  <div class="media-grid" data-reorder-url="{% url 'cabinet_reorder' project.pk %}">
+  <div class="media-grid" data-reorder-url="{% url reorder_route|default:'cabinet_reorder' project.pk %}">
     {% for item,media_form in media_forms %}{% include 'cabinet/photo.html' %}{% endfor %}
     <button class="add-photo{% if not media_forms %} cover-slot-empty{% endif %}" type="button" data-pick-photos {% if media_forms|length >= 40 %}disabled{% endif %} aria-label="{% if media_forms|length >= 40 %}Достигнут лимит: 40 фотографий{% elif not media_forms %}Добавить обложку{% else %}Добавить фото{% endif %}"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg><span>{% if media_forms|length >= 40 %}Лимит 40 фото{% elif not media_forms %}Добавить обложку{% else %}Добавить фото{% endif %}</span></button>
   </div>
-  <footer class="gallery-card-footer"><svg width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="4" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="5" cy="10" r="1.3"/><circle cx="11" cy="10" r="1.3"/><circle cx="5" cy="16" r="1.3"/><circle cx="11" cy="16" r="1.3"/></svg><span>Первая ячейка — обложка проекта. Переместите туда нужное фото или выберите «Сделать обложкой» в меню. Изменения сохраняются сразу.</span></footer>
+  <footer class="gallery-card-footer"><svg width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="4" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="5" cy="10" r="1.3"/><circle cx="11" cy="10" r="1.3"/><circle cx="5" cy="16" r="1.3"/><circle cx="11" cy="16" r="1.3"/></svg><span>Первая ячейка — обложка {% if article_gallery %}статьи{% else %}проекта{% endif %}. Переместите туда нужное фото или выберите «Сделать обложкой» в меню. Изменения сохраняются сразу.</span></footer>
   {% else %}
-  <div class="gallery-empty"><div class="add-photo cover-slot-empty cover-slot-placeholder"><span>Место обложки</span></div><h3>Подготовьте проект для фотографий</h3><p>Укажите название ниже и нажмите «Создать черновик». Затем здесь можно будет загрузить фото.</p><a class="button" href="#basic">Указать название</a></div>
+  <div class="gallery-empty"><div class="add-photo cover-slot-empty cover-slot-placeholder"><span>Место обложки</span></div><h3>Сначала создайте черновик{% if not article_gallery %} проекта{% endif %}</h3><p>Укажите название и нажмите «Создать черновик». Затем здесь можно будет загрузить фото.</p><a class="button" href="#basic">Указать название</a></div>
   {% endif %}
 </section>

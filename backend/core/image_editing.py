@@ -27,7 +27,7 @@ def validate_edit(data):
         raise ValidationError("Допустим поворот на 0, 90, 180 или 270 градусов.")
     result["rotation"] = rotation
     result["mode"] = data.get("mode", "crop")
-    if result["mode"] not in {"crop", "fit"}:
+    if result["mode"] not in ("crop", "fit"):
         raise ValidationError("Выберите кадрирование или сохранение фотографии целиком.")
     ratio = data.get("ratio", "4:3")
     if not isinstance(ratio, str) or ratio not in RATIOS:
@@ -76,15 +76,19 @@ def media_metadata(data):
     return {"alt": alt, "caption": caption, "section": section}
 
 
-def edit_media(project_id, media_id, data, revision):
+def edit_media(project_id, media_id, data, revision, *, owner_model=Project):
     edit = validate_edit(data)
     meta = media_metadata(data)
     written = []
     old = []
     try:
         with transaction.atomic():
-            project = Project.objects.select_for_update().get(pk=project_id)
-            item = ProjectMedia.objects.select_for_update().get(pk=media_id, project=project)
+            project = owner_model.objects.select_for_update().get(pk=project_id)
+            if project.status == "deleted":
+                raise ValidationError("Сначала восстановите статью из корзины.")
+            item = project.media.select_for_update().get(pk=media_id)
+            if owner_model is not Project:
+                meta.pop("section", None)
             if revision != item.updated_at.isoformat():
                 raise ValidationError("Фото изменено в другой вкладке. Обновите страницу и откройте редактор снова.")
             if not item.source:

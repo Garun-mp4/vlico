@@ -167,3 +167,55 @@ class SubmissionBucket(models.Model):
     key = models.CharField(max_length=64, primary_key=True)
     attempts = models.PositiveIntegerField(default=0)
     expires_at = models.DateTimeField()
+
+
+def article_media_path(instance, filename):
+    return f"articles/{instance.article_id}/{uuid.uuid4().hex}.webp"
+
+
+class Article(Timestamped):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Черновик"
+        PUBLISHED = "published", "Опубликована"
+        DELETED = "deleted", "В корзине"
+
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=160, unique=True)
+    description = models.CharField(max_length=320, blank=True)
+    body = models.TextField(blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT)
+    published_at = models.DateTimeField(null=True, blank=True)
+    legacy_cover = models.CharField(max_length=200, blank=True)
+    legacy_cover_alt = models.CharField(max_length=250, blank=True)
+    legacy_width = models.PositiveIntegerField(default=0)
+    legacy_height = models.PositiveIntegerField(default=0)
+    original_cover = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        ordering = ["-published_at", "-pk"]
+
+    @property
+    def cover_media(self):
+        return next((photo for photo in self.media.all() if photo.is_cover), None)
+
+    def __str__(self):
+        return self.title
+
+
+class ArticleMedia(Timestamped):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="media")
+    image = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage())
+    thumbnail = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage())
+    source = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage(), blank=True)
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
+    alt = models.CharField(max_length=250, blank=True)
+    caption = models.CharField(max_length=250, blank=True)
+    editing = models.JSONField(default=dict, blank=True)
+    upload_key = models.UUIDField(null=True, blank=True, unique=True, editable=False)
+    position = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["position", "pk"]
+        constraints = [models.UniqueConstraint(fields=["article"], condition=models.Q(is_cover=True), name="one_cover_per_article")]

@@ -10,12 +10,13 @@ from django.urls import reverse
 from django.utils.html import json_script
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_safe
+from .blog import cover_url
 from .site_content import SERVICES, BY_SLUG, CONTACTS
 from .portfolio import published_projects
 from .legal import consent_revision, legal_context
 from .models import ProjectCategory, ProjectMedia
 
-INDEXABLE = {"home", "services", "service", "partners", "contacts", "projects", "project", "calculator"}
+INDEXABLE = {"home", "services", "service", "partners", "contacts", "projects", "project", "calculator", "blog", "blog_article"}
 
 
 def absolute(path):
@@ -38,6 +39,7 @@ def public_context(request):
     name = match.url_name if match else ""
     title, description = "Потолки и свет в Калининграде", "Натяжные потолки и интегрированное освещение VLICO в Калининграде и области. Реальные проекты, выбор решений и предварительный расчёт."
     pages = {"services": ("Потолочные системы и освещение", "Шесть решений VLICO: теневые, парящие и тканевые потолки, световые линии, магнитные треки и скрытые карнизы в Калининграде."),
+        "blog": ("Блог VLICO", "Идеи для потолка, освещения и интерьера. Советы студии VLICO."),
         "partners": ("Дизайнерам, архитекторам и строителям", "Сотрудничество с VLICO: согласование потолка и освещения по проекту, проработка узлов и обсуждение планировки со специалистом."),
         "contacts": ("Контакты студии VLICO", "Телефон, Telegram, WhatsApp и адрес VLICO. Обсудите потолок и освещение, договоритесь о замере в Калининграде."),
         "projects": ("Проекты потолков и света", "Опубликованные проекты VLICO: фотографии готовых интерьеров и процесса монтажа, потолочные и световые решения."),
@@ -51,6 +53,12 @@ def public_context(request):
         content = BY_SLUG[match.kwargs["slug"]]
         title, description = content["title"] + " в Калининграде", content["description"]
         image = absolute(static(content["image"]))
+    article = getattr(request, "blog_article", None)
+    if article is not None:
+        title, description = article.title, article.description
+        article_cover = cover_url(article)
+        if article_cover:
+            image = absolute(article_cover)
     if name == "project":
         project = published_projects().filter(slug=match.kwargs.get("slug")).first()
         if project:
@@ -117,11 +125,11 @@ def cookies(request):
 
 @require_safe
 def sitemap(request):
-    from .sitemaps import PublicSitemap, ServiceSitemap, ProjectSitemap
+    from .sitemaps import PublicSitemap, ServiceSitemap, ProjectSitemap, BlogSitemap
     site = SimpleNamespace(domain=urlsplit(settings.SITE_URL).netloc)
     protocol = urlsplit(settings.SITE_URL).scheme
     urls = []
-    for section in (PublicSitemap(), ServiceSitemap(), ProjectSitemap()):
+    for section in (PublicSitemap(), ServiceSitemap(), ProjectSitemap(), BlogSitemap()):
         urls.extend(section.get_urls(site=site, protocol=protocol))
     return render(request, "sitemap.xml", {"urlset": urls}, content_type="application/xml")
 

@@ -1,0 +1,45 @@
+{% extends 'site/base.html' %}{% load static %}
+{% block content %}
+<article class="editorial-page blog-article">
+  {% if article_preview %}
+    <a class="text-link" href="{% url 'cabinet_articles' %}">← Статьи в кабинете</a>
+    <p>Предпросмотр сохранённой версии</p>
+  {% else %}<a class="text-link" href="{% url 'blog' %}">← Все статьи</a>{% endif %}
+  <h1 class="display-heading">{{ article.title }}</h1>
+  {% with photo=article.cover_media %}
+    {% if photo %}
+      <a class="blog-cover-link" href="{% url 'blog_image' photo.pk 'full' %}" data-gallery data-alt="{{ photo.alt }}" data-caption="{{ photo.caption }}" aria-label="Открыть обложку">
+        <img class="blog-cover" src="{% url 'blog_image' photo.pk 'full' %}" alt="{{ photo.alt }}" width="{{ photo.width }}" height="{{ photo.height }}">
+      </a>
+      {% if photo.caption %}<p class="blog-photo-caption">{{ photo.caption }}</p>{% endif %}
+    {% elif article.legacy_cover %}
+      <img class="blog-cover" src="{% static article.legacy_cover %}" alt="{{ article.legacy_cover_alt }}" width="{{ article.legacy_width }}" height="{{ article.legacy_height }}">
+    {% endif %}
+  {% endwith %}
+  <div class="blog-prose">{{ article.body|safe }}</div>
+  {% with photos=article.media.all %}
+  {% if photos|length > 1 %}
+  <section class="blog-gallery" aria-labelledby="article-photos">
+    <h2 id="article-photos">Фотографии к статье</h2>
+    <div class="project-carousel" data-project-carousel>
+      <div class="project-carousel-track" tabindex="0" aria-label="Галерея фотографий">
+        {% for photo in photos %}
+        <a class="project-carousel-slide" href="{% url 'blog_image' photo.pk 'full' %}" data-gallery data-alt="{{ photo.alt }}" data-caption="{{ photo.caption }}" aria-label="Открыть фотографию {{ forloop.counter }}{% if photo.alt %}: {{ photo.alt }}{% endif %}">
+          <img src="{% url 'blog_image' photo.pk 'full' %}" alt="{{ photo.alt }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy">
+          {% if photo.caption %}<span class="blog-photo-caption">{{ photo.caption }}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      <div class="project-carousel-controls" hidden>
+        <button class="project-carousel-arrow project-carousel-prev" type="button" aria-label="Предыдущая фотография">←</button>
+        <button class="project-carousel-arrow project-carousel-next" type="button" aria-label="Следующая фотография">→</button>
+        <span class="project-carousel-count" aria-live="polite"><span data-photo-number>1</span> / {{ photos|length }}</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  {% endwith %}
+  {% if not article_preview %}<a class="lead-submit" href="{% url 'request_form' 'project' %}">Обсудить проект ↗</a>{% endif %}
+</article>
+{% endblock %}
+{% block dialog %}{% if article.cover_media %}{% include 'site/gallery-dialog.html' %}{% endif %}{% endblock %}

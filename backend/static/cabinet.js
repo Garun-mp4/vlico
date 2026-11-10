@@ -118,7 +118,7 @@ if (editor && typeof editor.showModal === 'function') {
     } catch (error) { if (token !== generation || !editor.open) return; message(error.message.includes('Размер') ? error.message : 'Не удалось открыть изображение. Пропустите его и выберите исправный JPEG, PNG или WebP.', true); }
   }
   function open(items, button) {
-    if (changed || saving) { panelFeedback.textContent = 'Сначала сохраните изменения сведений о проекте.'; panelFeedback.scrollIntoView({block:'center'}); return; }
+    if (changed || saving) { panelFeedback.textContent = 'Сначала сохраните изменения сведений.'; panelFeedback.scrollIntoView({block:'center'}); return; }
     queue = items; index = 0; saved = 0; opener = button;
     editor.showModal(); show();
   }
@@ -140,14 +140,14 @@ if (editor && typeof editor.showModal === 'function') {
     event?.preventDefault();
     if (changed || saving) {
       uploadForm.querySelector('input[type=file]').value = '';
-      panelFeedback.textContent = 'Сначала сохраните сведения о проекте, затем выберите фотографии.';
+      panelFeedback.textContent = 'Сначала сохраните сведения, затем выберите фотографии.';
       panelFeedback.scrollIntoView({block:'center'});
       return;
     }
     const files = [...uploadForm.querySelector('input[type=file]').files];
     if (!files.length) return;
     if (files.some(file => !['image/jpeg','image/png','image/webp'].includes(file.type))) { uploadForm.querySelector('[data-upload-status]').textContent = 'Поддерживаются только JPEG, PNG и WebP. Проверьте выбранные файлы.'; return; }
-    if (files.length + document.querySelectorAll('.media-item').length > 40) { uploadForm.querySelector('[data-upload-status]').textContent = 'В проекте может быть до 40 фотографий.'; return; }
+    if (files.length + document.querySelectorAll('.media-item').length > 40) { uploadForm.querySelector('[data-upload-status]').textContent = 'В галерее может быть до 40 фотографий.'; return; }
     if (files.length > 8 || files.some(file => file.size > 12*1024*1024)) {
       uploadForm.querySelector('[data-upload-status]').textContent = 'Выберите до 8 файлов, не больше 12 МБ каждый.'; return;
     }
@@ -199,7 +199,7 @@ if (editor && typeof editor.showModal === 'function') {
     xhr.addEventListener('load', () => {
       unlock();
       if (xhr.status>=200 && xhr.status<300 && xhr.response?.saved) { current.state = 'Сохранено'; saved++; next(); }
-      else message(xhr.response?.error || (xhr.status===403 ? 'Сессия истекла. Войдите заново; сохранённые фото останутся в проекте.' : 'Не удалось сохранить фото. Повторите или пропустите его.'),true);
+      else message(xhr.response?.error || (xhr.status===403 ? 'Сессия истекла. Войдите заново; сохранённые фото останутся в галерее.' : 'Не удалось сохранить фото. Повторите или пропустите его.'),true);
     });
     xhr.addEventListener('error', () => { unlock(); message('Связь прервалась. Повторите сохранение: фотография не добавится дважды.',true); });
     xhr.send(body);

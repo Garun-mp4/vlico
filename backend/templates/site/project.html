@@ -56,17 +56,4 @@
 <p>Подберём потолок и освещение под ваше помещение. Стоимость уточним после замера и выбора системы.</p>
 <a class="text-link" href="{% url 'request_form' 'consultation' %}?project={{ project.slug|urlencode }}">Обсудить похожий проект <span aria-hidden="true">↗</span>
 </a>
-</section>{% endblock %}{% block dialog %}<dialog class="gallery-dialog" aria-label="Просмотр фотографий">
-<div class="gallery-toolbar">
-<span data-counter aria-live="polite">
-</span>
-<button type="button" data-close>Закрыть</button>
-</div>
-<div class="gallery-stage">
-<button type="button" data-prev aria-label="Предыдущая фотография">Назад</button>
-<img alt="">
-<button type="button" data-next aria-label="Следующая фотография">Вперёд</button>
-</div>
-<p data-caption aria-live="polite">
-</p>
-</dialog>{% endblock %}
+</section>{% endblock %}{% block dialog %}{% include 'site/gallery-dialog.html' %}{% endblock %}

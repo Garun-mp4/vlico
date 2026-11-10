@@ -7,6 +7,7 @@
       {% include 'site/header-projects.html' with nav_id='desktop-projects' %}
       <a href="{% url 'calculator' %}" {% if request.resolver_match.url_name == 'calculator' %}aria-current="page"{% endif %}>Калькулятор</a>
       <a href="{% url 'services' %}" {% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service' %}aria-current="page"{% endif %}>Решения</a>
+      <a href="{% url 'blog' %}" {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_article' %}aria-current="page"{% endif %}>Блог</a>
     </nav>
     <a class="header-cta" href="{% url 'home' %}#contact"><span class="header-cta-long">Обсудить проект</span><span class="header-cta-short">Связаться</span><span aria-hidden="true">↗</span></a>
     <details class="mobile-nav" data-header-mobile>
@@ -16,6 +17,7 @@
         {% include 'site/header-projects.html' with nav_id='mobile-projects' %}
         <a href="{% url 'calculator' %}" {% if request.resolver_match.url_name == 'calculator' %}aria-current="page"{% endif %}>Калькулятор</a>
         <a href="{% url 'services' %}" {% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service' %}aria-current="page"{% endif %}>Решения</a>
+        <a href="{% url 'blog' %}" {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_article' %}aria-current="page"{% endif %}>Блог</a>
         <a href="{% url 'partners' %}" {% if request.resolver_match.url_name == 'partners' %}aria-current="page"{% endif %}>Сотрудничество</a>
         <a href="{% url 'contacts' %}" {% if request.resolver_match.url_name == 'contacts' %}aria-current="page"{% endif %}>Контакты</a>
       </nav>
