@@ -72,6 +72,38 @@ class ArticleCabinetTests(TestCase):
         protected.force_login(self.editor)
         self.assertEqual(protected.post(path, {"title": "Без токена"}).status_code, 403)
 
+    def test_imported_cover_is_editable_and_stays_in_gallery_after_upload(self):
+        article = Article.objects.exclude(legacy_cover="").first()
+        cover = article.media.get(is_cover=True)
+        edit = reverse("cabinet_article_edit", args=[article.pk])
+        page = self.client.get(edit)
+        self.assertContains(page, 'class="gallery-count">1 / 40 фото')
+        self.assertContains(page, reverse("blog_image", args=[cover.pk, "thumb"]))
+        self.assertNotContains(page, "Добавить обложку")
+        source = reverse("blog_image", args=[cover.pk, "source"])
+        response = self.client.get(source)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/webp")
+        self.assertTrue(b"".join(response.streaming_content).startswith(b"RIFF"))
+
+        crop = reverse("cabinet_article_crop", args=[article.pk, cover.pk])
+        self.assertEqual(self.client.post(crop, {
+            "editing": '{"rotation":90,"ratio":"original","cover":true}',
+            "revision": cover.updated_at.isoformat(),
+        }).status_code, 200)
+        upload = reverse("cabinet_article_upload", args=[article.pk])
+        uploaded = self.client.post(upload, {"images": [jpeg()]}, HTTP_ACCEPT="application/json")
+        new_photo, = uploaded.json()["saved"]
+        self.assertEqual(article.cover_media.pk, cover.pk)
+        self.assertEqual(list(article.media.values_list("pk", flat=True)), [cover.pk, new_photo])
+        self.assertContains(self.client.get(edit), 'class="gallery-count">2 / 40 фото')
+
+        for pk in (cover.pk, new_photo):
+            remove = reverse("cabinet_article_media", args=[article.pk, pk])
+            self.assertEqual(self.client.post(remove, {"action": "delete", "confirm": "yes"}).status_code, 302)
+        self.assertContains(self.client.get(edit), "Добавить обложку")
+        self.assertNotContains(Client().get(reverse("blog_article", args=[article.slug])), 'class="blog-cover"')
+
     @override_settings(SITE_INDEXABLE=True)
     def test_article_lifecycle_preserves_published_address_and_draft_privacy(self):
         response = self.client.post(reverse("cabinet_article_new"), {

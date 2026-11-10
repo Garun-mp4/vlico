@@ -1,4 +1,4 @@
-{% extends 'site/base.html' %}{% load static %}
+{% extends 'site/base.html' %}
 {% block content %}
 <section class="editorial-page blog-page" aria-labelledby="blog-title">
   <h1 class="display-heading" id="blog-title">Идеи для потолка. Ответы на вопросы.</h1>
@@ -6,10 +6,9 @@
     {% for article in articles %}
       <article class="blog-entry">
         {% with photo=article.cover_media %}
-          {% if photo or article.legacy_cover %}
+          {% if photo %}
             <a href="{% url 'blog_article' article.slug %}" aria-hidden="true" tabindex="-1">
-              {% if photo %}<img src="{% url 'blog_image' photo.pk 'thumb' %}" alt="" width="320" height="240" loading="lazy">
-              {% else %}<img src="{% static article.legacy_cover %}" alt="" width="{{ article.legacy_width }}" height="{{ article.legacy_height }}" loading="lazy">{% endif %}
+              <img src="{% url 'blog_image' photo.pk 'thumb' %}" alt="" width="320" height="240" loading="lazy">
             </a>
           {% endif %}
         {% endwith %}

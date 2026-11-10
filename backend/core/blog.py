@@ -17,7 +17,7 @@ def cover_url(article):
     photo = article.cover_media
     if photo:
         return reverse("blog_image", args=[photo.pk, "full"])
-    return static(article.legacy_cover) if article.legacy_cover else ""
+    return ""
 
 
 @require_safe
@@ -48,9 +48,8 @@ def image(request, pk, variant):
     if variant == "source" or photo.article.status != Article.Status.PUBLISHED:
         if not is_editor(request.user) or not request.user.has_perm("core.view_article"):
             raise Http404
-    field = {"thumb": photo.thumbnail, "full": photo.image, "source": photo.source or photo.image}[variant]
     try:
-        stream = field.open("rb")
+        stream = photo.open_variant(variant)
     except (OSError, ValueError):
         raise Http404
     response = FileResponse(stream, content_type="image/webp")

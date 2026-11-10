@@ -1,5 +1,6 @@
 import uuid
 from pathlib import PurePosixPath
+from django.contrib.staticfiles import finders
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
@@ -207,6 +208,7 @@ class ArticleMedia(Timestamped):
     image = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage())
     thumbnail = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage())
     source = models.ImageField(upload_to=article_media_path, storage=PrivateMediaStorage(), blank=True)
+    bundled_image = models.CharField(max_length=200, blank=True)
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     alt = models.CharField(max_length=250, blank=True)
@@ -219,3 +221,12 @@ class ArticleMedia(Timestamped):
     class Meta:
         ordering = ["position", "pk"]
         constraints = [models.UniqueConstraint(fields=["article"], condition=models.Q(is_cover=True), name="one_cover_per_article")]
+
+    def open_variant(self, variant):
+        field = {"thumb": self.thumbnail, "full": self.image, "source": self.source or self.image}[variant]
+        if field:
+            return field.open("rb")
+        path = finders.find(self.bundled_image) if self.bundled_image else None
+        if not path:
+            raise FileNotFoundError(self.bundled_image)
+        return open(path, "rb")

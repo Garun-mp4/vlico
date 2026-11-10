@@ -1,4 +1,4 @@
-{% extends 'site/base.html' %}{% load static %}
+{% extends 'site/base.html' %}
 {% block content %}
 <article class="editorial-page blog-article">
   {% if article_preview %}
@@ -12,8 +12,6 @@
         <img class="blog-cover" src="{% url 'blog_image' photo.pk 'full' %}" alt="{{ photo.alt }}" width="{{ photo.width }}" height="{{ photo.height }}">
       </a>
       {% if photo.caption %}<p class="blog-photo-caption">{{ photo.caption }}</p>{% endif %}
-    {% elif article.legacy_cover %}
-      <img class="blog-cover" src="{% static article.legacy_cover %}" alt="{{ article.legacy_cover_alt }}" width="{{ article.legacy_width }}" height="{{ article.legacy_height }}">
     {% endif %}
   {% endwith %}
   <div class="blog-prose">{{ article.body|safe }}</div>

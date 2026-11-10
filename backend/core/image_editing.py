@@ -92,7 +92,8 @@ def edit_media(project_id, media_id, data, revision, *, owner_model=Project):
             if revision != item.updated_at.isoformat():
                 raise ValidationError("Фото изменено в другой вкладке. Обновите страницу и откройте редактор снова.")
             if not item.source:
-                with item.image.open("rb") as stream:
+                original = item.image.open("rb") if owner_model is Project else item.open_variant("full")
+                with original as stream:
                     item.source.save("source.webp", ContentFile(stream.read()), save=False)
                 written.append((item.source.storage, item.source.name))
             with item.source.open("rb") as source:

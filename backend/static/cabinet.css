@@ -300,9 +300,6 @@ summary {cursor:pointer;text-underline-offset:4px}
 .article-writing {min-height:240px;padding:16px;font-size:16px;line-height:1.6;overflow-wrap:anywhere}
 .article-writing>:first-child {margin-top:0}
 .article-writing>:last-child {margin-bottom:0}
-.article-legacy-cover {display:flex;align-items:center;gap:16px;margin-top:24px}
-.article-legacy-cover img {width:96px;height:72px;object-fit:cover;border-radius:var(--radius)}
-.article-legacy-cover + .gallery-card {margin-top:16px}
 @media(max-width:640px) {
   .article-filters {grid-template-columns:minmax(0,1fr) auto;gap:12px}
   .article-filters label:first-child {grid-column:1/-1}

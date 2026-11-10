@@ -12,9 +12,6 @@
 <div class="editor-layout">
   <div class="editor-main">
     <nav class="section-nav" aria-label="Разделы редактора"><a href="#gallery">Фотографии</a><a href="#basic">Содержание</a></nav>
-    {% if article.legacy_cover and not media_forms %}
-    <div class="article-legacy-cover"><img src="{% static article.legacy_cover %}" alt="{{ article.legacy_cover_alt }}" width="{{ article.legacy_width }}" height="{{ article.legacy_height }}"><p class="subtle">Текущая обложка. Первое загруженное фото станет новой обложкой.</p></div>
-    {% endif %}
     {% include 'cabinet/gallery.html' with project=article article_gallery=True upload_route='cabinet_article_upload' reorder_route='cabinet_article_reorder' media_route='cabinet_article_media' image_route='blog_image' crop_route='cabinet_article_crop' %}
     <section class="editor-section" id="basic">
       <h2>Содержание статьи</h2>
