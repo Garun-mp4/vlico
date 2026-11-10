@@ -219,6 +219,8 @@
 .blog-prose ul, .blog-prose ol { padding-inline-start: 1.6em; }
 .blog-prose ul { list-style: disc; }
 .blog-prose ol { list-style: decimal; }
+.blog-prose pre { white-space: pre-wrap; }
+.blog-prose th, .blog-prose td { padding: .4em .6em; border: 1px solid var(--rule); }
 .blog-prose details { border-bottom: 1px solid var(--rule); padding-block: 10px; }
 .blog-prose summary { cursor: pointer; font-weight: 500; }
 .blog-article > .lead-submit { display: inline-flex; margin-top: 24px; }

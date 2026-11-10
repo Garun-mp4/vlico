@@ -108,7 +108,10 @@ class ArticleCabinetTests(TestCase):
     def test_article_lifecycle_preserves_published_address_and_draft_privacy(self):
         response = self.client.post(reverse("cabinet_article_new"), {
             "title": "Как выбрать свет", "description": "Советы студии",
-            "body": '<h2>Свет</h2><script>discard-me</script><p><strong>Текст</strong></p>',
+            "body": (
+                '<h2>Свет</h2><script>discard-me</script><p><strong>Текст</strong></p>'
+                '<ol start="3" class="external"><li><code>LED</code></li></ol><pre><code>3000 K</code></pre>'
+            ),
         })
         article = Article.objects.get(title="Как выбрать свет")
         edit = reverse("cabinet_article_edit", args=[article.pk])
@@ -116,7 +119,10 @@ class ArticleCabinetTests(TestCase):
         preview = reverse("cabinet_article_preview", args=[article.pk])
         self.assertRedirects(response, edit)
         self.assertEqual(article.slug, "kak-vybrat-svet")
-        self.assertEqual(article.body, "<h2>Свет</h2><p><strong>Текст</strong></p>")
+        self.assertEqual(article.body,
+            '<h2>Свет</h2><p><strong>Текст</strong></p>'
+            '<ol start="3"><li><code>LED</code></li></ol><pre><code>3000 K</code></pre>',
+        )
         self.assertEqual(Client().get(public).status_code, 404)
         self.assertContains(self.client.get(preview), 'content="noindex,nofollow"')
         self.change_status(article, "publish")

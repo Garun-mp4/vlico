@@ -2,11 +2,12 @@
 
 from html import escape
 from html.parser import HTMLParser
+import re
 from urllib.parse import urlsplit
 
 
 class ArticleMarkup(HTMLParser):
-    tags = set("p br div h2 h3 h4 strong b em i ul ol li blockquote a hr details summary table thead tbody tr th td".split())
+    tags = set("p br div h2 h3 h4 h5 h6 strong b em i s del pre code ul ol li blockquote a hr details summary table thead tbody tr th td".split())
     void = {"br", "hr"}
 
     def __init__(self):
@@ -26,6 +27,10 @@ class ArticleMarkup(HTMLParser):
             href = dict(attrs).get("href") or ""
             if self.safe_href(href):
                 attribute = f' href="{escape(href, quote=True)}"'
+        elif tag == "ol":
+            start = dict(attrs).get("start") or ""
+            if re.fullmatch(r"-?[0-9]{1,9}", start):
+                attribute = f' start="{start}"'
         self.parts.append(f"<{tag}{attribute}>")
         if tag not in self.void:
             self.stack.append(tag)

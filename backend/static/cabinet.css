@@ -298,6 +298,12 @@ summary {cursor:pointer;text-underline-offset:4px}
 .article-format .button {min-height:44px;padding-inline:10px}
 .article-editor {border:1px solid var(--control);border-radius:var(--radius);background:#fff}
 .article-writing {min-height:240px;padding:16px;font-size:16px;line-height:1.6;overflow-wrap:anywhere}
+.article-writing ul,.article-writing ol {padding-inline-start:1.5em}
+.article-writing ul {list-style:disc}
+.article-writing ol {list-style:decimal}
+.article-writing blockquote {margin-inline:0;padding-inline-start:1em;border-inline-start:2px solid var(--rule)}
+.article-writing pre {white-space:pre-wrap}
+.article-writing th,.article-writing td {padding:.4em .6em;border:1px solid var(--rule)}
 .article-writing>:first-child {margin-top:0}
 .article-writing>:last-child {margin-bottom:0}
 @media(max-width:640px) {

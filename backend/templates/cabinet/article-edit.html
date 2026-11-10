@@ -1,6 +1,9 @@
 {% extends 'cabinet/base.html' %}{% load static %}
 {% block title %}{% if article.pk %}{{ article.title }}{% else %}Новая статья{% endif %}{% endblock %}
-{% block extra_head %}<script src="{% static 'article-editor.js' %}" defer></script>{% endblock %}
+{% block extra_head %}
+<script src="{% static 'vendor/markdown-it-15.0.3.min.js' %}" defer></script>
+<script src="{% static 'article-editor.js' %}" defer></script>
+{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'cabinet_articles' %}">← Все статьи</a>
 <div class="page-heading editor-heading">
@@ -35,8 +38,9 @@
               <button class="button" type="button" data-format="insertOrderedList">Нумерация</button>
               <button class="button" type="button" data-format="createLink">Ссылка</button>
             </div>
-            <div class="article-writing" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="article-body-label" data-article-writing>{{ editor_body|safe }}</div>
+            <div class="article-writing" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="article-body-label" aria-describedby="article-paste-help" data-article-writing>{{ editor_body|safe }}</div>
           </div>
+          <p class="helptext" id="article-paste-help">При вставке Markdown заголовки, списки и другое форматирование появятся сразу.</p>
           <div class="field-errors" role="alert">{{ form.body.errors }}</div>
         </div>
         <div><button class="button primary" type="submit" data-article-save>{% if article.pk %}Сохранить статью{% else %}Создать черновик{% endif %}</button></div>
