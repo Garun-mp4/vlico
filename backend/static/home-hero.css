@@ -220,10 +220,10 @@
 }
 .home-solution-card[open] > summary::before { bottom: 90px; }
 .home-solution-card:first-child .home-solution-image img { object-position: 35% center; }
-.home-solution-card:nth-child(2) .home-solution-image img { object-position: 20% center; }
+.home-solution-card:nth-child(2) .home-solution-image img { object-position: center 54%; }
 .home-solution-card:nth-child(3) .home-solution-image img { object-position: 25% center; }
 
-.home-solution-card:nth-child(4) .home-solution-image img { object-position: 77% center; }
+.home-solution-card:nth-child(4) .home-solution-image img { object-position: 20% center; }
 
 .home-solution-content {
   display: grid;
