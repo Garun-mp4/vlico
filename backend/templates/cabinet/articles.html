@@ -5,7 +5,7 @@
   <div><h1>Статьи</h1><p class="subtle">Управляйте публикациями и фотографиями для блога VLICO.</p></div>
   {% if perms.core.add_article %}<a class="button primary" href="{% url 'cabinet_article_new' %}">Новая статья</a>{% endif %}
 </div>
-<form method="get" class="projects-toolbar article-filters" aria-label="Фильтры статей">
+<form method="get" class="article-filters" aria-label="Фильтры статей">
   <label>Название <input type="search" name="q" value="{{ query }}" maxlength="200"></label>
   <label>Статус <select name="status">
     <option value="">Все, кроме корзины</option>
