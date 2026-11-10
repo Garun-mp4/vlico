@@ -1,46 +1,70 @@
-{% load static %}
-<section class="configurator section-light" id="calculator" aria-labelledby="calculator-title">
-  <div class="config-heading"><p class="eyebrow">КАЛЬКУЛЯТОР СТОИМОСТИ</p>
-    <{% if standalone %}h1{% else %}h2{% endif %} id="calculator-title">ВАШ ПОТОЛОК.<br>ВАШЕ РЕШЕНИЕ.</{% if standalone %}h1{% else %}h2{% endif %}>
-    <p>Подберите потолок и свет за восемь шагов. Покажем предварительную стоимость до запроса контактов.</p>
+<section class="quick-calculator section-light" id="calculator" aria-labelledby="calculator-title">
+  <div class="quick-calculator__inner page-gutter">
+    <header class="quick-calculator__heading">
+      <{% if standalone %}h1{% else %}h2{% endif %} class="display-heading" id="calculator-title">Быстрый расчёт потолка</{% if standalone %}h1{% else %}h2{% endif %}>
+      <p>Три ответа помогут специалисту подготовить предварительный расчёт.</p>
+    </header>
+
+    <form class="quick-calculator__form lead-form" method="post" action="{% url 'calculator' %}#calculator" data-quick-calculator data-lead-form data-api="{% url 'lead_submit' %}">
+      {% csrf_token %}
+      <input type="hidden" name="calculator_schema" value="quick-v1">
+      <input type="hidden" name="source_page" value="{{ quick_source_page }}">
+      {{ quick_lead_form.kind }}{{ quick_lead_form.project }}{{ quick_lead_form.interest }}
+      {{ quick_lead_form.idempotency_key }}{{ quick_lead_form.submission_token }}{{ quick_lead_form.legal_version }}
+      <div class="quick-calculator__honeypot" aria-hidden="true"><label>Оставьте это поле пустым {{ quick_lead_form.website }}</label></div>
+
+      <div class="quick-calculator__fields" data-quick-fields>
+        <fieldset class="quick-calculator__field quick-calculator__choices">
+          <legend>{{ quick_form.object_type.label }}</legend>
+          <div class="quick-calculator__options">
+            {% for option in quick_form.object_type %}<label>{{ option.tag }}<span>{{ option.choice_label }}</span></label>{% endfor %}
+          </div>
+          {{ quick_form.object_type.errors }}
+        </fieldset>
+        <div class="quick-calculator__field">
+          <label for="{{ quick_form.area_m2.id_for_label }}">{{ quick_form.area_m2.label }}</label>
+          {{ quick_form.area_m2 }}{{ quick_form.area_m2.errors }}
+          <p class="quick-calculator__help" id="quick-area-help">Можно указать дробное значение через запятую.</p>
+        </div>
+        <fieldset class="quick-calculator__field quick-calculator__choices">
+          <legend>{{ quick_form.solution.label }}</legend>
+          <div class="quick-calculator__options">
+            {% for option in quick_form.solution %}<label>{{ option.tag }}<span>{{ option.choice_label }}</span></label>{% endfor %}
+          </div>
+          {{ quick_form.solution.errors }}
+        </fieldset>
+      </div>
+
+      <button class="lead-submit quick-calculator__quote" type="submit" name="action" value="quote" data-calculate>Получить предварительный расчёт</button>
+
+      <div class="quick-calculator__result" data-quick-result {% if not quick_show_result %}hidden{% endif %}>
+        <h3 tabindex="-1" data-quick-result-title>Для предварительного расчёта уточним детали.</h3>
+        <p>Оставьте контакт, и специалист уточнит детали по вашим ответам.</p>
+      </div>
+
+      {% if quick_submission_errors %}<div class="lead-errors" role="alert">{% for error in quick_submission_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+      <div class="lead-errors" data-lead-errors role="alert" hidden></div>
+      <p class="lead-feedback" data-lead-status data-quick-status role="status" aria-live="polite" hidden></p>
+
+      <fieldset class="quick-calculator__contact" data-quick-contact {% if not quick_show_contact %}hidden disabled{% endif %}>
+        <legend>Оставьте контакт для уточнения</legend>
+        <div class="quick-calculator__contact-fields">
+          <div class="quick-calculator__field lead-field">
+            <label for="{{ quick_lead_form.name.id_for_label }}">{{ quick_lead_form.name.label }}</label>
+            {{ quick_lead_form.name }}{{ quick_lead_form.name.errors }}
+          </div>
+          <div class="quick-calculator__field lead-field">
+            <label for="{{ quick_lead_form.contact.id_for_label }}">{{ quick_lead_form.contact.label }}</label>
+            {{ quick_lead_form.contact }}{{ quick_lead_form.contact.errors }}
+          </div>
+        </div>
+        <label class="lead-consent">
+          {{ quick_lead_form.consent }}
+          <span>Даю <a href="{% url 'consent' %}" target="_blank" rel="noopener">согласие на обработку данных заявки</a>, включая передачу заявки в рабочий Telegram VLICO. <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Политика обработки данных</a>.</span>
+        </label>
+        {{ quick_lead_form.consent.errors }}
+        <button type="submit" name="action" value="submit" class="lead-submit quick-calculator__send">Передать ответы специалисту</button>
+      </fieldset>
+    </form>
   </div>
-  {% if calculator_available %}
-  {{ config_schema|json_script:"config-schema" }}
-  {{ config_bootstrap|json_script:"config-bootstrap" }}
-  <form method="post" action="{% url 'calculator' %}" data-configurator data-api="{% url 'lead_submit' %}" data-estimate-api="{% url 'estimate' %}" data-assets="{% static 'assets/' %}">{% csrf_token %}
-    <div data-config-fallback>
-      <input type="hidden" name="schema" value="v2">
-      <p class="lead-help">Можно заполнить всё на одной странице. Неизвестные количества оставьте пустыми. Поля неподходящих вариантов не учитываются.</p>
-      {% for title, fields in config_steps %}<fieldset><legend>{{ title }}</legend>{% for field in fields %}<div class="lead-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}</fieldset>{% endfor %}
-      <button class="lead-submit" type="submit" name="action" value="quote" formnovalidate>Рассчитать</button>
-    </div>
-    <div class="config-shell" data-config-shell hidden>
-      <div class="config-sidebar">
-        <section class="config-price" data-config-price aria-label="Текущая стоимость" hidden></section>
-        <aside class="config-visual" aria-label="Ваше решение" data-config-visual></aside>
-      </div>
-      <div class="config-workspace">
-        <div class="config-topline"><span data-config-step></span><button type="button" class="config-reset" data-config-reset>Начать заново</button></div>
-        <progress class="config-progress" max="9" value="1" aria-label="Прогресс расчёта"></progress>
-        <div data-config-question></div>
-        <p class="config-error" data-config-error role="alert" hidden></p>
-        <div class="config-navigation"><button type="button" class="config-back" data-config-back>Назад</button><button type="button" class="lead-submit" data-config-next>Продолжить →</button></div>
-      </div>
-    </div>
-    <div class="config-result" data-config-result {% if not calc_quote %}hidden{% endif %} tabindex="-1">
-      <p class="eyebrow">ВАШЕ РЕШЕНИЕ</p><h3>Ваш предварительный расчёт готов</h3>
-      <div data-config-quote>{% if calc_quote %}{% include 'site/quote.html' with quote=calc_quote %}{% endif %}</div>
-      <p class="lead-help">Расчёт поможет оценить бюджет. Точную стоимость с учётом размеров и особенностей помещения согласуем после замера.</p>
-      <div class="config-result-actions"><button type="button" class="lead-submit" data-config-contact>Получить точный расчёт</button><button type="button" class="config-back" data-config-edit>Изменить параметры</button></div>
-    </div>
-    <div class="config-contact" data-config-contact-form>
-      <h3>Получить точный расчёт</h3><p class="lead-help">Оставьте контакт, и специалист обсудит с вами выбранный потолок, освещение и детали расчёта.</p>
-      {% with lead_form=calc_lead_form %}{% include 'site/lead-fields.html' %}{% endwith %}
-      {% if calc_errors %}<div class="lead-errors" role="alert">{% for field, messages in calc_errors.items %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endfor %}</div>{% endif %}
-      <div class="lead-errors" data-config-submit-errors role="alert" hidden></div>
-      <p class="lead-feedback" data-config-status role="status" hidden></p>
-      <button type="submit" name="action" value="submit" class="lead-submit" data-config-submit>Отправить расчёт специалисту</button>
-    </div>
-  </form>
-  {% else %}<p>Сейчас уточняем тарифы. <a href="{% url 'request_form' 'measurement' %}">Запишитесь на замер</a>, чтобы получить смету.</p>{% endif %}
 </section>

@@ -1,8 +1,9 @@
 async page => {
   const check = (value, message) => { if (!value) throw Error(message); };
+  const origin = /^https?:/.test(page.url()) ? new URL(page.url()).origin : 'http://127.0.0.1:8000';
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('http://127.0.0.1:8000/');
+  await page.goto(origin + '/');
   if (await page.locator('[data-privacy-panel]').isVisible()) await page.getByRole('button', { name: 'Отклонить', exact: true }).click();
   await page.evaluate(() => document.fonts.ready);
   const word = page.locator('[data-footer-wordmark]');
@@ -52,7 +53,7 @@ async page => {
   check(!await word.evaluate(n => n.classList.contains('is-highlighted')), 'Reduced motion still tracks pointer');
   const context = await page.context().browser().newContext({ viewport: { width:390,height:844 }, isMobile:true, hasTouch:true });
   const mobile = await context.newPage();
-  await mobile.goto('http://127.0.0.1:8000/');
+  await mobile.goto(origin + '/');
   await mobile.getByRole('button', { name:'Отклонить',exact:true }).click();
   await mobile.evaluate(() => document.fonts.ready);
   await mobile.locator('[data-footer-wordmark]').tap();

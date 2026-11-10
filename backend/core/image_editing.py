@@ -59,7 +59,7 @@ def rendered_image(source, edit):
     full = BytesIO()
     image.save(full, "WEBP", quality=85)
     dimensions = image.size
-    image.thumbnail((640, 640), Image.Resampling.LANCZOS)
+    image.thumbnail((ProjectMedia.THUMBNAIL_MAX_EDGE, ProjectMedia.THUMBNAIL_MAX_EDGE), Image.Resampling.LANCZOS)
     thumb = BytesIO()
     image.save(thumb, "WEBP", quality=80)
     return ContentFile(full.getvalue(), name="image.webp"), ContentFile(thumb.getvalue(), name="thumb.webp"), *dimensions

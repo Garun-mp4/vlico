@@ -7,6 +7,7 @@ from django.utils import timezone
 from .configurator import ConfiguratorForm, FEATURES, LIGHTS, STEP_FIELDS
 from .lead_forms import KINDS
 from .pricing import CalculationForm
+from .quick_calculator import QUICK_CALCULATOR_SCHEMA, quick_input_rows
 
 
 def lead_title(lead):
@@ -91,26 +92,31 @@ def message_blocks(lead):
 
     quote = lead.calculation
     if quote:
-        total = quote["total"]
-        warnings = list(quote.get("warnings", []))
-        if "Периметр неизвестен" in warnings and quote["inputs"].get("edge") != "unknown":
-            warnings[warnings.index("Периметр неизвестен")] = "Периметр неизвестен, поэтому примыкание не включено в сумму."
-        if total is None:
-            title = "Нужен индивидуальный расчёт"
+        if quote.get("schema") == QUICK_CALCULATOR_SCHEMA:
+            add("Для предварительного расчёта уточним детали", "Сумма не определяется по трём ответам.")
+            for label, value in quick_input_rows(quote.get("inputs", {})):
+                add(label, value)
         else:
-            title = f"Предварительный расчёт: {number(total)} ₽"
-            if not quote["complete"]:
-                title += " · частичная сумма"
-        if quote.get("schema") != "v2" and not quote["complete"]:
-            warnings.append("Периметр неизвестен, поэтому примыкание не включено в сумму.")
-        add(title, "\n".join(f"• {warning}" for warning in warnings))
-        steps = calculator_steps(quote["inputs"]) if quote.get("schema") == "v2" else saved_estimate_steps(quote["inputs"])
-        for heading, answer in steps:
-            add(heading, answer)
+            total = quote["total"]
+            warnings = list(quote.get("warnings", []))
+            if "Периметр неизвестен" in warnings and quote["inputs"].get("edge") != "unknown":
+                warnings[warnings.index("Периметр неизвестен")] = "Периметр неизвестен, поэтому примыкание не включено в сумму."
+            if total is None:
+                title = "Нужен индивидуальный расчёт"
+            else:
+                title = f"Предварительный расчёт: {number(total)} ₽"
+                if not quote["complete"]:
+                    title += " · частичная сумма"
+            if quote.get("schema") != "v2" and not quote["complete"]:
+                warnings.append("Периметр неизвестен, поэтому примыкание не включено в сумму.")
+            add(title, "\n".join(f"• {warning}" for warning in warnings))
+            steps = calculator_steps(quote["inputs"]) if quote.get("schema") == "v2" else saved_estimate_steps(quote["inputs"])
+            for heading, answer in steps:
+                add(heading, answer)
     if lead.comment:
         add("Что нужно учесть", lead.comment)
 
-    if quote and quote["items"]:
+    if quote and quote.get("schema") != QUICK_CALCULATOR_SCHEMA and quote["items"]:
         rows = []
         for item in quote["items"]:
             price = f"{number(item['unit_price'])} ₽ за {item['unit']}"
@@ -118,7 +124,7 @@ def message_blocks(lead):
                       if item["total"] is not None else f"{price} · количество не указано")
             rows.append(f"• {item['title']}: {amount}")
         add("Расшифровка расчёта", "\n".join([*rows, "", quote["exclusions"]]), "blockquote expandable")
-    elif quote:
+    elif quote and quote.get("schema") != QUICK_CALCULATOR_SCHEMA:
         add("Что не входит в расчёт", quote["exclusions"])
 
     source = "Калькулятор" if lead.kind == "calculator" else ("Главная" if lead.source_page in {"", "/"} else lead.source_page)

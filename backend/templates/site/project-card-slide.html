@@ -1,3 +1,3 @@
 <a class="project-carousel-slide" href="{% url 'project' project.slug %}" draggable="false">
-  <img {% if media.editing.ratio %}data-preserve-frame{% endif %} src="{% url 'project_image' media.pk 'thumb' %}" width="{{ media.width }}" height="{{ media.height }}" alt="{{ media.alt }}" loading="lazy" draggable="false">
+  {% include 'site/project-responsive-image.html' with media=media no_drag=True %}
 </a>

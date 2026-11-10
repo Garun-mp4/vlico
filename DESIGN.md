@@ -11,7 +11,9 @@ colors:
   night: "#191a19"
   night-ink: "#f2f1e9"
   brand: "#27be82"
-  hero-light: "#fff2d3"
+  form-control-border: "#a6a498"
+  focus: "#075f40"
+  error: "#8b302b"
 typography:
   family: "IBM Plex Mono"
   headings: "Manrope"
@@ -42,7 +44,7 @@ motion:
 
 ## Direction
 
-Use Eleos as a composition and motion reference: a full-frame hero, oversized wordmark, visible 12-column grid, editorial project layouts, thin rules, and a large fully visible wordmark in the footer. Build the page with new VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
+Use Eleos as a composition and motion reference: an editorial, photo-led first screen, visible 12-column grid, editorial project layouts, thin rules, and a large fully visible wordmark in the footer. Build the page with VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
 
 The result should feel like an architecture and interiors portfolio, with the ceiling and light as the subject. Keep the supplied green VLICO mark as the brand accent. The page's main canvas stays warm cream, the dark sections use charcoal, and photography carries most of the visual richness.
 
@@ -51,12 +53,12 @@ The result should feel like an architecture and interiors portfolio, with the ce
 - Use `#f2f1e9` for the primary canvas and `#eae8dd` for the softer sand surface.
 - Use `#19191a` for text on light backgrounds and `#f2f1e9` on dark backgrounds.
 - Reserve `#27be82` for the VLICO mark, active states, and a rare detail.
-- Draw vertical grid guides and section rules in the existing warm gray. Avoid cards with rounded corners, pill buttons, decorative gradients, and stacked shadows. In the homepage hero, keep the warm light response confined to the hovered letter.
+- Draw vertical grid guides and section rules in the existing warm gray. Avoid cards with rounded corners, pill buttons, decorative gradients, and stacked shadows. Keep pointer responses restrained and tied to an actionable element.
 - Grade photography with restrained warmth and reduced saturation. Keep architectural lines legible. Use grain lightly and only over the hero image.
 
 ## Typography
 
-Use locally hosted Manrope for all headings and solution titles, and IBM Plex Mono in regular, medium, and semibold weights for body text and interface labels. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The footer SVG wordmark also uses Manrope, preserving its responsive sizing and pointer highlight. The hero VLICO wordmark uses Manrope with -0.04em tracking and is oversized text, not an imported copy of the Eleos wordmark.
+Use locally hosted Manrope for all headings and solution titles, and IBM Plex Mono in regular, medium, and semibold weights for body text and interface labels. Set major headings in uppercase with tight tracking and compact leading. Keep body copy in sentence case, left aligned, and no wider than about 60 characters per line. Use small uppercase labels for sections, places, and image captions. The footer SVG wordmark also uses Manrope, preserving its responsive sizing and pointer highlight.
 
 ## Grid and rhythm
 
@@ -66,14 +68,15 @@ Major sections receive generous top and bottom space. Use hairline rules for pro
 
 ## Components and behavior
 
-- All public pages share the same header. It sits over the homepage hero and turns into a flat cream bar after scroll; inner pages use the cream bar from the start. Project directions come from editable portfolio categories. The catalogue link and disclosure button remain separate, with a quick 180ms panel transition, keyboard/Escape support and a touch disclosure inside the mobile menu.
-- Hero shows a full-bleed ceiling photograph, dark warm overlay for legibility, large VLICO wordmark, offer copy, and same-page links. Do not put a phone field in the hero.
+- All public pages share the same header. It is a flat cream bar from the start. Project directions come from editable portfolio categories. The catalogue link and disclosure button remain separate, with a quick 180ms panel transition, keyboard/Escape support and a touch disclosure inside the mobile menu.
+- The homepage hero is one photographic row. The large interior carries the heading and project action over a warm dark scrim. Four tall, equal-height photographs share its top and bottom edges, with Manrope display headings, neutral IBM Plex Mono labels and the existing night palette. Keep the confirmed experience/proof line, a prominent project CTA, cost and measurement links, and direct phone/Telegram/WhatsApp links. Do not put a phone input in the hero.
 - Project entries use real VLICO photos and only case facts present in the supplied brief. Avoid promo graphics and generated imagery presented as documented work.
 - Solution rows remain open and text-led. Hover shifts the row slightly and moves its arrow.
 - Desktop project-direction links reuse the solution preview engine: a small inertial image stays beside the dropdown without intercepting clicks. Known directions use their service illustration; custom directions use a published project cover, with no private draft imagery. Decorative previews stay disabled on touch, stop animating when idle, and remain stationary for reduced motion.
 - Category visibility is editable in the cabinet. Hidden categories stay available to editors but disappear from public navigation, filters and project labels; their published projects remain in the catalogue. The process-only “Монтажные работы” and unprepared “Транспарентные потолки” directions start hidden.
 - The contact form appears at the end of the page. Milestone 1 preserves its explicit demonstration state; milestone 3 replaces this with server submission and truthful loading, success and error states.
-- Use a brief page cover, subtle image settling, once-only scroll reveals, and small arrow transitions. Keep motion on opacity and transforms; respect `prefers-reduced-motion`.
+- Keep the homepage about section editorial and dark: concise company copy on the left, the supplied founder portrait on the right, with a linked two-line caption. On phones, stack the copy, portrait and caption before the data-driven project gallery. Do not publish an unapproved first-person quote or replace existing project photographs.
+- Use a brief page cover, subtle image settling, once-only scroll reveals, native solution disclosures, and small arrow transitions. Keep motion on opacity and transforms; respect `prefers-reduced-motion`.
 
 ## Copy rules
 
@@ -114,27 +117,29 @@ Each homepage card keeps a 4:3 photo viewport. Start with its chosen cover, then
 
 ## Leads and calculator
 
-Reuse the existing canvas, mono public typography and cabinet system sans. Keep forms flat, with visible labels, 48px public controls and 16px input text on phones. The calculator is one shared eight-step configurator on the homepage after solutions and on /calculator/. Desktop uses a unified 40/60 visual/question shell; mobile places the question and options before a compact diagram or preview. Use native radio and checkbox inputs, flat image choices, explicit back/continue controls, a progress indicator, and numeric steppers. Preserve answers when navigating; store only the versioned configuration draft in sessionStorage. Show an itemized result before offering contact and optional plan. SVG illustrates geometry and junction principles; mark AI material illustrations explicitly. Unknown base dimensions or material require an individual estimate, while missing quantities and unpriced work produce explicit warnings. Unknown perimeter has a prominent textual explanation. Never autoplay steps or erase entered fields after an error.
+Reuse the existing canvas, mono public typography and cabinet system sans. Keep forms flat, with visible labels, 48px public controls and 16px input text on phones. The homepage and /calculator/ share one three-field quick-v1 form: object type, ceiling area and requested solution. Do not calculate or display a numeric price from these answers; show “Для предварительного расчёта уточним детали” and offer contact only after the visitor requests a preliminary estimate. Preserve the three answers in the lead snapshot and notifications, and do not persist personal data or form answers in browser storage. Keep consent, signed submission tokens, CSRF, throttling, idempotency and clear validation/network recovery. Detailed v2 estimates and their historical snapshots stay versioned and are not loaded as the public calculator interface.
 
 Public errors use `#8b302b` on the canvas, inline field feedback and a readable summary; saved state confirms database receipt rather than promising Telegram delivery. Keep existing native inputs, focus feedback, file-progress indication and explicit consent. Cabinet lead/rate controls have 44px targets; six navigation items form a three-column grid on small phones. Rate changes, private downloads and delivery retries use the existing cabinet vocabulary. Motion only supports feedback and respects reduced motion.
 
 
-## Configurator controls and diagrams
+The following sections document the retained v2 calculation model only. Their controls are not loaded on public pages; the v2 estimate API and historical snapshots remain intact.
+
+## Retained v2 configurator controls and diagrams
 
 The calculator extends the public form semantics: control border `#a6a498`, selected fill `#ddedea`, accessible focus/selection `#075f40`, errors `#8b302b`, neutral hover `#e6e5db`. Diagram wall tone `#b6b4a9` and LED amber `#b17c25` / `#a77829` distinguish physical components, never actions or text. All control text uses ink/body from the existing palette. Photos and diagrams keep explicit aspect ratios. ES module dependencies are fingerprinted by the existing static manifest pipeline.
 
 
-## Material comparison
+## Retained v2 material comparison
 
 Compare matte PVC, satin PVC, gloss PVC and textile in one identical room, camera and daylight. Use a 2×2 grid with full 4:3 images and concise optical descriptions; help-with-choice spans the last row. Show a labelled matte preview before a choice without preselecting the answer. The native enlarged-image dialog preserves focus and closes with Escape. Large images use 1440px WebP with 480px variants for cards. Satin/gloss express a preference pending availability and price confirmation; no invented finish tariff. Store the material group and surface texture separately in calculation snapshots.
 
 
-## Ceiling-wall junction comparison
+## Retained v2 ceiling-wall junction comparison
 
 The edge step uses three matched architectural detail images: classic white closed joint, unlit dark shadow gap, and concealed warm LED floating edge. Frame the same corner closely enough to read the junction at card size. Unknown/help answers are text-only. Reuse the image-preview dialog for both surface and edge choices, with labelled examples before selection and explicit AI provenance. No cross-section diagram appears in edge answer cards. Tariffs and selection codes remain unchanged.
 
 
-## Lighting comparison
+## Retained v2 lighting comparison
 
 The lighting step uses five generated views of the same room at consistent dusk ambient exposure: recessed spots, integrated lines, magnetic tracks, pendant, perimeter LED. No client photographs or SVG substitutes appear in lighting answer cards. Show full 4:3 frames, explain the lighting character briefly, and reuse the enlarged-image dialog. Latest selected lighting drives the preview; a separate labelled group can inspect selected systems without changing the configuration. State clearly that each illustration shows one system, not a composite simulation of all selected lights. None/undecided answers remain text-only. Preserve quantities, exclusivity and server tariffs.
 
@@ -153,12 +158,12 @@ The footer VLICO wordmark fills the available grid width with equal gutters and 
 
 ## Hero layout safety
 
-Use distinct content rows for the location label, large VLICO wordmark, offer/conditions and scroll cue on every breakpoint. Keep the desktop offer and conditions in separate columns of one row below the wordmark. Let the hero grow when the viewport is short or text is enlarged; do not position these content groups independently with top/bottom percentages.
+Keep the copy, proof line and actions in the main photo panel’s flow. Reserve the panel height before the images load. At 1100px and wider, the overview and four solutions share one row. Exactly one occupies the wide track. Mouse movement onto another panel shifts the track in 260ms and reveals a display heading, description and action. The panel stays open until another is selected or Escape returns to the overview. Keyboard selection switches instantly; at tablet sizes use a two-by-two grid; on phones use a native horizontal rail with a visible next-card cue and no document-level overflow. Let the hero grow when the viewport is short or text is enlarged. Show the mobile project CTA only after the hero action has passed out of view; it must yield to the consent notice, open menu, visible contact section, and text-entry keyboard.
 
 ## Homepage project preview
 
-Show at most six published projects on the landing page: three columns from 1100px, two from 641px, one below. Desktop/tablet previews use a compact 3:2 photo and a two-line description; mobile retains the 4:3 image. Preserve arrows, dragging and swipe within each project. Place the full-catalogue link below the grid. Project detail and catalogue pages retain their existing layouts.
+Show at most six published projects on the landing page: two columns from 801px and one below. Use the large 3:2 desktop/tablet photo and a two-line description; mobile retains the 4:3 image. The full catalogue uses two columns from 801px and one below so tablet frames stay wide enough to read. Use the existing 640px thumbnail and full-size WebP derivative through `srcset` and accurate `sizes`; keep dimensions reserved and lazy-load galleries below the fold. Preserve arrows, dragging and swipe within each project, and let the project detail page show the full image. Place the full-catalogue link below the grid. Keep result and process galleries separate on detail pages.
 
 The special-offer section uses an editorial two-column layout on the sand canvas: clear offer copy and a consultation action on the left, a labelled interior visualization on the right. Keep the gift callout flat and integrated into the image. Collapse to one column on phones and do not add eligibility conditions that have not been confirmed.
 
-The homepage hero uses only the supplied `bg-image-vlico.jpg`, optimized as `wireframe/assets/hero-vlico-client.webp`; keep the original file intact. Preload this single photo at high priority and retain the existing contrast scrim. On fine pointers, a single warm reflection crosses only the letter under the pointer, which then holds a soft amber glow until the pointer leaves. Keyboard focus keeps a visible outline without lighting other letters. Do not add a second photo or an autoplay loop. Under reduced motion, keep the static warm letter state and skip the reflection. Keep the wordmark inside its content gutter at every viewport size.
+The homepage hero uses responsive WebP derivatives in `backend/static/home-hero/`, with its source artwork kept intact. Preload only the main interior at high priority. Set a focal point for each narrow solution photo so the ceiling detail remains recognizable. Use native `<details>` as the no-JavaScript and touch fallback. With JavaScript, the desktop row switches on mouse hover, click or keyboard selection. Below the wide breakpoint, cards disclose details in place. Keep the expanded state synchronized with `aria-expanded`. Do not autoplay, jump the page, or move focus when a card opens. Under reduced motion, remove transitions and scroll snapping.

@@ -1,4 +1,4 @@
 <figure>
 <a href="{% url 'project_image' item.pk 'full' %}" data-gallery data-caption="{{ item.caption }}" data-alt="{{ item.alt }}">
-<img {% if item.editing.ratio %}data-preserve-frame{% endif %} src="{% url 'project_image' item.pk 'thumb' %}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy">
+{% include 'site/project-responsive-image.html' with media=item %}
 </a>{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}</figure>

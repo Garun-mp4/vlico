@@ -70,14 +70,14 @@ class ConfiguratorTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("object_area", form.errors)
 
-    def test_zone_quote_and_saved_lead_include_every_answer_for_no_js_flow(self):
+    def test_v2_api_and_saved_lead_include_every_answer(self):
         data = {"schema": "v2", "object_type": "apartment", "object_area": "60", "zones_enabled": "yes",
                 "zone_1_name": "Гостиная", "zone_1_area": "25", "zone_1_material": "pvc", "zone_1_edge": "shadow",
                 "zone_2_name": "Кухня", "zone_2_area": "15", "zone_2_material": "fabric", "zone_2_edge": "standard",
                 "lights": ["none"], "cornice": "none", "features": ["none"], "location": "city"}
-        quote_page = self.client.post(reverse("calculator"), {**data, "action": "quote"})
+        quote_page = self.client.post(reverse("estimate"), data)
         self.assertEqual(quote_page.status_code, 200)
-        self.assertContains(quote_page, "Гостиная")
+        self.assertIn("Гостиная", str(quote_page.json()["quote"]["configuration"]))
         submission = payload("calculator", pricing_version=self.version.pk, **data)
         response = self.client.post(reverse("lead_submit"), submission)
         self.assertEqual(response.status_code, 201, response.content)
@@ -200,27 +200,44 @@ class ConfiguratorTests(TestCase):
     def test_same_module_home_and_standalone_and_no_js_post(self):
         for url in ("/", "/calculator/"):
             response = self.client.get(url)
-            self.assertContains(response, "data-configurator", count=1)
-            self.assertContains(response, 'id="calc_contact_name"')
-        response = self.client.post("/calculator/", {**answers(), "action": "quote"})
-        self.assertContains(response, "16240.00")
-        self.assertContains(response, "Ваш предварительный расчёт готов")
+            self.assertContains(response, "data-quick-calculator", count=1)
+            self.assertContains(response, 'name="calculator_schema" value="quick-v1"')
+            self.assertContains(response, 'name="object_type"')
+            self.assertContains(response, 'name="area_m2"')
+            self.assertContains(response, 'name="solution"')
+            self.assertNotContains(response, "data-configurator")
+            self.assertNotContains(response, "calculator/controller.js")
+            self.assertNotContains(response, "name=\"material\"")
+            self.assertNotContains(response, "₽")
+        response = self.client.post("/calculator/", {
+            "calculator_schema": "quick-v1", "object_type": "apartment", "area_m2": "20,5",
+            "solution": "consultation", "action": "quote",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["quick_show_result"])
+        self.assertTrue(response.context["quick_show_contact"])
+        self.assertContains(response, "Для предварительного расчёта уточним детали")
+        self.assertNotContains(response, "16240.00")
+        self.assertEqual(Lead.objects.count(), 0)
 
-    def test_bootstrap_preserves_server_quote_and_does_not_include_contact(self):
-        response = self.client.post('/calculator/', {**answers(), 'action': 'quote', 'contact': 'private@example.invalid'})
-        bootstrap = response.context['config_bootstrap']
-        self.assertTrue(bootstrap['bound'])
-        self.assertEqual(bootstrap['quote']['total'], '16240.00')
-        self.assertNotIn('private@example.invalid', str(bootstrap))
-        self.assertEqual(response.context['config_schema']['fields']['room_other']['max_length'], 100)
+    def test_quick_calculator_does_not_require_an_active_price_version(self):
+        PricingVersion.objects.update(active=False)
+        for url in ("/", "/calculator/"):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Получить предварительный расчёт")
+        self.assertFalse(PricingVersion.objects.filter(active=True).exists())
 
-    def test_bootstrap_keeps_invalid_bound_fields_and_errors(self):
-        response = self.client.post('/calculator/', {**answers(length=''), 'action': 'quote'})
-        bootstrap = response.context['config_bootstrap']
-        self.assertTrue(bootstrap['bound'])
-        self.assertIsNone(bootstrap['quote'])
-        self.assertIn('length', bootstrap['errors'])
-        self.assertEqual(response.context['config_form']['length'].value(), '')
+    def test_quick_calculator_keeps_invalid_bound_fields_and_shows_errors(self):
+        response = self.client.post('/calculator/', {
+            "calculator_schema": "quick-v1", "object_type": "apartment", "area_m2": "Infinity",
+            "solution": "classic", "action": "quote",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["quick_show_result"])
+        self.assertEqual(response.context["quick_form"]["area_m2"].value(), "Infinity")
+        self.assertIn("area_m2", response.context["quick_form"].errors)
+        self.assertContains(response, "Введите площадь числом")
 
     def test_live_price_sequence_and_replacement(self):
         data = {'schema': 'v2', 'preview': '1', 'size_mode': 'dimensions', 'shape': 'rectangle', 'length': '5', 'width': '4', 'material': 'pvc'}

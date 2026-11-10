@@ -9,7 +9,13 @@
       <a href="{% url 'services' %}" {% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service' %}aria-current="page"{% endif %}>Решения</a>
       <a href="{% url 'blog' %}" {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_article' %}aria-current="page"{% endif %}>Блог</a>
     </nav>
-    <a class="header-cta" href="{% url 'home' %}#contact"><span class="header-cta-long">Обсудить проект</span><span class="header-cta-short">Связаться</span><span aria-hidden="true">↗</span></a>
+    <div class="header-actions">
+      <a class="header-phone" href="{{ company.phone_href }}" data-goal="phone_click" aria-label="Позвонить: {{ company.phone }}">{{ company.phone }}</a>
+      <a class="header-cta" href="{% url 'home' %}#contact">
+        <span class="header-cta-long">Обсудить проект</span><span class="header-cta-short">Связаться</span>
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 12l8-8M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      </a>
+    </div>
     <details class="mobile-nav" data-header-mobile>
       <summary aria-label="Открыть меню"><span></span><span></span></summary>
       <nav aria-label="Мобильная навигация">
@@ -20,6 +26,7 @@
         <a href="{% url 'blog' %}" {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_article' %}aria-current="page"{% endif %}>Блог</a>
         <a href="{% url 'partners' %}" {% if request.resolver_match.url_name == 'partners' %}aria-current="page"{% endif %}>Сотрудничество</a>
         <a href="{% url 'contacts' %}" {% if request.resolver_match.url_name == 'contacts' %}aria-current="page"{% endif %}>Контакты</a>
+        <a href="{{ company.phone_href }}" data-goal="phone_click">Позвонить {{ company.phone }}</a>
       </nav>
     </details>
   </div>

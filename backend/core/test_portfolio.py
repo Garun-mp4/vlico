@@ -13,9 +13,9 @@ from core.models import Project, ProjectMedia, LoginBucket
 from core.portfolio import EDITOR_PERMISSIONS, add_images, prepared_image
 
 
-def jpeg(name="room.jpg"):
+def jpeg(name="room.jpg", size=(100, 80)):
     stream = BytesIO()
-    Image.new("RGB", (100, 80), "white").save(stream, "JPEG")
+    Image.new("RGB", size, "white").save(stream, "JPEG")
     return SimpleUploadedFile(name, stream.getvalue(), content_type="image/jpeg")
 
 
@@ -144,6 +144,30 @@ class PortfolioTests(TestCase):
             with Image.open(field.path) as image:
                 self.assertEqual(image.format, "WEBP")
                 self.assertFalse(image.getexif())
+
+    def test_responsive_srcset_uses_actual_thumbnail_and_full_widths(self):
+        portrait, landscape = add_images(
+            self.project.pk,
+            [jpeg("portrait.jpg", (720, 1280)), jpeg("landscape.jpg", (1280, 960))],
+            "result",
+        )
+        self.assertEqual(portrait.thumbnail_width, 360)
+        self.assertEqual(landscape.thumbnail_width, 640)
+        with Image.open(portrait.thumbnail.path) as thumbnail:
+            self.assertEqual(thumbnail.width, portrait.thumbnail_width)
+
+        self.project.status = Project.Status.PUBLISHED
+        self.project.save()
+        home = self.client.get("/")
+        portrait_srcset = (
+            f'{reverse("project_image", args=[portrait.pk, "thumb"])} 360w, '
+            f'{reverse("project_image", args=[portrait.pk, "full"])} 720w'
+        )
+        self.assertContains(home, f'srcset="{portrait_srcset}"')
+        self.assertContains(home, 'sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, 46vw"')
+        detail = self.client.get(reverse("project", args=[self.project.slug]))
+        self.assertContains(detail, f'srcset="{portrait_srcset}"')
+        self.assertContains(detail, reverse("project_image", args=[portrait.pk, "full"]))
 
     def test_rejects_invalid_images_and_whole_batch(self):
         invalid = SimpleUploadedFile("fake.jpg", b"<script>alert(1)</script>", content_type="image/jpeg")

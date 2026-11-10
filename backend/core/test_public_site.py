@@ -38,6 +38,33 @@ class PublicSiteTests(TestCase):
         self.assertContains(self.client.get('/contacts/'), 'Клубная улица, 11Б')
         self.assertContains(self.client.get('/partners/'), '/request/partner/')
 
+    def test_partner_content_home_entry_and_primary_project_action(self):
+        home = self.client.get('/')
+        self.assertContains(home, 'class="partners-home-entry page-gutter"')
+        self.assertContains(home, 'Дизайнерам и архитекторам')
+        self.assertContains(home, 'class="home-hero-primary"')
+        self.assertContains(home, '>Обсудить проект <span')
+        self.assertNotContains(home, 'Дизайнерам и строителям')
+        self.assertContains(home, 'href="/partners/"')
+
+        response = self.client.get('/partners/')
+        self.assertContains(response, 'Партнёрство, в котором продумана каждая деталь')
+        self.assertContains(response, 'Сотрудничаем с дизайнерами, архитекторами и строительными компаниями. Берём на себя реализацию потолочных систем и интеграцию архитектурного освещения — от технической проработки до монтажа.')
+        benefits = (
+            '17 лет опыта в потолочных системах.',
+            'Реализация сложных дизайнерских проектов.',
+            'Техническая поддержка и согласование решений.',
+            'Детальные сметы и согласованные сроки.',
+        )
+        markup = response.content.decode()
+        positions = [markup.index(item) for item in benefits]
+        self.assertEqual(positions, sorted(positions))
+        steps = ('Техническая проработка', 'Согласование решений', 'Реализация проекта')
+        positions = [markup.index(item) for item in steps]
+        self.assertEqual(positions, sorted(positions))
+        self.assertContains(response, 'href="/request/partner/"')
+        self.assertContains(response, 'Обсудить сотрудничество')
+
     def test_only_explicitly_linked_published_projects_appear_on_services(self):
         service = Service.objects.get(slug='shadow')
         public = Project.objects.create(title='Подтверждённая работа', slug='linked-public', status='published')
@@ -83,7 +110,11 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, 'href="https://vlico39.ru/services/shadow/"')
         self.assertNotContains(response, 'X-Robots-Tag')
         self.assertNotIn('X-Robots-Tag', response)
+        partner_page = self.client.get('/partners/')
+        self.assertContains(partner_page, 'content="index,follow"')
+        self.assertContains(partner_page, 'href="https://vlico39.ru/partners/"')
         sitemap = self.client.get('/sitemap.xml').content.decode()
+        self.assertIn('https://vlico39.ru/partners/', sitemap)
         self.assertIn('https://vlico39.ru' + project.get_absolute_url(), sitemap)
         for item in SERVICES:
             self.assertIn('https://vlico39.ru/services/' + item['slug'] + '/', sitemap)
@@ -123,6 +154,24 @@ class PublicSiteTests(TestCase):
         self.assertNotContains(privacy, "SMTP Mail.ru")
         self.assertContains(self.client.get("/consent/"), "partners@vlico39.ru")
 
+    @override_settings(
+        EMAIL_HOST="smtp.spaceweb.ru",
+        LEAD_NOTIFICATION_EMAIL="inbox@example.test",
+        PARTNER_NOTIFICATION_EMAIL="partner@example.test",
+    )
+    def test_partner_notification_recipient_is_disclosed_separately(self):
+        privacy = self.client.get("/privacy/")
+        consent = self.client.get("/consent/")
+        self.assertContains(privacy, 'href="mailto:inbox@example.test"')
+        self.assertContains(privacy, 'href="mailto:partner@example.test"')
+        self.assertContains(consent, "обычные обращения направляются на inbox@example.test")
+        self.assertContains(consent, "партнёрские — на partner@example.test")
+
+    @override_settings(PARTNER_NOTIFICATION_EMAIL="")
+    def test_missing_partner_notification_route_is_disclosed_without_general_fallback(self):
+        privacy = self.client.get("/privacy/")
+        self.assertContains(privacy, "при его отсутствии общий адрес не используется и письмо не направляется")
+
     def test_success_records_exact_consent_and_rejects_stale_or_missing_acceptance(self):
         for changes in ({'legal_version': 'old'}, {'legal_version': ''}, {'consent': ''}):
             response = self.client.post('/api/leads/', payload(**changes))
@@ -134,6 +183,7 @@ class PublicSiteTests(TestCase):
         self.assertEqual(record['version'], settings.LEGAL_VERSION)
         self.assertEqual(record['sha256'], sha256(record['text'].encode()).hexdigest())
         self.assertIn('Telegram Bot API', record['text'])
+        self.assertIn('приложенного файла проекта', record['text'])
 
     def test_local_analytics_disabled_even_if_switch_enabled(self):
         with override_settings(APP_ENV='local', ANALYTICS_ENABLED=True):

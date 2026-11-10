@@ -3,11 +3,11 @@
 <html lang="ru" class="js">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f2f1e9" />
     {% include 'site/seo.html' %}
     <link rel="icon" href="{% static 'assets/vlico-logo.svg' %}" type="image/svg+xml" />
-    <link rel="preload" as="image" href="{% static 'assets/hero-vlico-client.webp' %}" fetchpriority="high" />
+    <link rel="preload" as="image" href="{% static 'home-hero/room-960.webp' %}" imagesrcset="{% static 'home-hero/room-640.webp' %} 640w, {% static 'home-hero/room-960.webp' %} 960w, {% static 'home-hero/room-1440.webp' %} 1440w" imagesizes="(max-width: 760px) 100vw, (max-width: 1199px) 42vw, 48vw" fetchpriority="high" />
     <link rel="preload" as="font" href="{% static 'assets/fonts/ibm-plex-mono-cyrillic-400.woff2' %}" type="font/woff2" crossorigin />
     <link rel="preload" as="font" href="{% static 'assets/fonts/ibm-plex-mono-latin-400.woff2' %}" type="font/woff2" crossorigin />
     <script>
@@ -24,20 +24,22 @@
     </script>
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
     <link rel="stylesheet" href="{% static 'portfolio.css' %}" />
-    <link rel="stylesheet" href="{% static 'configurator.css' %}" />
-    <script type="module" src="{% static 'calculator/controller.js' %}"></script>
     <link rel="stylesheet" href="{% static 'leads.css' %}" />
+    <link rel="stylesheet" href="{% static 'quick-calculator.css' %}" />
+    <script defer src="{% static 'quick-calculator.js' %}"></script>
     <script defer src="{% static 'leads.js' %}"></script>
     <script defer src="{% static 'home-context.js' %}"></script>
     <script defer src="{% static 'project-carousel.js' %}"></script>
     <script defer src="{% static 'main.js' %}"></script>
     <link rel="stylesheet" href="{% static 'site.css' %}">
     <link rel="stylesheet" href="{% static 'header.css' %}">
+    <link rel="stylesheet" href="{% static 'home-hero.css' %}">
     <script defer src="{% static 'header.js' %}"></script>
     <script defer src="{% static 'site.js' %}"></script>
+    <script defer src="{% static 'home-hero.js' %}"></script>
     <script src="{% static 'solutions-preview.js' %}" defer></script>
   </head>
-  <body>
+  <body class="home-page">
     <a class="skip-link" href="#main">Перейти к содержимому</a>
 
     <div class="loader" aria-hidden="true">
@@ -73,46 +75,131 @@
       <span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
 
-    {% include 'site/header.html' with header_over_hero=True %}
+    {% include 'site/header.html' %}
 
     <main id="main">
-      <section class="hero" id="top" aria-labelledby="hero-title">
-        <div class="hero-image-frame image-frame image-frame-dark" data-image-frame>
-          <img class="hero-image" src="{% static 'assets/hero-vlico-client.webp' %}" alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
-          <div class="image-reveal-cover" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-        </div>
-        <div class="hero-shade" aria-hidden="true"></div>
-        <div class="hero-grain" aria-hidden="true"></div>
+      <section class="home-hero" id="top" aria-labelledby="hero-title">
+        <div class="home-hero-layout page-gutter" data-hero-layout>
+          <div class="home-hero-editorial" data-hero-intro>
+            <button class="home-hero-overview" type="button" aria-label="Потолки и свет: обзор" aria-controls="home-hero-intro-copy">
+              <span class="home-solution-meta">VLICO</span>
+              <span class="home-solution-title">Потолки и свет</span>
+              <span class="home-solution-toggle" aria-hidden="true">↗</span>
+            </button>
+            <figure class="home-hero-visual">
+              <img class="home-hero-image" src="{% static 'home-hero/room-960.webp' %}" srcset="{% static 'home-hero/room-640.webp' %} 640w, {% static 'home-hero/room-960.webp' %} 960w, {% static 'home-hero/room-1440.webp' %} 1440w" sizes="(max-width: 760px) 100vw, (max-width: 1199px) 42vw, 48vw" alt="Гостиная с потолочным треком и контурным светом, визуализация" width="1440" height="960" fetchpriority="high" decoding="async" />
+            </figure>
 
-        <div class="hero-content page-gutter">
-          <p class="hero-kicker reveal">НАТЯЖНЫЕ ПОТОЛКИ · КАЛИНИНГРАД И ОБЛАСТЬ</p>
-          <a class="hero-wordmark" href="#special-offer" aria-label="VLICO — специальное предложение"><span aria-hidden="true"><span class="hero-letter" data-letter="V">V</span><span class="hero-letter" data-letter="L">L</span><span class="hero-letter" data-letter="I">I</span><span class="hero-letter" data-letter="C">C</span><span class="hero-letter" data-letter="O">O</span></span></a>
-
-          <div class="hero-bottom">
-            <div class="hero-offer reveal">
-              <h1 id="hero-title">Потолки и свет, продуманные вместе.</h1>
-              <p>Подберём систему под интерьер и спланируем освещение. Стоимость рассчитаем после замера, сроки согласуем до монтажа. Замер в Калининграде бесплатный.</p>
-              <div class="hero-actions">
-                <a class="text-link text-link-light" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
-                <a class="text-link text-link-light" href="#calculator">Рассчитать стоимость <span aria-hidden="true">↓</span></a>
-                <a class="text-link text-link-light" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
-                <a class="text-link text-link-light" href="#special-offer">Специальные предложения <span aria-hidden="true">↓</span></a>
+            <div class="home-hero-copy" id="home-hero-intro-copy">
+              <p class="eyebrow home-hero-kicker">НАТЯЖНЫЕ ПОТОЛКИ В КАЛИНИНГРАДЕ И ОБЛАСТИ</p>
+              <h1 class="display-heading" id="hero-title">Потолки и свет, продуманные вместе.</h1>
+              <p class="home-hero-description">Подберём потолок и свет под интерьер. Смету и сроки согласуем до монтажа.</p>
+              <p class="home-hero-proof">17 лет опыта · Сложные дизайнерские решения · Детальная смета</p>
+              <div class="home-hero-actions">
+                <a class="home-hero-primary" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+                <div class="home-hero-secondary-actions">
+                  <a class="home-hero-secondary" href="#calculator">Рассчитать стоимость <span aria-hidden="true">↓</span></a>
+                  <a class="home-hero-secondary" href="{% url 'request_form' 'measurement' %}">Заказать замер <span aria-hidden="true">↗</span></a>
+                  <a class="home-hero-secondary" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
+                </div>
               </div>
-            </div>
-
-            <div class="hero-side reveal">
-              <p class="hero-side-label">УСЛОВИЯ ПРОЕКТА</p>
-              <dl>
-                <div><dt>Стоимость</dt><dd>Детальная смета без скрытых доплат</dd></div>
-                <div><dt>Сроки</dt><dd>Согласовываем до начала монтажа</dd></div>
-                <div><dt>География</dt><dd>Калининград и область</dd></div>
-                <div><dt>Решения</dt><dd>Потолочные системы и профессиональное освещение</dd></div>
-              </dl>
-              {% include 'site/yandex-rating.html' %}<div class="hero-offer-note">Подбор освещения под ваш интерьер — в подарок</div><p class="hero-note">Вы заранее знаете состав работ, стоимость и график.</p>
+              <nav class="home-hero-contact" aria-label="Связаться с VLICO">
+                <a href="{{ company.phone_href }}" data-goal="phone_click">Позвонить <span>{{ company.phone }}</span></a>
+                <a href="{{ company.telegram }}" target="_blank" rel="noopener noreferrer" data-goal="telegram_click">Telegram <span aria-hidden="true">↗</span></a>
+                <a href="{{ company.whatsapp }}" target="_blank" rel="noopener noreferrer" data-goal="whatsapp_click">WhatsApp <span aria-hidden="true">↗</span></a>
+              </nav>
             </div>
           </div>
 
-          <a class="scroll-cue" href="#about" aria-label="Листать вниз"><span>ЛИСТАТЬ</span><i aria-hidden="true">↓</i></a>
+          {% include 'site/privacy-controls.html' %}
+          <aside class="home-hero-directions" aria-labelledby="home-hero-directions-title">
+            <h2 class="home-hero-directions-title" id="home-hero-directions-title">Решения и предложение</h2>
+            <div class="home-solution-grid" data-home-solutions>
+              <details class="home-solution-card" data-home-solution>
+                <summary aria-label="Подбор освещения в подарок" aria-controls="home-solution-offer">
+                  <span class="home-solution-image"><img src="{% static 'home-hero/offer-scene.webp' %}" alt="" width="640" height="360" decoding="async" /></span>
+                  <span class="home-solution-content">
+                    <span class="home-solution-meta">ПРЕДЛОЖЕНИЕ</span>
+                    <span class="home-solution-title">Подбор освещения в подарок</span>
+                    <span class="home-solution-summary">Подберём свет под ваш интерьер.</span>
+                    <span class="home-solution-toggle" aria-hidden="true"><span>↗</span></span>
+                  </span>
+                </summary>
+                <div class="home-solution-detail" id="home-solution-offer" data-home-solution-panel>
+                  <div class="home-solution-expanded">
+                    <p class="eyebrow home-hero-kicker">Специальное предложение</p>
+                    <h3 class="display-heading">Подбор освещения в подарок</h3>
+                    <p class="home-hero-description">Обсудим ваш интерьер и подберём сценарии освещения, которые дополнят потолок и подойдут каждой комнате.</p>
+                  </div>
+                  <p class="home-solution-compact-detail">Подбор освещения под ваш интерьер — в подарок.</p>
+                  <a href="#special-offer">Узнать о предложении <span aria-hidden="true">↗</span></a>
+                </div>
+              </details>
+
+              <details class="home-solution-card" data-home-solution>
+                <summary aria-label="Световые линии" aria-controls="home-solution-lines">
+                  <span class="home-solution-image"><img src="{% static 'home-hero/lines-scene.webp' %}" alt="" width="640" height="480" decoding="async" /></span>
+                  <span class="home-solution-content">
+                    <span class="home-solution-meta">СВЕТ</span>
+                    <span class="home-solution-title">Световые линии</span>
+                    <span class="home-solution-summary">Геометрия и сценарии света в потолке.</span>
+                    <span class="home-solution-toggle" aria-hidden="true"><span>↗</span></span>
+                  </span>
+                </summary>
+                <div class="home-solution-detail" id="home-solution-lines" data-home-solution-panel>
+                  <div class="home-solution-expanded">
+                    <p class="eyebrow home-hero-kicker">Архитектурное освещение</p>
+                    <h3 class="display-heading">Световые линии</h3>
+                    <p class="home-hero-description">Встраиваем свет в плоскость потолка. Положение линий, их длину и стыки согласуем с планировкой и задачами помещения.</p>
+                  </div>
+                  <p class="home-solution-compact-detail">Расположение, длины и стыки согласуем до начала монтажа.</p>
+                  <a href="{% url 'service' 'light-lines' %}">Смотреть световые линии <span aria-hidden="true">↗</span></a>
+                </div>
+              </details>
+
+              <details class="home-solution-card" data-home-solution>
+                <summary aria-label="Магнитные треки" aria-controls="home-solution-tracks">
+                  <span class="home-solution-image"><img src="{% static 'home-hero/tracks-scene.webp' %}" alt="" width="640" height="480" decoding="async" /></span>
+                  <span class="home-solution-content">
+                    <span class="home-solution-meta">СВЕТ</span>
+                    <span class="home-solution-title">Магнитные треки</span>
+                    <span class="home-solution-summary">Гибкая конфигурация света для комнаты.</span>
+                    <span class="home-solution-toggle" aria-hidden="true"><span>↗</span></span>
+                  </span>
+                </summary>
+                <div class="home-solution-detail" id="home-solution-tracks" data-home-solution-panel>
+                  <div class="home-solution-expanded">
+                    <p class="eyebrow home-hero-kicker">Архитектурное освещение</p>
+                    <h3 class="display-heading">Магнитные треки</h3>
+                    <p class="home-hero-description">Одна система для общего и акцентного света. Подбираем трек, светильники и питание, чтобы их можно было собрать в согласованную систему.</p>
+                  </div>
+                  <p class="home-solution-compact-detail">Проверим совместимость трека, модулей и питания по выбранной системе.</p>
+                  <a href="{% url 'service' 'tracks' %}">Смотреть магнитные треки <span aria-hidden="true">↗</span></a>
+                </div>
+              </details>
+
+              <details class="home-solution-card" data-home-solution>
+                <summary aria-label="Парящие потолки" aria-controls="home-solution-floating">
+                  <span class="home-solution-image"><img src="{% static 'home-hero/floating-640.webp' %}" alt="" width="640" height="480" decoding="async" /></span>
+                  <span class="home-solution-content">
+                    <span class="home-solution-meta">ПОТОЛКИ</span>
+                    <span class="home-solution-title">Парящие потолки</span>
+                    <span class="home-solution-summary">Мягкий световой контур по периметру.</span>
+                    <span class="home-solution-toggle" aria-hidden="true"><span>↗</span></span>
+                  </span>
+                </summary>
+                <div class="home-solution-detail" id="home-solution-floating" data-home-solution-panel>
+                  <div class="home-solution-expanded">
+                    <p class="eyebrow home-hero-kicker">Потолочные системы</p>
+                    <h3 class="display-heading">Парящие потолки</h3>
+                    <p class="home-hero-description">Мягкий свет по периметру подчёркивает геометрию помещения и визуально отделяет потолок от стен.</p>
+                  </div>
+                  <p class="home-solution-compact-detail">Подсвеченное примыкание визуально отделяет потолок от стен.</p>
+                  <a href="{% url 'service' 'floating' %}">Смотреть парящие потолки <span aria-hidden="true">↗</span></a>
+                </div>
+              </details>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -120,26 +207,31 @@
 
       <section class="about section-dark" id="about" aria-labelledby="about-title">
         <div class="about-grid page-gutter">
-          <figure class="about-image">
-            <div class="about-image-frame image-frame image-frame-dark" data-image-frame>
-              <img src="{% static 'assets/about-lighting-editorial.webp' %}" srcset="{% static 'assets/about-lighting-editorial-648.webp' %} 648w, {% static 'assets/about-lighting-editorial.webp' %} 1086w" sizes="(max-width: 640px) calc(85vw - 34px), 32vw" alt="Визуализация потолка со световым контуром и деревянной реечной стеной" width="1086" height="1448" loading="lazy" decoding="async" />
-              <div class="image-reveal-cover" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-            </div>
-            <figcaption class="reveal">СВЕТ КАК ЧАСТЬ ПОТОЛКА · ВИЗУАЛИЗАЦИЯ</figcaption>
-          </figure>
-
           <div class="about-copy">
             <p class="eyebrow reveal">ПОДХОД VLICO</p>
-            <h2 class="display-heading reveal" id="about-title">ХОРОШИЙ СВЕТ НАЧИНАЕТСЯ С ПЛАНА ПОТОЛКА.</h2>
+            <h2 class="display-heading reveal" id="about-title">Хороший свет начинается с плана потолка</h2>
             <div class="about-text reveal">
-              <p>17 лет опыта в проектах с премиальными потолочными системами, архитектурным освещением и сложными дизайнерскими решениями. Сначала разбираемся в помещении и сценариях освещения. Затем согласуем профили, светильники, треки и карнизы, чтобы все элементы точно встретились при монтаже.</p>
-            <p>Потолок, освещение, карнизы и оборудование собираются в одну согласованную систему.</p>
+              <p>17 лет работаем с премиальными потолочными системами и архитектурным освещением. Прорабатываем сложные дизайнерские проекты, чтобы потолок и свет образовали единую систему.</p>
             </div>
             <a class="text-link text-link-light about-link reveal" href="{% url 'projects' %}">Смотреть все проекты <span aria-hidden="true">↗</span></a>
-            <div class="about-projects reveal" aria-label="Фотографии опубликованных проектов VLICO">
-              {% for project in homepage_projects|slice:'0:3' %}{% with cover=project.cover_media %}{% if cover %}<a class="about-project-thumb" href="{% url 'project' project.slug %}"><img src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy" decoding="async"><span>{{ project.title }}</span></a>{% endif %}{% endwith %}{% endfor %}
-            </div>
           </div>
+
+          <figure class="about-founder">
+            <div class="about-image-frame image-frame image-frame-dark" data-image-frame>
+              <img class="about-founder-photo" src="{% static 'assets/vladlen-gizerskiy-portrait-960.webp' %}" srcset="{% static 'assets/vladlen-gizerskiy-portrait-640.webp' %} 640w, {% static 'assets/vladlen-gizerskiy-portrait-960.webp' %} 960w" sizes="(max-width: 640px) min(100vw - 40px, 440px), (max-width: 850px) 38vw, 34vw" alt="Портрет Владлена Гизерского, основателя и руководителя VLICO" width="960" height="1280" loading="lazy" decoding="async" />
+              <div class="image-reveal-cover" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <figcaption class="about-founder-caption reveal">
+              <span class="about-founder-name">Владлен Гизерский</span>
+              <span class="about-founder-role">— основатель и руководитель VLICO</span>
+            </figcaption>
+            {% if founder_message %}<blockquote class="about-founder-message reveal">{{ founder_message|linebreaksbr }}</blockquote>{% endif %}
+            {# Редакторский слот: ожидается текст обращения основателя. Выводить founder_message только после согласования текста Владленом; не публиковать эту пометку и не придумывать цитату. #}
+          </figure>
+        </div>
+
+        <div class="about-projects page-gutter reveal" aria-label="Фотографии опубликованных проектов VLICO">
+          {% for project in about_projects %}{% with cover=project.cover_media %}{% if cover %}<a class="about-project-thumb" href="{% url 'project' project.slug %}"><img src="{% url 'project_image' cover.pk 'thumb' %}" width="{{ cover.width }}" height="{{ cover.height }}" alt="{{ cover.alt }}" loading="lazy" decoding="async"><span>{{ project.title }}</span></a>{% endif %}{% endwith %}{% endfor %}
         </div>
       </section>
 
@@ -175,7 +267,7 @@
       {% include 'site/reviews.html' %}
 
       <section class="projects section-light" id="projects" aria-labelledby="projects-title">
-        <div class="home-project-heading"><h2 id="projects-title">Потолки в реальных интерьерах.</h2><p>Частные пространства и коммерческие объекты. Подробности решений, фотографии результата и процесса монтажа.</p></div>
+        <div class="home-project-heading"><div><h2 id="projects-title">Потолки в реальных интерьерах.</h2><p>Частные пространства и коммерческие объекты. Фотографии результата и детали монтажа.</p></div>{% if homepage_projects %}<a class="text-link" href="{% url 'projects' %}">В каталог проектов ↗</a>{% endif %}</div>
         <div class="portfolio-grid home-project-grid">{% for project in homepage_projects %}{% include 'site/project-card.html' with card_gallery=True compact_card=True %}{% empty %}<div class="portfolio-empty"><p>Готовим подробные истории выполненных работ. Обсудим решение для вашего помещения.</p><a class="text-link" href="#contact">Обсудить проект</a></div>{% endfor %}</div>
         {% if homepage_projects %}<div class="home-project-footer"><a class="home-project-more" href="{% url 'projects' %}">Смотреть все проекты <span aria-hidden="true">↗</span></a></div>{% endif %}
       </section>
@@ -192,6 +284,14 @@
             {% for item in service_pages %}<a class="solution-row reveal" href="{% url 'service' item.slug %}" data-service-preview="{% static item.preview %}" data-preview-illustration="{{ item.illustration|yesno:'true,false' }}"><span class="solution-index">0{{ forloop.counter }}</span><span class="solution-name">{{ item.title }}</span><span class="solution-detail">Подробнее о решении</span><span class="solution-arrow" aria-hidden="true">↗</span></a>{% endfor %}
           </div>
         </div>
+      </section>
+
+      <section class="partners-home-entry page-gutter" aria-labelledby="partners-home-title">
+        <div>
+          <h2 id="partners-home-title">Сотрудничество по проекту</h2>
+          <p>Для дизайнеров, архитекторов и строительных компаний.</p>
+        </div>
+        <a href="{% url 'partners' %}">Дизайнерам и архитекторам <span aria-hidden="true">↗</span></a>
       </section>
 
       {% include 'site/calculator-section.html' %}
@@ -223,7 +323,7 @@
             <p class="eyebrow">СВЯЗАТЬСЯ</p>
             <h2 class="display-heading" id="contact-title">ОБСУДИМ ПОТОЛОК И СВЕТ В ВАШЕМ ПОМЕЩЕНИИ.</h2>
             <p>Расскажите, что за помещение и каким вы хотите видеть свет. Подскажем, с чего начать расчёт.</p>
-            <div class="contact-details"><a href="{{ company.phone_href }}" data-goal="phone_click">{{ company.phone }}</a><div><a href="{{ company.telegram }}" target="_blank" rel="noopener" data-goal="telegram_click">Telegram ↗</a> · <a href="{{ company.whatsapp }}" target="_blank" rel="noopener" data-goal="whatsapp_click">WhatsApp ↗</a></div><a href="{% url 'contacts' %}">Адрес и все контакты ↗</a><a href="{% url 'partners' %}">Дизайнерам и строителям ↗</a></div><div class="contact-options"><a class="text-link" href="{% url 'home' %}#calculator">Рассчитать стоимость ↗</a><a class="text-link" href="{% url 'request_form' 'measurement' %}">Записаться на замер ↗</a><a class="text-link" href="{% url 'request_form' 'project' %}">Обсудить проект ↗</a></div>
+            <div class="contact-details"><a href="{{ company.phone_href }}" data-goal="phone_click">{{ company.phone }}</a><div><a href="{{ company.telegram }}" target="_blank" rel="noopener" data-goal="telegram_click">Telegram ↗</a> · <a href="{{ company.whatsapp }}" target="_blank" rel="noopener" data-goal="whatsapp_click">WhatsApp ↗</a></div><a href="{% url 'contacts' %}">Адрес и все контакты ↗</a><a href="{% url 'partners' %}">Дизайнерам и архитекторам ↗</a></div><div class="contact-options"><a class="text-link" href="{% url 'home' %}#calculator">Рассчитать стоимость ↗</a><a class="text-link" href="{% url 'request_form' 'measurement' %}">Записаться на замер ↗</a><a class="text-link" href="{% url 'request_form' 'project' %}">Обсудить проект ↗</a></div>
           </div>
 
           <form class="contact-form lead-form reveal" id="contact-form" method="post" action="{% url 'request_form' 'consultation' %}" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
@@ -235,6 +335,8 @@
         </div>
       </section>
     </main>
+
+    <a class="home-sticky-cta" data-home-sticky-cta href="#contact" hidden>Обсудить проект <span aria-hidden="true">↗</span></a>
 
     <footer class="site-footer section-light">
       <div class="footer-top page-gutter">
@@ -260,6 +362,5 @@
       </div>
       {% include 'site/public-links.html' %}
     </footer>
-    {% include 'site/privacy-controls.html' %}
   </body>
 </html>

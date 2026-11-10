@@ -50,14 +50,24 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [Path(os.environ.get("STATIC_SOURCE_ROOT", "/app/public")), BASE_DIR / "static"]
+static_source_root = os.environ.get("STATIC_SOURCE_ROOT")
+if static_source_root:
+    static_source_root = Path(static_source_root)
+else:
+    static_source_root = BASE_DIR / "public"
+    shared_wireframe_root = BASE_DIR.parent / "wireframe"
+    if not (static_source_root / "styles.css").is_file() and (shared_wireframe_root / "styles.css").is_file():
+        static_source_root = shared_wireframe_root
+STATICFILES_DIRS = [static_source_root, BASE_DIR / "static"]
 STORAGES = {"default": {"BACKEND": "core.storage.PublicMediaStorage"},
             "staticfiles": {"BACKEND": "core.static_storage.ModuleStaticFilesStorage"}}
 MEDIA_ROOT = Path(os.environ.get("PUBLIC_MEDIA_ROOT", "/data/public"))
 MEDIA_URL = "/media/"
 PRIVATE_MEDIA_ROOT = Path(os.environ.get("PRIVATE_MEDIA_ROOT", "/data/private"))
 FILE_UPLOAD_PERMISSIONS = 0o640
-DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+LEAD_MAX_REQUEST_SIZE = 6 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = LEAD_MAX_REQUEST_SIZE
+DATA_UPLOAD_MAX_NUMBER_FILES = 1
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SESSION_COOKIE_HTTPONLY = True
@@ -84,6 +94,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_DELIVERY_ENABLED = os.environ.get("TELEGRAM_DELIVERY_ENABLED", "false").lower() == "true"
 EMAIL_DELIVERY_ENABLED = os.environ.get("EMAIL_DELIVERY_ENABLED", "false").lower() == "true"
 LEAD_NOTIFICATION_EMAIL = os.environ.get("LEAD_NOTIFICATION_EMAIL") or "vlico_39@mail.ru"
+PARTNER_NOTIFICATION_EMAIL = os.environ.get("PARTNER_NOTIFICATION_EMAIL", "").strip()
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.mail.ru")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "465"))
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "true").lower() == "true"

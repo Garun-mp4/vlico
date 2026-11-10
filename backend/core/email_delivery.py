@@ -13,6 +13,7 @@ from django.utils import timezone
 from .lead_forms import KINDS
 from .models import Delivery
 from .telegram_delivery import DeliveryError, MAX_ATTEMPTS, claim_delivery
+from .quick_calculator import QUICK_CALCULATOR_SCHEMA, quick_input_rows
 
 
 def email_body(lead):
@@ -26,21 +27,29 @@ def email_body(lead):
     ]
     for label, value in (
         ("Услуга", lead.context.get("service_title")),
+        ("Компания", lead.context.get("company")),
         ("Интерес", lead.context.get("interest")),
         ("Проект", lead.context.get("project_title")),
         ("Комментарий", lead.comment),
     ):
         if value:
             lines.append(f"{label}: {value}")
+    attachment_count = lead.attachments.count()
+    if attachment_count:
+        lines.append(f"Файлы проекта: {attachment_count} · скачивание в кабинете")
     if lead.calculation:
         quote = lead.calculation
-        total = quote.get("total")
-        lines.extend(["", f"Расчёт: {total} ₽" if total is not None else "Расчёт: требуется уточнение"])
-        for item in quote.get("items", []):
-            lines.append(f"{item['title']}: {item['quantity']} {item['unit']} × {item['unit_price']} ₽ = {item['total']} ₽")
-        lines.extend(quote.get("warnings", []))
-        if quote.get("exclusions"):
-            lines.append(quote["exclusions"])
+        if quote.get("schema") == QUICK_CALCULATOR_SCHEMA:
+            lines.extend(["", "Для предварительного расчёта уточним детали."])
+            lines.extend(f"{label}: {value}" for label, value in quick_input_rows(quote.get("inputs", {})))
+        else:
+            total = quote.get("total")
+            lines.extend(["", f"Расчёт: {total} ₽" if total is not None else "Расчёт: требуется уточнение"])
+            for item in quote.get("items", []):
+                lines.append(f"{item['title']}: {item['quantity']} {item['unit']} × {item['unit_price']} ₽ = {item['total']} ₽")
+            lines.extend(quote.get("warnings", []))
+            if quote.get("exclusions"):
+                lines.append(quote["exclusions"])
     lines.extend([
         "",
         f"Страница: {lead.source_page}",
@@ -68,7 +77,16 @@ def deliver_email_one():
     item = claim_delivery("email")
     if not item:
         return False
-    if not settings.LEAD_NOTIFICATION_EMAIL or not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD or not settings.DEFAULT_FROM_EMAIL:
+    recipient = settings.PARTNER_NOTIFICATION_EMAIL if item.lead.kind == "partner" else settings.LEAD_NOTIFICATION_EMAIL
+    if item.lead.kind == "partner" and not recipient:
+        _mark_failure(item, "email_partner_not_configured")
+        return True
+    try:
+        validate_email(recipient or "")
+    except ValidationError:
+        _mark_failure(item, "email_partner_recipient_invalid" if item.lead.kind == "partner" else "email_recipient_invalid")
+        return True
+    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD or not settings.DEFAULT_FROM_EMAIL:
         _mark_failure(item, "email_not_configured")
         return True
 
@@ -85,7 +103,7 @@ def deliver_email_one():
         subject=f"VLICO — {dict(KINDS).get(item.lead.kind, item.lead.kind)}",
         body=email_body(item.lead),
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[settings.LEAD_NOTIFICATION_EMAIL],
+        to=[recipient],
         reply_to=reply_to,
         headers={"Message-ID": message_id},
     )

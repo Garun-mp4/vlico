@@ -1,40 +1,34 @@
 async page => {
-  const errors=[]; page.on('pageerror', e => errors.push(e.message));
-  await page.setViewportSize({width:1440,height:1000});
-  await page.goto('http://127.0.0.1:8000/#calculator'); await page.reload();
-  const root=page.locator('[data-configurator]');
-  await root.locator('[data-config-reset]').click();
-  await page.locator('#calculator').screenshot({style:'.site-header,.skip-link{visibility:hidden!important}',path:'docs/calculator-redesign/screenshots/after-desktop-start.png'});
-  await root.getByRole('radio',{name:'Гостиная',exact:true}).check();
-  await root.locator('[data-config-next]').click();
-  await root.locator('#config-ui-length').fill('5');await root.locator('#config-ui-width').fill('4');
-  await root.locator('[data-config-next]').click();
-  await root.getByRole('radio',{name:'Матовый ПВХ',exact:true}).check();
-  await page.locator('#calculator').screenshot({style:'.site-header,.skip-link{visibility:hidden!important}',path:'docs/calculator-redesign/screenshots/after-desktop-material.png'});
-  await root.locator('[data-config-next]').click();
-  await root.getByRole('radio',{name:'Теневое примыкание',exact:true}).check();await root.locator('[data-config-next]').click();
-  await root.getByRole('checkbox',{name:'Точечные светильники',exact:true}).check();await root.locator('#config-ui-spots').fill('6');
-  await root.getByRole('checkbox',{name:'Световые линии',exact:true}).check();await root.locator('#config-ui-light_lines').fill('3');
-  await root.getByRole('checkbox',{name:'Магнитные треки',exact:true}).check();await root.locator('#config-ui-tracks').fill('2');
-  await root.locator('[data-config-next]').click();await root.getByRole('radio',{name:'Скрытый карниз / ниша',exact:true}).check();await root.locator('#config-ui-cornices').fill('3');
-  await root.locator('[data-config-next]').click();await root.getByRole('checkbox',{name:'Ничего из перечисленного',exact:true}).check();
-  await root.locator('[data-config-next]').click();await root.getByRole('radio',{name:'Калининград',exact:true}).check();
-  await root.locator('[data-config-next]').click();await root.locator('[data-config-result]').waitFor({state:'visible'});
-  const total=await root.locator('.quote-total').innerText();if(!/50\s*900/.test(total))throw Error('Wrong total '+total);
-  await page.locator('#calculator').screenshot({style:'.site-header,.skip-link{visibility:hidden!important}',path:'docs/calculator-redesign/screenshots/after-desktop-result.png'});
-  await root.locator('[data-config-contact]').click();
-  const ids=await page.locator('[id]').evaluateAll(nodes=>nodes.map(n=>n.id).filter((v,i,a)=>a.indexOf(v)!==i));if(ids.length)throw Error('Duplicate IDs '+ids);
-  await root.locator('[data-config-edit]').click();
-  await root.locator('[data-config-next]').click();
-  if(await root.locator('#config-ui-length').inputValue()!=='5')throw Error('Back lost dimensions');
-  const widths=[];
-  for(const width of [1440,1280,1024,768,390,320]){
-    await page.setViewportSize({width,height:900});
-    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);widths.push({width,overflow});
-    if(overflow)throw Error('Overflow at '+width);
+  const check = (condition, message) => { if (!condition) throw new Error(message); };
+  const origin = /^https?:/.test(page.url()) ? new URL('/', page.url()).origin : 'http://127.0.0.1:8000';
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const widths = [320, 360, 390, 768, 1024, 1280, 1440, 1920];
+  const paths = ['/#calculator', '/calculator/'];
+
+  for (const path of paths) {
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: 900 });
+      let response = await page.goto(origin + path);
+      if (!response) response = await page.reload();
+      check(response?.status() === 200, `${path} did not load at ${width}px`);
+      const section = page.locator('.quick-calculator');
+      const fields = section.locator('[data-quick-fields] [name]');
+      check(new Set(await fields.evaluateAll(nodes => nodes.map(node => node.name))).size === 3, `${path} must show exactly three quick fields at ${width}px`);
+      check(await section.locator('[data-configurator]').count() === 0, `${path} rendered the retired multi-step UI`);
+      check(!(await section.innerText()).includes('₽'), `${path} displayed an unsubstantiated amount`);
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${path} overflows at ${width}px`);
+
+      await section.locator('input[type="radio"][value="apartment"]').check();
+      await section.getByLabel('Площадь потолка, м²').fill('60');
+      await section.locator('input[type="radio"][value="consultation"]').check();
+      await section.getByRole('button', { name: 'Получить предварительный расчёт' }).click();
+      await section.getByText('Для предварительного расчёта уточним детали.', { exact: true }).waitFor();
+      check(await section.locator('[data-quick-contact]').isVisible(), `${path} did not reveal its contact step at ${width}px`);
+      check(!(await section.innerText()).includes('₽'), `${path} fabricated a numeric quote at ${width}px`);
+    }
   }
-  await page.setViewportSize({width:390,height:844});
-  await page.locator('#calculator').screenshot({style:'.site-header,.skip-link{visibility:hidden!important}',path:'docs/calculator-redesign/screenshots/after-mobile-dimensions.png'});
-  if(errors.length)throw Error(errors.join('; '));
-  return {total,widths,errors};
+
+  check(errors.length === 0, errors.join('; '));
+  return { paths, widths, fields: 3, quote: 'honest individual estimate, no amount', errors };
 }

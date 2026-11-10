@@ -1,0 +1,6 @@
+<img {% if media.editing.ratio %}data-preserve-frame{% endif %}
+  src="{% url 'project_image' media.pk 'thumb' %}"
+  {% if media.thumbnail and media.thumbnail_width < media.width %}srcset="{% url 'project_image' media.pk 'thumb' %} {{ media.thumbnail_width }}w, {% url 'project_image' media.pk 'full' %} {{ media.width }}w"{% else %}srcset="{% url 'project_image' media.pk 'full' %} {{ media.width }}w"{% endif %}
+  sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, 46vw"
+  width="{{ media.width }}" height="{{ media.height }}" alt="{{ media.alt }}"
+  loading="lazy" decoding="async"{% if no_drag %} draggable="false"{% endif %}>

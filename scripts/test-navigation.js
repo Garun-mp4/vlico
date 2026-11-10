@@ -1,6 +1,6 @@
 async page => {
   const check = (value, message) => { if (!value) throw Error(message); };
-  const origin = 'http://127.0.0.1:8000';
+  const origin = /^https?:/.test(page.url()) ? new URL('/', page.url()).origin : 'http://127.0.0.1:8000';
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.setViewportSize({width:1440,height:960});
   await page.emulateMedia({reducedMotion:'no-preference'});
@@ -55,7 +55,7 @@ async page => {
   check(await toggle.evaluate(button => button===document.activeElement),'Escape loses focus');
   check(!await preview.evaluate(card=>card.classList.contains('is-visible')),'Escape leaves preview behind');
   await page.keyboard.press('ArrowDown'); await panel.locator('a').last().focus(); await page.keyboard.press('Tab'); await expanded(false);
-  await root.hover(); await expanded(true); await page.locator('h1').click(); await expanded(false);
+  await root.hover(); await expanded(true); await page.locator('h1').click({position:{x:8,y:8}}); await expanded(false);
   await page.emulateMedia({reducedMotion:'reduce'}); await root.hover(); await directions.first().hover();
   await page.waitForFunction(()=>document.querySelector('.service-preview--navigation').classList.contains('is-visible'));
   const reduced=await preview.getAttribute('style'), box=await directions.first().boundingBox();

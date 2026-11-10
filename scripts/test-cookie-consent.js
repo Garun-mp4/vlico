@@ -3,18 +3,26 @@ async page => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.route('https://yandex.ru/**', route => route.fulfill({ contentType: 'text/html', body: '<p>Widget fixture</p>' }));
-  await page.goto('http://127.0.0.1:8000/');
+  const baseUrl = /^https?:/.test(page.url()) ? new URL('/', page.url()).href : 'http://127.0.0.1:8000/';
+  await page.goto(baseUrl);
   const panel = page.locator('[data-privacy-panel]');
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(() => localStorage.removeItem('vlicoPrivacy'));
     await page.reload();
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      scrollTo(0, 0);
+    });
+    await page.evaluate(() => document.fonts.ready);
     check(await panel.isVisible(), 'Initial cookie notice is absent');
+    check(await page.locator('[data-home-sticky-cta]').isHidden(), 'Mobile sticky CTA is visible behind the cookie notice');
     if (width <= 760) {
       const bounds = await panel.boundingBox();
-      const gap = 844 - bounds.y - bounds.height;
-      check(gap >= 11 && gap <= 13, 'Cookie notice is not anchored to the bottom');
-      check(bounds.y >= 68, 'Cookie notice covers the header');
+      const header = await page.locator('[data-site-header]').boundingBox();
+      const action = await page.locator('.home-hero-primary').boundingBox();
+      check(bounds.y >= header.y + header.height, 'Cookie notice covers the header');
+      check(bounds.y + bounds.height <= action.y, 'Cookie notice covers the primary action');
     }
     check(await panel.locator('input[type=checkbox]').count() === 0, 'Initial notice still has checkboxes');
     check(await page.locator('iframe').count() >= 2, 'Widgets wait for consent');

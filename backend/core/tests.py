@@ -11,7 +11,9 @@ from .storage import PrivateMediaStorage
 class FoundationTests(TestCase):
     def test_home_preserves_content_and_resolves_static(self):
         response = self.client.get("/")
-        self.assertContains(response, "Потолки и свет, продуманные вместе.")
+        self.assertContains(response, '<h1 class="display-heading" id="hero-title">Потолки и свет, продуманные вместе.</h1>', html=True)
+        self.assertContains(response, "Подбор освещения под ваш интерьер")
+        self.assertNotContains(response, "<span>Подбор света в подарок</span>", html=True)
         self.assertNotContains(response, "Демонстрационная форма")
         self.assertContains(response, 'data-api="/api/leads/"')
         self.assertContains(response, 'name="csrfmiddlewaretoken"')

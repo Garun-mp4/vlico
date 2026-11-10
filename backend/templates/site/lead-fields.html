@@ -1,8 +1,13 @@
 {{ lead_form.project }}{{ lead_form.interest }}{{ lead_form.idempotency_key }}{{ lead_form.submission_token }}{{ lead_form.pricing_version }}{{ lead_form.legal_version }}{{ lead_form.legal_version.errors }}
 <div class="lead-honeypot" aria-hidden="true"><label>Оставьте это поле пустым {{ lead_form.website }}</label></div>
 {% if lead_form.kind.is_hidden %}{{ lead_form.kind }}{% else %}<div class="lead-field"><label for="{{ lead_form.kind.id_for_label }}">{{ lead_form.kind.label }}</label>{{ lead_form.kind }}{{ lead_form.kind.errors }}</div>{% endif %}
-<div class="lead-field"><label for="{{ lead_form.name.id_for_label }}">{{ lead_form.name.label }}</label>{{ lead_form.name }}{{ lead_form.name.errors }}</div>
-<div class="lead-field"><label for="{{ lead_form.contact.id_for_label }}">{{ lead_form.contact.label }}</label>{{ lead_form.contact }}{{ lead_form.contact.errors }}</div>
+<div class="lead-field"><label for="{{ lead_form.name.id_for_label }}">{{ lead_form.name.label }}{% if request_kind == 'partner' %} <span class="lead-help">обязательно</span>{% endif %}</label>{{ lead_form.name }}{{ lead_form.name.errors }}</div>
+<div class="lead-field"><label for="{{ lead_form.contact.id_for_label }}">{{ lead_form.contact.label }}{% if request_kind == 'partner' %} <span class="lead-help">обязательно</span>{% endif %}</label>{{ lead_form.contact }}{{ lead_form.contact.errors }}</div>
+{% if request_kind == 'partner' %}<div class="lead-field"><label for="{{ lead_form.company.id_for_label }}">{{ lead_form.company.label }} <span class="lead-help">необязательно</span></label>{{ lead_form.company }}{{ lead_form.company.errors }}</div>
+<div class="lead-field"><label for="{{ lead_form.attachment.id_for_label }}">{{ lead_form.attachment.label }} <span class="lead-help">необязательно</span></label>{{ lead_form.attachment }}<p class="lead-help">{{ lead_form.attachment.help_text }}</p>{{ lead_form.attachment.errors }}</div>{% endif %}
 {% if not lead_form.kind.is_hidden %}<div class="lead-field"><label for="{{ lead_form.service.id_for_label }}">{{ lead_form.service.label }}</label>{{ lead_form.service }}{{ lead_form.service.errors }}</div>{% endif %}
-<div class="lead-field"><label for="{{ lead_form.comment.id_for_label }}">{{ lead_form.comment.label }}</label>{{ lead_form.comment }}{{ lead_form.comment.errors }}</div>
+{% if request_kind == 'partner' %}<details class="lead-optional-comment" {% if lead_form.comment.value or lead_form.comment.errors %}open{% endif %}>
+  <summary>Добавить комментарий</summary>
+  <div class="lead-field"><label for="{{ lead_form.comment.id_for_label }}">{{ lead_form.comment.label }}</label>{{ lead_form.comment }}{{ lead_form.comment.errors }}</div>
+</details>{% else %}<div class="lead-field"><label for="{{ lead_form.comment.id_for_label }}">{{ lead_form.comment.label }}</label>{{ lead_form.comment }}{{ lead_form.comment.errors }}</div>{% endif %}
 <label class="lead-consent">{{ lead_form.consent }}<span>Даю <a href="{% url 'consent' %}" target="_blank" rel="noopener">согласие на обработку данных заявки</a>, включая передачу заявки в рабочий Telegram VLICO. <a href="{% url 'privacy' %}" target="_blank" rel="noopener">Политика обработки данных</a>.</span></label>{{ lead_form.consent.errors }}

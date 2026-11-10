@@ -1,9 +1,10 @@
 async page => {
   const check=(condition,message)=>{if(!condition)throw Error(message);};
+  const origin = /^https?:/.test(page.url()) ? new URL(page.url()).origin : 'http://127.0.0.1:8000';
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.setViewportSize({width:1440,height:1000});
   await page.emulateMedia({reducedMotion:'no-preference'});
-  await page.goto('http://127.0.0.1:8000/');
+  await page.goto(origin + '/');
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('.loader')).visibility==='hidden');
   if(await page.getByRole('button',{name:'Отклонить',exact:true}).isVisible())await page.getByRole('button',{name:'Отклонить',exact:true}).click();
   await page.evaluate(()=>document.fonts.ready);
@@ -22,7 +23,8 @@ async page => {
       return card.classList.contains('is-visible')&&card.querySelector('.is-current')?.getAttribute('src')===expected;
     },src);
     check(await card.locator('.is-current').evaluate(image=>image.naturalWidth>0),'Broken preview');
-    if(index===1)check(await card.locator('.service-preview-label').isVisible(),'Illustration label missing');
+    const illustration = await row.getAttribute('data-preview-illustration') === 'true';
+    check(await card.locator('.service-preview-label').isVisible() === illustration,'Illustration label does not match the asset metadata');
   }
   const row=rows.nth(2);await row.hover();
   const rect=await row.boundingBox();
@@ -57,7 +59,7 @@ async page => {
   const context=await page.context().browser().newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const mobile=await context.newPage();let mobilePreviews=0;
   mobile.on('request',request=>{if(request.url().includes('/service-previews/'))mobilePreviews++;});
-  await mobile.goto('http://127.0.0.1:8000/');
+  await mobile.goto(origin + '/');
   await mobile.waitForFunction(()=>getComputedStyle(document.querySelector('.loader')).visibility==='hidden');
   if(await mobile.getByRole('button',{name:'Отклонить',exact:true}).isVisible())await mobile.getByRole('button',{name:'Отклонить',exact:true}).click();
   await mobile.locator('#solutions').scrollIntoViewIfNeeded();
@@ -68,7 +70,7 @@ async page => {
   await mobile.locator('#solutions [data-service-preview]').first().tap();await mobile.waitForURL('**/services/shadow/');
   await context.close();
   await page.route('**/assets/service-previews/**',route=>route.abort());
-  await page.goto('http://127.0.0.1:8000/');
+  await page.goto(origin + '/');
   await page.addStyleTag({content:'html{scroll-behavior:auto!important}'});
   const failed=page.waitForEvent('requestfailed',request=>request.url().includes('/service-previews/'));
   await rows.first().scrollIntoViewIfNeeded();await failed;

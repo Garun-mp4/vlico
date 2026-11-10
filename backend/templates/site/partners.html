@@ -1,1 +1,46 @@
-{% extends 'site/base.html' %}{% block content %}<section class="editorial-page"><p class="eyebrow">СОТРУДНИЧЕСТВО</p><h1>Дизайн, свет и монтаж —<br>по общему плану.</h1><p class="page-intro">Работаем с дизайнерами, архитекторами и строительными командами. Помогаем перевести идею потолка в согласованное техническое решение.</p><div class="editorial-columns"><section><h2>01. Разобрать проект</h2><p>Расскажите о планировке, потолке, освещении и пожеланиях к узлам. Уточним высоты, примыкания, ниши, треки и оборудование.</p></section><section><h2>02. Согласовать детали</h2><p>Обсудим совместимость элементов, доступ к блокам питания и последовательность работ со смежными специалистами. Комплектацию и смету согласуем до монтажа.</p></section><section><h2>03. Подготовить объект</h2><p>Согласуем точки готовности помещения и график. Изменения проекта обсуждаем заранее, чтобы учесть их в решении и стоимости.</p></section></div><aside class="service-next"><h2>Начнём с вашего объекта</h2><p>Кратко опишите объект, стадию ремонта и задачу. Условия сотрудничества и ответственность сторон обсудим индивидуально.</p><div class="page-actions"><a class="lead-submit" href="{% url 'request_form' 'partner' %}?interest=Сотрудничество">Обсудить проект ↗</a><a class="text-link" href="{{ company.telegram }}" target="_blank" rel="noopener" data-goal="telegram_click">Написать в Telegram ↗</a></div></aside></section>{% endblock %}
+{% extends 'site/base.html' %}
+{% block content %}
+<section class="editorial-page partners-page" aria-labelledby="partners-title">
+  <header class="partners-intro">
+    <h1 class="display-heading" id="partners-title">Партнёрство, в котором продумана каждая деталь</h1>
+    <p class="page-intro">Сотрудничаем с дизайнерами, архитекторами и строительными компаниями. Берём на себя реализацию потолочных систем и интеграцию архитектурного освещения — от технической проработки до монтажа.</p>
+    <a class="lead-submit" href="{% url 'request_form' 'partner' %}">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <section class="partners-benefits" aria-label="Преимущества сотрудничества">
+    <h2>Преимущества сотрудничества</h2>
+    <ul class="partners-benefit-list">
+      <li>17 лет опыта в потолочных системах.</li>
+      <li>Реализация сложных дизайнерских проектов.</li>
+      <li>Техническая поддержка и согласование решений.</li>
+      <li>Детальные сметы и согласованные сроки.</li>
+    </ul>
+  </section>
+
+  <section class="partners-process" aria-labelledby="partners-process-title">
+    <h2 id="partners-process-title">Этапы работы</h2>
+    <ol class="partners-step-list">
+      <li>
+        <span class="partners-step-index" aria-hidden="true">01</span>
+        <p><strong>Техническая проработка</strong> — изучаем проект, подбираем потолочные системы, освещение и узлы примыкания.</p>
+      </li>
+      <li>
+        <span class="partners-step-index" aria-hidden="true">02</span>
+        <p><strong>Согласование решений</strong> — уточняем технические детали, стоимость и сроки реализации.</p>
+      </li>
+      <li>
+        <span class="partners-step-index" aria-hidden="true">03</span>
+        <p><strong>Реализация проекта</strong> — выполняем монтаж, координируем работы со смежными специалистами.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="partners-cta" aria-labelledby="partners-cta-title">
+    <div>
+      <h2 id="partners-cta-title">Обсудим ваш проект</h2>
+      <p>Имя и телефон обязательны. Компанию и файл проекта можно добавить по желанию.</p>
+    </div>
+    <a class="lead-submit" href="{% url 'request_form' 'partner' %}">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
+  </section>
+</section>
+{% endblock %}

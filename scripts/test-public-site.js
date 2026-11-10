@@ -1,5 +1,5 @@
 async page => {
-  const base = 'http://127.0.0.1:8000';
+  const base = /^https?:/.test(page.url()) ? new URL('/', page.url()).origin : 'http://127.0.0.1:8000';
   const check = (condition, message) => { if (!condition) throw Error(message); };
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -26,9 +26,9 @@ async page => {
   await page.getByRole('link', { name: 'Обсудить решение ↗', exact: true }).click();
   check(await page.locator('select[name=service] option:checked').innerText() === 'Теневые потолки', 'Service context was lost');
   await page.goto(base + '/partners/');
-  await page.getByRole('link', { name: 'Обсудить проект ↗', exact: true }).click();
+  await page.getByRole('link', { name: 'Обсудить сотрудничество', exact: true }).first().click();
   check(await page.locator('[name=kind]').inputValue() === 'partner', 'Partner CTA picked wrong lead kind');
-  check(await page.locator('[name=interest]').inputValue() === 'Сотрудничество', 'Partner context was lost');
+  check(await page.locator('[name=source_page]').inputValue() === '/request/partner/', 'Partner source context was lost');
 
   // Use the real served HTML and site.js, but intercept the vendor library and intake.
   // No statistics or notifications leave this browser test.

@@ -16,8 +16,8 @@ Show how VLICO combines ceiling systems and lighting, explain how price and timi
 VLICO plans and installs stretched ceilings with integrated lighting for homes and commercial properties. The scope and estimate are agreed before installation.
 
 ## Page structure
-- Full-screen, photo-led offer with a large VLICO wordmark.
-- A first-screen offer links to its dedicated special-offers section.
+- Photo-led first screen with a clear project offer, direct contact channels, and four solution cards.
+- The first-screen lighting offer links to its dedicated special-offers section.
 - Editorial company statement about planning ceiling and lighting as one system.
 - Original Yandex reviews as the third main section, with three visible previews, the live rating and links to read or write reviews.
 - Selected work, including the documented Rumyantseva penthouse and Podlesnaya hotel project.
@@ -26,9 +26,9 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 - Contact form and oversized wordmark footer.
 
 ## Capabilities and constraints
-- The hero contains no contact input. Its links stay within this page.
+- The hero contains no contact input. It offers direct phone, Telegram, and WhatsApp links alongside page sections, service details, and the measurement request route.
 - The server-site forms persist real leads without public file uploads; Telegram is a notification channel. The isolated legacy static preview retains its demonstration-only form.
-- The owner authorized provisional numeric calculator rates for local review. Label the result preliminary and show its composition and exclusions. A final estimate follows measurement; installation timing is agreed separately.
+- The public quick-v1 calculator collects the object type, ceiling area and requested solution, then asks a specialist to clarify the details. It does not show a numeric amount because the three answers do not determine a confirmed price. Detailed v2 rates and historical calculation snapshots remain versioned for existing records; do not expose their provisional amounts in the quick flow.
 - State free measurement only for Kaliningrad. Discuss travel elsewhere in the region separately.
 - The owner confirmed the offer “Подбор освещения под ваш интерьер — в подарок”. Do not add dates, eligibility limits, or other conditions without confirmation.
 - Keep the preview `noindex` and publish only the `wireframe/` directory. Do not expose the rest of `from-client/`.
@@ -45,9 +45,9 @@ The owner confirmed 17 years of experience for publication. Client materials als
 
 ## Delivery stages
 
-Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and a numeric calculator with editable provisional rates. Milestone 4 now provides six service pages, cooperation, verified contacts, live Yandex reviews, consent-aware site analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
+Milestones 1–3 establish the server, database, durable storage, portfolio cabinet, stored leads, Telegram delivery and calculator workflows. The public calculator uses the three-field quick-v1 path without a numeric amount; the detailed v2 estimate API and versioned historical snapshots remain intact. Milestone 4 provides six service pages, cooperation, verified contacts, live Yandex reviews, consent-aware site analytics and SEO; milestone 5 verifies and deploys to the client's existing cloud server/domain.
 
-The client will review provisional calculator prices selected for local development. Versioned rates and calculation snapshots preserve historical estimates. Eva and CRM integration follow when documentation and credentials are available.
+Versioned rates and calculation snapshots preserve historical v2 estimates. Numeric pricing in the public quick flow requires owner confirmation for its scope. Eva and CRM integration follow when documentation and credentials are available.
 
 ## Milestone 2 delivered
 
@@ -65,4 +65,4 @@ PostgreSQL holds the notification queue. A dedicated Compose process sends Teleg
 
 Project categories are independently managed in the cabinet and support multiple selections per project. Six initial ceiling/light categories can be edited or deleted without changing services or losing projects. Public category tags and filters use published projects only. The first six published projects appear on the homepage in configured order, with a three-column desktop preview and a link to the complete catalogue; the former featured-only selection is removed from the editing workflow.
 
-Public visitors do not attach files, including in the calculator and project inquiry. Existing private lead attachments remain accessible to authorized staff; portfolio photo management is unchanged.
+Public visitors may attach one validated PDF, JPG or PNG project file (up to 5 MiB) to a partnership request. Other public forms, including the calculator and project inquiry, continue to reject files. Lead attachments remain private and accessible only to authorized staff; portfolio photo management is unchanged.

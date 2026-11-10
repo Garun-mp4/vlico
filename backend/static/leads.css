@@ -33,3 +33,7 @@
 @media(hover:hover) {.lead-submit:hover:not(:disabled) {background:var(--body);}}
 @media(max-width:800px) {.lead-page {grid-template-columns:1fr;gap:35px;}.public-header {align-items:flex-start;flex-wrap:wrap;}.public-header nav {flex-wrap:wrap;gap:14px 20px;}}
 @media(max-width:480px) {.lead-page {padding-block:35px 60px;}.lead-intro h1 {font-size:34px;}.quote-total {font-size:36px;}.lead-submit {width:100%;}.lead-field input[type=file] {font-size:11px;}}
+
+.lead-optional-comment { margin-bottom: 16px; }
+.lead-optional-comment summary { min-height: 44px; padding-block: 12px; cursor: pointer; font-size: 13px; }
+.lead-optional-comment[open] summary { margin-bottom: 8px; }

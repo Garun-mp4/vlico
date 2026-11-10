@@ -7,6 +7,7 @@ def legal_context():
     return {
         "legal": settings.LEGAL_OPERATOR,
         "lead_notification_email": settings.LEAD_NOTIFICATION_EMAIL,
+        "partner_notification_email": settings.PARTNER_NOTIFICATION_EMAIL,
         "lead_notification_uses_mailru": settings.EMAIL_HOST.lower() == "smtp.mail.ru",
         "lead_notification_uses_spaceweb": settings.EMAIL_HOST.lower() == "smtp.spaceweb.ru",
     }

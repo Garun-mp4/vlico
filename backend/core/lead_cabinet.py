@@ -2,6 +2,7 @@ from functools import wraps
 import uuid
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -13,6 +14,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe, require_POST, require_http_methods
 from .models import Lead, LeadAttachment, Delivery, PricingVersion
 from .pricing import RatesForm, CalculationForm
+from .quick_calculator import quick_input_rows, QUICK_CALCULATOR_SCHEMA
 from .telegram_delivery import ERROR_LABELS
 
 BUSINESS_PERMISSIONS = ("core.view_lead", "core.change_lead", "core.view_leadattachment", "core.view_delivery", "core.change_delivery", "core.view_pricingversion", "core.add_pricingversion")
@@ -74,12 +76,15 @@ def detail(request, pk):
     deliveries = list(lead.deliveries.all())
     for delivery in deliveries:
         delivery.error_label = ERROR_LABELS.get(delivery.error_code, "Ошибка доставки" if delivery.error_code else "")
-    inputs = []
-    for name, field in CalculationForm().fields.items():
-        value = lead.calculation.get("inputs", {}).get(name)
-        if hasattr(field, "choices"):
-            value = dict(field.choices).get(value, value)
-        inputs.append((field.label, value if value is not None else "Не указан"))
+    if lead.calculation.get("schema") == QUICK_CALCULATOR_SCHEMA:
+        inputs = quick_input_rows(lead.calculation.get("inputs", {}))
+    else:
+        inputs = []
+        for name, field in CalculationForm().fields.items():
+            value = lead.calculation.get("inputs", {}).get(name)
+            if hasattr(field, "choices"):
+                value = dict(field.choices).get(value, value)
+            inputs.append((field.label, value if value is not None else "Не указан"))
     return render(request, "cabinet/lead.html", {"lead": lead, "deliveries": deliveries, "attachments": lead.attachments.all(), "calculation_inputs": inputs})
 
 
@@ -106,6 +111,8 @@ def retry(request, pk, delivery_pk):
         delivery = get_object_or_404(Delivery.objects.select_for_update(), pk=delivery_pk, lead_id=pk)
         if delivery.status not in {"failed", "pending"}:
             messages.error(request, "Повтор доступен для ожидающих и неотправленных уведомлений.")
+        elif delivery.channel == "email" and not settings.EMAIL_DELIVERY_ENABLED:
+            messages.error(request, "Почтовый транспорт отключён. Сначала настройте SMTP и включите отправку.")
         elif delivery.error_code == "delivery_uncertain" and request.POST.get("confirm") != "yes":
             messages.error(request, "Сначала проверьте Telegram и подтвердите повтор: сообщение могло быть доставлено.")
         else:

@@ -1,5 +1,5 @@
 .editorial-page {max-width:1440px;margin:auto;padding:72px 5vw 100px;}
-.editorial-page h1 {font-size:clamp(32px,4.5vw,68px);font-weight:400;line-height:1.13;letter-spacing:-.04em;max-width:22ch;margin:20px 0 32px;overflow-wrap:anywhere;}
+.editorial-page h1:not(.display-heading) {font-size:clamp(32px,4.5vw,68px);font-weight:400;line-height:1.13;letter-spacing:-.04em;max-width:22ch;margin:20px 0 32px;overflow-wrap:anywhere;}
 .page-intro {max-width:64ch;font-size:clamp(14px,1.5vw,18px);line-height:1.8;}
 .service-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 32px;margin-top:64px;}
 .service-grid img {width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;}
@@ -203,6 +203,46 @@
   .special-offer-stamp small { font-size: 8px; }
   .special-offer-stamp strong { font-size: 13px; }
 }
+
+.partners-home-entry { display:flex; justify-content:space-between; align-items:center; gap:clamp(24px,5vw,72px); padding-block:clamp(36px,5vw,64px); border-top:1px solid var(--rule,#d5d3c8); }
+.partners-home-entry h2 { margin:0 0 8px; font-size:clamp(22px,2.6vw,34px); font-weight:400; line-height:1.2; letter-spacing:-.025em; }
+.partners-home-entry p { margin:0; max-width:60ch; color:var(--body,#4d4c47); font-size:13px; line-height:1.7; }
+.partners-home-entry > a { display:inline-flex; align-items:center; gap:12px; min-height:48px; color:var(--ink,#19191a); font-size:13px; text-underline-offset:5px; white-space:nowrap; }
+.partners-home-entry > a:focus-visible,.partners-cta a:focus-visible { outline:2px solid var(--focus,#075f40); outline-offset:5px; }
+.partners-page { display:grid; gap:clamp(34px,5vw,68px); }
+.partners-intro { max-width:1000px; padding-bottom:clamp(32px,5vw,64px); border-bottom:1px solid var(--rule,#d5d3c8); }
+.partners-intro h1 { max-width:18ch; margin:0 0 24px; }
+.partners-intro .page-intro { max-width:70ch; margin:0; color:var(--body,#4d4c47); }
+.partners-benefits h2,.partners-process h2 { margin:0 0 24px; font-size:clamp(22px,2.5vw,32px); font-weight:400; line-height:1.25; letter-spacing:-.02em; }
+.partners-benefit-list,.partners-step-list { display:grid; gap:24px; margin:0; padding:0; list-style:none; }
+.partners-benefit-list { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.partners-benefit-list li,.partners-step-list li { min-width:0; padding-top:18px; border-top:1px solid var(--rule,#d5d3c8); }
+.partners-benefit-list li { max-width:28ch; font-size:15px; line-height:1.6; }
+.partners-step-list { grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(20px,3vw,40px); counter-reset:none; }
+.partners-step-index { display:block; margin-bottom:20px; color:var(--muted,#68675f); font-family:var(--font-mono,"IBM Plex Mono",monospace); font-size:11px; }
+.partners-step-list strong { display:block; margin-bottom:8px; font-size:19px; font-weight:500; line-height:1.35; }
+.partners-step-list p { max-width:42ch; margin:0; color:var(--body,#4d4c47); font-size:14px; line-height:1.75; }
+.partners-cta { display:flex; justify-content:space-between; align-items:center; gap:28px; padding-top:28px; border-top:1px solid var(--rule,#d5d3c8); }
+.partners-cta h2 { margin:0 0 8px; font-size:clamp(23px,3vw,36px); font-weight:400; line-height:1.2; letter-spacing:-.025em; }
+.partners-cta p { margin:0; color:var(--body,#4d4c47); font-size:13px; line-height:1.65; }
+.partners-cta a { flex:0 0 auto; text-decoration:none; }
+@media (max-width:900px) { .partners-benefit-list { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:760px) {
+  .partners-home-entry,.partners-cta { align-items:flex-start; flex-direction:column; }
+  .partners-home-entry > a { white-space:normal; }
+  .partners-page { gap:48px; }
+  .partners-benefit-list,.partners-step-list { grid-template-columns:1fr; gap:18px; }
+  .partners-benefits h2,.partners-process h2 { margin-bottom:18px; }
+  .partners-benefit-list li,.partners-step-list li { padding-top:14px; }
+  .partners-step-index { margin-bottom:12px; }
+  .partners-cta .lead-submit { width:auto; }
+}
+
+/* The about gallery follows the founder portrait in the mobile reading order. */
+.about-projects { margin-top:clamp(24px,3vw,36px); padding-bottom:clamp(64px,8vw,112px); }
+
+.partners-intro .lead-submit { display: inline-flex; margin-top: 24px; }
+
 
 .blog-page h1, .blog-article h1 { max-width: 22ch; overflow-wrap: anywhere; }
 .blog-article h1 { margin-top: 24px; }

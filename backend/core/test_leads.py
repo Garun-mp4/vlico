@@ -18,6 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 from .lead_cabinet import BUSINESS_PERMISSIONS
 from .email_delivery import deliver_email_one
 from .lead_forms import LeadForm
@@ -27,8 +28,36 @@ from .pricing import CalculationForm, calculate, default_rates, validate_rates
 from .telegram_delivery import deliver_one, DeliveryError, claim_delivery, message_parts, api_call
 
 
-def pdf(name="plan.pdf"):
-    return SimpleUploadedFile(name, b"%PDF-1.4\n% Historical attachment fixture\n%%EOF", content_type="application/pdf")
+def pdf_bytes():
+    data = bytearray(b"%PDF-1.4\n")
+    objects = (
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Resources << >> /Contents 4 0 R >>",
+        b"<< /Length 0 >>\nstream\n\nendstream",
+    )
+    offsets = [0]
+    for number, body in enumerate(objects, 1):
+        offsets.append(len(data))
+        data.extend(f"{number} 0 obj\n".encode())
+        data.extend(body + b"\nendobj\n")
+    xref_offset = len(data)
+    data.extend(f"xref\n0 {len(objects) + 1}\n".encode())
+    data.extend(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        data.extend(f"{offset:010d} 00000 n \n".encode())
+    data.extend(f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode())
+    return bytes(data)
+
+
+def pdf(name="plan.pdf", *, content_type="application/pdf"):
+    return SimpleUploadedFile(name, pdf_bytes(), content_type=content_type)
+
+
+def image_file(name, image_format, content_type):
+    image = BytesIO()
+    Image.new("RGB", (4, 4), color=(120, 160, 180)).save(image, format=image_format)
+    return SimpleUploadedFile(name, image.getvalue(), content_type=content_type)
 
 
 def payload(kind="consultation", **overrides):
@@ -50,10 +79,12 @@ class LeadTests(TestCase):
 
     @override_settings(
         EMAIL_DELIVERY_ENABLED=True,
-        LEAD_NOTIFICATION_EMAIL="partners@vlico39.ru",
+        LEAD_NOTIFICATION_EMAIL="inbox@example.test",
+        PARTNER_NOTIFICATION_EMAIL="partners@example.test",
         EMAIL_HOST_USER="partners@vlico39.ru",
         EMAIL_HOST_PASSWORD="test-only",
         DEFAULT_FROM_EMAIL="VLICO <partners@vlico39.ru>",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     )
     def test_every_kind_saves_and_delivers_an_email_without_files(self):
         mail.outbox = []
@@ -68,7 +99,8 @@ class LeadTests(TestCase):
             self.assertEqual(set(lead.deliveries.values_list("channel", flat=True)), {"telegram", "email"})
             self.assertTrue(deliver_email_one())
             self.assertEqual(lead.deliveries.get(channel="email").status, "sent")
-            self.assertEqual(mail.outbox[-1].to, ["partners@vlico39.ru"])
+            expected_recipient = "partners@example.test" if kind == "partner" else "inbox@example.test"
+            self.assertEqual(mail.outbox[-1].to, [expected_recipient])
             self.assertIn(str(lead.pk), mail.outbox[-1].body)
             if kind == "calculator":
                 self.assertIn("Расчёт:", mail.outbox[-1].body)
@@ -84,12 +116,156 @@ class LeadTests(TestCase):
         self.assertEqual(lead.deliveries.get(channel="email").status, "pending")
 
     def test_public_forms_have_no_upload_controls(self):
-        for path in ('/', '/calculator/', '/request/consultation/', '/request/measurement/', '/request/project/', '/request/partner/'):
+        for path in ('/', '/calculator/', '/request/consultation/', '/request/measurement/', '/request/project/'):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200)
             self.assertNotContains(response, 'type="file"')
             self.assertNotContains(response, 'name="attachments"')
             self.assertNotContains(response, 'multipart/form-data')
+
+    def test_partner_page_shows_only_the_partner_upload_control(self):
+        response = self.client.get('/request/partner/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'enctype="multipart/form-data"')
+        self.assertContains(response, 'name="company"')
+        self.assertContains(response, 'name="attachment"')
+        self.assertContains(response, 'name="source_page" value="/request/partner/"')
+
+    @override_settings(EMAIL_DELIVERY_ENABLED=False, PARTNER_NOTIFICATION_EMAIL="")
+    def test_partner_submissions_accept_optional_company_and_private_pdf(self):
+        without_optional_fields = self.client.post(reverse("lead_submit"), payload("partner"))
+        self.assertEqual(without_optional_fields.status_code, 201, without_optional_fields.content)
+        empty_lead = Lead.objects.get(pk=without_optional_fields.json()["reference"])
+        self.assertEqual(empty_lead.contact, "+79000000001")
+        self.assertNotIn("company", empty_lead.context)
+        self.assertFalse(empty_lead.attachments.exists())
+
+        submitted_file = pdf()
+        with_optional_fields = self.client.post(reverse("lead_submit"), payload(
+            "partner", company="  VLICO   Studio  ", source_page="/request/partner/", attachment=submitted_file,
+        ))
+        self.assertEqual(with_optional_fields.status_code, 201, with_optional_fields.content)
+        lead = Lead.objects.get(pk=with_optional_fields.json()["reference"])
+        self.assertEqual(lead.context["company"], "VLICO Studio")
+        self.assertEqual(lead.source_page, "/request/partner/")
+        self.assertEqual(lead.attachments.count(), 1)
+        attachment = lead.attachments.get()
+        self.assertEqual(attachment.original_name, "plan.pdf")
+        with attachment.file.open("rb") as stored:
+            self.assertEqual(stored.read(), pdf_bytes())
+        with self.assertRaises(ValueError):
+            _ = attachment.file.url
+        self.assertEqual(lead.deliveries.get(channel="email").error_code, "email_partner_not_configured")
+
+        detail_path = reverse("cabinet_lead", args=[lead.pk])
+        download_path = reverse("cabinet_lead_attachment", args=[lead.pk, attachment.pk])
+        self.assertEqual(self.client.get(download_path).status_code, 302)
+        self.client.force_login(self.editor)
+        self.assertContains(self.client.get(detail_path), "Компания: VLICO Studio")
+        response = self.client.get(download_path)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertEqual(response["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(b"".join(response.streaming_content), pdf_bytes())
+
+    def test_partner_submissions_accept_valid_jpeg_and_png(self):
+        for upload in (
+            image_file("plan.jpg", "JPEG", "image/jpeg"),
+            image_file("plan.png", "PNG", "image/png"),
+        ):
+            with self.subTest(name=upload.name):
+                response = self.client.post(reverse("lead_submit"), payload("partner", attachment=upload))
+                self.assertEqual(response.status_code, 201, response.content)
+                lead = Lead.objects.get(pk=response.json()["reference"])
+                self.assertEqual(lead.attachments.get().original_name, upload.name)
+
+    def test_partner_validation_rejects_bad_phone_kind_file_and_duplicate_uploads(self):
+        invalid_posts = [
+            (reverse("lead_submit"), payload("partner", contact="designer@example.test")),
+            (reverse("lead_submit"), payload("not-a-kind")),
+            (reverse("request_form", args=["partner"]), payload("project")),
+            (reverse("lead_submit"), payload("partner", attachment=pdf(content_type="image/jpeg"))),
+            (reverse("lead_submit"), payload("partner", attachment=SimpleUploadedFile("fake.pdf", b"%PDF-1.4\n%%EOF\n", content_type="application/pdf"))),
+            (reverse("lead_submit"), payload("partner", attachment=[pdf("one.pdf"), pdf("two.pdf")])),
+            (reverse("lead_submit"), payload("partner", attachment=SimpleUploadedFile("large.pdf", b"x"*(5*1024*1024+1), content_type="application/pdf"))),
+        ]
+        for url, data in invalid_posts:
+            with self.subTest(url=url, files=bool(data.get("attachment"))):
+                response = self.client.post(url, data)
+                self.assertEqual(response.status_code, 400, response.content[:500])
+        self.assertEqual(Lead.objects.count(), 0)
+        self.assertEqual(LeadAttachment.objects.count(), 0)
+
+    def test_partner_idempotency_includes_company_and_attachment_digest(self):
+        original = payload("partner", company="Studio North", attachment=pdf())
+        first = self.client.post(reverse("lead_submit"), original)
+        self.assertEqual(first.status_code, 201, first.content)
+
+        def replay(company="Studio North", upload=None):
+            return self.client.post(reverse("lead_submit"), payload(
+                "partner", company=company, attachment=upload or pdf(),
+                idempotency_key=original["idempotency_key"],
+                submission_token=original["submission_token"],
+            ))
+
+        exact = replay()
+        self.assertEqual(exact.status_code, 200)
+        self.assertEqual(exact.json()["reference"], first.json()["reference"])
+        self.assertEqual(replay(company="Studio South").status_code, 409)
+        changed_file = SimpleUploadedFile("plan.pdf", pdf_bytes() + b"% revised plan\n", content_type="application/pdf")
+        self.assertEqual(replay(upload=changed_file).status_code, 409)
+        self.assertEqual(Lead.objects.count(), 1)
+        self.assertEqual(LeadAttachment.objects.count(), 1)
+        winner = LeadAttachment.objects.get()
+        with winner.file.open("rb") as stored:
+            self.assertEqual(stored.read(), pdf_bytes())
+
+    def test_partner_html_post_saves_multipart_without_javascript_and_requires_csrf(self):
+        data = payload("partner", company="Studio North", attachment=pdf())
+        data["source_page"] = "/request/partner/"
+        response = self.client.post(reverse("request_form", args=["partner"]), data)
+        self.assertContains(response, "Заявка принята")
+        lead = Lead.objects.get()
+        self.assertEqual(lead.context["company"], "Studio North")
+        self.assertEqual(lead.attachments.count(), 1)
+
+        strict = Client(enforce_csrf_checks=True)
+        rejected = strict.post(reverse("request_form", args=["partner"]), payload("partner"))
+        self.assertEqual(rejected.status_code, 403)
+
+    def test_partner_email_retry_requires_enabled_transport_then_uses_partner_destination(self):
+        with override_settings(EMAIL_DELIVERY_ENABLED=False, PARTNER_NOTIFICATION_EMAIL=""):
+            response = self.client.post(reverse("lead_submit"), payload("partner"))
+        lead = Lead.objects.get(pk=response.json()["reference"])
+        delivery = lead.deliveries.get(channel="email")
+        self.assertEqual(delivery.status, "failed")
+        self.assertEqual(delivery.error_code, "email_partner_not_configured")
+
+        self.client.force_login(self.editor)
+        retry_path = reverse("cabinet_delivery_retry", args=[lead.pk, delivery.pk])
+        with override_settings(EMAIL_DELIVERY_ENABLED=False):
+            self.client.post(retry_path)
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, "failed")
+
+        mail.outbox = []
+        with override_settings(
+            EMAIL_DELIVERY_ENABLED=True,
+            PARTNER_NOTIFICATION_EMAIL="partner@example.test",
+            LEAD_NOTIFICATION_EMAIL="inbox@example.test",
+            EMAIL_HOST_USER="sender@example.test",
+            EMAIL_HOST_PASSWORD="test-app-password",
+            DEFAULT_FROM_EMAIL="VLICO <sender@example.test>",
+            EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ):
+            self.client.post(retry_path)
+            delivery.refresh_from_db()
+            self.assertEqual(delivery.status, "pending")
+            self.assertTrue(deliver_email_one())
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, "sent")
+        self.assertEqual(mail.outbox[0].to, ["partner@example.test"])
 
     def test_project_request_without_javascript_accepts_no_file(self):
         response = self.client.post(reverse('request_form', args=['project']), payload('project'))
@@ -136,9 +312,14 @@ class LeadTests(TestCase):
         for data in invalid:
             self.assertEqual(self.client.post(reverse("lead_submit"), data).status_code, 400)
         oversized = self.client.post(reverse("lead_submit"), payload(attachments=SimpleUploadedFile("large.pdf", b"x"*(2*1024*1024+1))))
-        self.assertEqual(oversized.status_code, 413)
+        self.assertEqual(oversized.status_code, 400)
         self.assertEqual(Lead.objects.count(), 0)
         self.assertEqual(LeadAttachment.objects.count(), 0)
+
+    def test_request_body_limit_returns_413_before_parsing(self):
+        response = self.client.generic("POST", reverse("lead_submit"), b"x"*(6*1024*1024+1), content_type="application/octet-stream")
+        self.assertEqual(response.status_code, 413)
+        self.assertFalse(Lead.objects.exists())
 
     def test_failed_queue_creation_rolls_back_lead(self):
         with patch("core.lead_service.Delivery.objects.create", side_effect=RuntimeError("test failure")):
@@ -147,6 +328,23 @@ class LeadTests(TestCase):
         self.assertEqual(Lead.objects.count(), 0)
         self.assertEqual(LeadAttachment.objects.count(), 0)
         self.assertEqual(list(Path(self.temp.name).rglob("*.pdf")), [])
+
+    @override_settings(EMAIL_DELIVERY_ENABLED=False)
+    def test_partner_file_is_removed_when_delivery_creation_rolls_back(self):
+        with patch("core.lead_service.Delivery.objects.create", side_effect=RuntimeError("test failure")):
+            with self.assertRaises(RuntimeError):
+                self.client.post(reverse("lead_submit"), payload("partner", attachment=pdf()))
+        self.assertEqual(Lead.objects.count(), 0)
+        self.assertEqual(LeadAttachment.objects.count(), 0)
+        self.assertEqual(list(Path(self.temp.name).rglob("*.pdf")), [])
+
+    def test_partner_attachment_storage_failure_does_not_create_a_lead(self):
+        client = Client(raise_request_exception=False)
+        with patch("core.storage.PrivateMediaStorage._save", side_effect=OSError("test storage failure")):
+            response = client.post(reverse("lead_submit"), payload("partner", attachment=pdf()))
+        self.assertEqual(response.status_code, 500)
+        self.assertFalse(Lead.objects.exists())
+        self.assertFalse(LeadAttachment.objects.exists())
 
     def test_source_survives_navigation_and_private_fields_do_not_reach_public_pages(self):
         self.client.get("/?utm_source=test&utm_campaign=ceiling")
@@ -230,14 +428,19 @@ class LeadTests(TestCase):
         self.assertEqual(PricingVersion.objects.get(active=True).pk,active.pk)
 
     def test_non_javascript_calculator_preserves_contact_and_submits(self):
-        data=payload("calculator",area="20",material="pvc",edge="standard",perimeter="18",pricing_version=self.version.pk,action="quote")
+        data=payload("calculator",calculator_schema="quick-v1",object_type="apartment",area_m2="20,5",solution="designer_light",source_page="/calculator/",action="quote")
         response=self.client.post(reverse("calculator"),data)
-        self.assertContains(response,"16240.00")
+        self.assertContains(response,"Для предварительного расчёта уточним детали")
+        self.assertNotContains(response,"16240.00")
         self.assertContains(response,"Тестовый посетитель")
         self.assertEqual(Lead.objects.count(),0)
         data["action"]="submit"
         self.assertContains(self.client.post(reverse("calculator"),data),"Заявка принята")
         self.assertEqual(Lead.objects.count(),1)
+        lead=Lead.objects.get()
+        self.assertEqual(lead.calculation,{"schema":"quick-v1","inputs":{"object_type":"apartment","area_m2":"20.5","solution":"designer_light"}})
+        self.assertIsNone(lead.pricing_version)
+        self.assertEqual(lead.source_page,"/calculator/")
 
     def test_attribution_ignores_bad_shapes_and_control_characters(self):
         import json
@@ -380,6 +583,45 @@ class EmailDeliveryTests(TestCase):
         self.assertIn(self.lead.comment, mail.outbox[0].body)
         self.assertIn(str(self.lead.pk), mail.outbox[0].body)
         self.assertTrue(self.delivery.external_id.startswith("<"))
+
+    @override_settings(PARTNER_NOTIFICATION_EMAIL="partner@example.test")
+    def test_partner_email_uses_separate_recipient_and_only_links_to_the_private_file(self):
+        self.lead.kind = "partner"
+        self.lead.context = {"company": "Studio North"}
+        self.lead.save(update_fields=["kind", "context", "updated_at"])
+        mail.outbox = []
+        self.assertTrue(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "sent")
+        self.assertEqual(mail.outbox[0].to, ["partner@example.test"])
+        self.assertNotEqual(mail.outbox[0].to, ["inbox@example.test"])
+        self.assertIn("Компания: Studio North", mail.outbox[0].body)
+        self.assertIn(reverse("cabinet_lead", args=[self.lead.pk]), mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].attachments, [])
+
+    def test_missing_partner_recipient_fails_without_falling_back_to_general_address(self):
+        self.lead.kind = "partner"
+        self.lead.save(update_fields=["kind", "updated_at"])
+        mail.outbox = []
+        with override_settings(PARTNER_NOTIFICATION_EMAIL=""):
+            self.assertTrue(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "failed")
+        self.assertEqual(self.delivery.error_code, "email_partner_not_configured")
+        self.assertEqual(mail.outbox, [])
+        self.assertTrue(Lead.objects.filter(pk=self.lead.pk).exists())
+
+    @override_settings(PARTNER_NOTIFICATION_EMAIL="partner@example.test")
+    def test_partner_smtp_failure_keeps_lead_and_delivery_state(self):
+        self.lead.kind = "partner"
+        self.lead.save(update_fields=["kind", "updated_at"])
+        with patch("core.email_delivery.get_connection") as get_connection:
+            get_connection.return_value.open.side_effect = ConnectionRefusedError()
+            self.assertTrue(deliver_email_one())
+        self.delivery.refresh_from_db()
+        self.assertEqual(self.delivery.status, "pending")
+        self.assertEqual(self.delivery.error_code, "email_smtp_temporary")
+        self.assertTrue(Lead.objects.filter(pk=self.lead.pk).exists())
 
     def test_reply_to_accepts_only_a_valid_email_contact(self):
         for contact, expected in (

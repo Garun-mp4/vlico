@@ -22,22 +22,50 @@
     const submit = form.querySelector('button[type="submit"]:not([data-calculate])');
     let busy = false;
 
+    function clearFieldError(input) {
+      if (!(input instanceof HTMLElement)) return;
+      input.removeAttribute('aria-invalid');
+      for (const line of form.querySelectorAll('[data-field-error]')) {
+        if (line.dataset.fieldName !== input.name) continue;
+        const describedBy = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== line.id);
+        if (describedBy.length) input.setAttribute('aria-describedby', describedBy.join(' '));
+        else input.removeAttribute('aria-describedby');
+        line.remove();
+      }
+      if (errors) {
+        for (const line of errors.querySelectorAll('[data-error-field]')) {
+          if (line.dataset.errorField === input.name) line.remove();
+        }
+        if (!errors.childElementCount) errors.hidden = true;
+      }
+    }
+
+    function clearFieldErrors() {
+      for (const line of form.querySelectorAll('[data-field-error]')) {
+        const input = form.elements.namedItem(line.dataset.fieldName);
+        if (input instanceof HTMLElement) clearFieldError(input);
+        else line.remove();
+      }
+    }
+
     function showErrors(items) {
       errors.replaceChildren();
-      form.querySelectorAll('[data-field-error]').forEach(line => line.remove());
+      clearFieldErrors();
       for (const [field, messages] of Object.entries(items)) {
         const input = form.elements.namedItem(field);
         if (input instanceof HTMLElement) {
           input.setAttribute('aria-invalid', 'true');
-          const field = input.closest('.lead-field');
+          const field = input.closest('.lead-field, .quick-calculator__field');
           if (field) {
             const message = document.createElement('p'); message.className = 'lead-errors'; message.dataset.fieldError = '';
+            message.dataset.fieldName = input.name;
             message.id = input.id + '-server-error'; message.textContent = messages.join(' '); field.append(message);
-            input.setAttribute('aria-describedby', message.id);
+            const describedBy = new Set((input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+            describedBy.add(message.id); input.setAttribute('aria-describedby', [...describedBy].join(' '));
           }
         }
         for (const message of messages) {
-          const line = document.createElement('p'); line.textContent = message; errors.append(line);
+          const line = document.createElement('p'); line.dataset.errorField = field; line.textContent = message; errors.append(line);
         }
       }
       errors.hidden = false;
@@ -45,11 +73,15 @@
     }
 
     document.querySelectorAll('[data-interest]').forEach(link => link.addEventListener('click', () => { form.elements.namedItem('interest').value = link.dataset.interest || ''; }));
-    form.addEventListener('input', event => { event.target.removeAttribute('aria-invalid'); });
+    for (const eventName of ['input', 'change']) form.addEventListener(eventName, event => clearFieldError(event.target));
     form.addEventListener('submit', async event => {
+      const quoteSubmit = event.submitter?.hasAttribute('data-calculate') || (!event.submitter && form.querySelector('[data-quick-contact][hidden]'));
+      if (quoteSubmit) return;
       event.preventDefault();
       if (busy || form.dataset.submitted === 'true') return;
-      const data = new FormData(form); data.set('source_page', location.pathname); data.set('attribution', JSON.stringify(attribution));
+      clearFieldErrors();
+      errors.replaceChildren();
+      const data = new FormData(form); data.set('source_page', form.elements.namedItem('source_page')?.value || location.pathname); data.set('attribution', JSON.stringify(attribution));
       busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Отправляем заявку…';
       const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.setRequestHeader('Accept', 'application/json'); xhr.timeout = 90000;
       const finish = () => { busy = false; if (form.dataset.submitted !== 'true') submit.disabled = false; };

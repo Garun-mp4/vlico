@@ -99,7 +99,7 @@ def prepared_image(upload):
         full = BytesIO()
         image.save(full, "WEBP", quality=85)
         width, height = image.size
-        image.thumbnail((640, 640))
+        image.thumbnail((ProjectMedia.THUMBNAIL_MAX_EDGE, ProjectMedia.THUMBNAIL_MAX_EDGE))
         thumb = BytesIO()
         image.save(thumb, "WEBP", quality=80)
         return ContentFile(full.getvalue(), name="image.webp"), ContentFile(thumb.getvalue(), name="thumb.webp"), width, height

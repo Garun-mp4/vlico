@@ -86,6 +86,8 @@ class Project(Timestamped):
 
 
 class ProjectMedia(Timestamped):
+    THUMBNAIL_MAX_EDGE = 640
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="media")
     image = models.ImageField(upload_to=media_path)
     source = models.ImageField(upload_to=media_path, storage=PrivateMediaStorage(), blank=True)
@@ -100,6 +102,13 @@ class ProjectMedia(Timestamped):
     is_cover = models.BooleanField(default=False)
     position = models.PositiveIntegerField(default=0)
 
+    @property
+    def thumbnail_width(self):
+        if not self.width or not self.height:
+            return self.width
+        scale = min(1, self.THUMBNAIL_MAX_EDGE / max(self.width, self.height))
+        return max(1, round(self.width * scale))
+
     class Meta:
         ordering = ["position", "pk"]
         constraints = [models.UniqueConstraint(fields=["project"], condition=models.Q(is_cover=True), name="one_cover_per_project")]
@@ -107,7 +116,7 @@ class ProjectMedia(Timestamped):
 
 class PricingVersion(Timestamped):
     title = models.CharField(max_length=120)
-    # No fabricated rates are seeded in milestone 1. Calculator follows in milestone 3.
+    # Detailed v2 calculations retain versioned rates; the public quick-v1 flow does not use a tariff.
     rates = models.JSONField(default=dict)
     active = models.BooleanField(default=False)
     class Meta:
