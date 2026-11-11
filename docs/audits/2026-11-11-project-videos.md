@@ -29,3 +29,7 @@ Local review captures are in the ignored `.playwright-cli/` directory: `final-pr
 Real iPhone/Safari hardware was not available for verification. The player includes native controls, playsinline and feature-detected Safari video fullscreen; Chromium mobile emulation is not a physical iPhone check.
 
 Work remains local. No deployment or push was performed. The pre-existing untracked `docs/implementation/` directory was preserved and excluded from the commit.
+
+## Header logo follow-up, 12 November
+
+Moved the homepage logo widths into shared `header.css` and removed the homepage-only duplicates and smaller internal-page overrides. The existing homepage sizes are preserved at each viewport. Browser verification covered all 48 public routes at 390px and 1440px, plus six representative internal pages at ten additional widths between 320px and 1920px: 156 comparisons passed with identical homepage/internal logo dimensions, no horizontal overflow and no overlap with header actions. Desktop catalogue and mobile service-header screenshots were inspected. Compose was rebuilt and all services are healthy. No push or deployment.

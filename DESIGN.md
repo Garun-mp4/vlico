@@ -68,7 +68,7 @@ Major sections receive generous top and bottom space. Use hairline rules for pro
 
 ## Components and behavior
 
-- All public pages share the same header. It is a flat cream bar from the start. Project directions come from editable portfolio categories. The catalogue link and disclosure button remain separate, with a quick 180ms panel transition, keyboard/Escape support and a touch disclosure inside the mobile menu.
+- All public pages share the same header. Logo sizing belongs to shared header styles: clamp(136px, 12vw, 172px) above 760px and clamp(142px, 44vw, 180px) below, constrained by the available mobile grid track. Keep its visible dimensions identical to the homepage at each viewport. It is a flat cream bar from the start. Project directions come from editable portfolio categories. The catalogue link and disclosure button remain separate, with a quick 180ms panel transition, keyboard/Escape support and a touch disclosure inside the mobile menu.
 - The homepage hero is one photographic row. The large interior carries the heading and project action over a warm dark scrim. Four tall, equal-height photographs share its top and bottom edges, with Manrope display headings, neutral IBM Plex Mono labels and the existing night palette. Keep the confirmed experience/proof line, a prominent project CTA, cost and measurement links, and direct phone/Telegram/WhatsApp links. Do not put a phone input in the hero.
 - Project entries use real VLICO photos and only case facts present in the supplied brief. Avoid promo graphics and generated imagery presented as documented work.
 - Solution rows remain open and text-led. Hover shifts the row slightly and moves its arrow.

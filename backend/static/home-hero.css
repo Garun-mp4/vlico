@@ -15,10 +15,6 @@
   min-height: 84px;
 }
 
-.home-page .site-header--solid .brand {
-  width: clamp(136px, 12vw, 172px);
-}
-
 .home-page .site-header--solid .brand img {
   filter: none;
 }
@@ -466,7 +462,6 @@
 @media (max-width: 760px) {
   .home-page .site-header--solid,
   .home-page .site-header--solid .header-inner { min-height: 60px; }
-  .home-page .site-header--solid .brand { width: clamp(142px, 44vw, 180px); }
   .home-hero { scroll-margin-top: 60px; }
   .home-hero-layout { grid-template-columns: minmax(0, 1fr); padding: 8px 12px 24px; gap: 8px; }
   .home-hero-editorial { min-height: clamp(480px, 66svh, 590px); padding: 22px 18px 12px; }
