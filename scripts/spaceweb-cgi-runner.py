@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python3.11
 """Run the adjacent Django WSGI adapter through Apache CGI."""
 
 import sys
