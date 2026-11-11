@@ -40,7 +40,7 @@ async page => {
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
       hero: Boolean(hero),
       heading: document.querySelector('#hero-title')?.textContent.trim(),
-      proof: document.querySelector('.home-hero-proof')?.textContent.trim(),
+      proof: [...document.querySelectorAll('.home-hero-proof li')].map(item => item.textContent.trim()),
       cardCount: cards.length,
       imagesLoaded: [image, ...document.querySelectorAll('.home-solution-image img')].every(item => item.complete && item.naturalWidth > 0),
       cardsInViewport: cards.every(card => { const rect = card.getBoundingClientRect(); return rect.top >= 0 && rect.bottom <= innerHeight + 1; }),
@@ -66,7 +66,7 @@ async page => {
     check(state.hero, 'Homepage hero is absent');
     check(!state.overflow, `Document overflow at ${width}x${height}`);
     check(state.heading === 'Потолки и свет, продуманные вместе.', 'Homepage H1 changed');
-    check(state.proof === '17 лет опыта · Сложные дизайнерские решения · Детальная смета', 'Confirmed proof line is missing or changed');
+    check(JSON.stringify(state.proof) === JSON.stringify(['17 лет опыта', 'Сложные дизайнерские решения', 'Детальная смета']), 'Confirmed proof items are missing or changed');
     check(state.cardCount === 4, 'Expected four solution cards, received ' + state.cardCount);
     check(state.imagesLoaded, 'A first-screen image failed to load at ' + width);
     check(state.reducedMotion && (width > 760 || state.scrollSnapType === 'none'), 'Reduced-motion settings are not respected at ' + width);

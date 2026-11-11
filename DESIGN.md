@@ -180,6 +180,8 @@ The process section uses the approved three-line headline “СОВЕРШЕНС�
 
 The hero introduction pairs “Обсудить проект” with a transparent, light 1px outlined “Стать партнёром” button to its right. Keep both in the same row on phones with readable wrapping. Only the project button has the restrained pulse; the partnership action has no pulse.
 
+Present the three approved hero advantages as a semantic list of compact, non-interactive labels: small cream bullet, thin translucent outline, lightly darkened background, 11px body type and 6px gaps. Let whole labels wrap naturally, with text wrapping inside them when enlarged. Keep them quieter than the two main actions and avoid animation or button-like hover states.
+
 Public lead forms, including both partnership entry points, contain no file inputs and reject all file uploads at the form and submission boundaries. Keep existing private historical attachments and cabinet portfolio/article image uploads intact.
 
 
