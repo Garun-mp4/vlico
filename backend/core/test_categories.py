@@ -17,8 +17,9 @@ class CategoryTests(TestCase):
         self.editor.user_permissions.add(*Permission.objects.filter(content_type__app_label="core", codename__in=[p.split(".")[1] for p in CATEGORY_PERMISSIONS]))
         self.login()
 
-    def test_six_initial_categories(self):
-        expected = {"Теневые потолки", "Парящие потолки", "Световые линии", "Магнитные треки", "Скрытые карнизы", "Тканевые потолки"}
+    def test_all_solution_categories_are_available(self):
+        from .site_content import SERVICES
+        expected = {item["title"] for item in SERVICES}
         self.assertEqual(set(ProjectCategory.objects.values_list("title", flat=True)),expected)
 
     def test_category_visibility_keeps_projects_and_can_be_restored(self):

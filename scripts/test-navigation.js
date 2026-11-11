@@ -16,7 +16,9 @@ async page => {
   await page.mouse.move(0,500); await root.hover(); await expanded(true);
   await page.waitForFunction(() => getComputedStyle(document.querySelector('#desktop-projects')).opacity === '1');
   const directions = panel.locator('[data-service-preview]');
-  check(await directions.count() >= 6, 'Direction previews missing');
+  const solutionTitles=await page.evaluate(async()=>{const html=await(await fetch('/')).text();return [...new DOMParser().parseFromString(html,'text/html').querySelectorAll('.solution-name')].map(el=>el.textContent.trim())});
+  const menuTitles=await panel.locator('li a').allTextContents();
+  check(solutionTitles.every(title=>menuTitles.includes(title)),'A ceiling solution is missing from Projects navigation');
   for (let index=0; index<await directions.count(); index++) {
     const link = directions.nth(index), src = await link.getAttribute('data-service-preview');
     await link.hover();
