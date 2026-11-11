@@ -406,33 +406,34 @@ a:focus-visible,button:focus-visible {
 .home-project-more:active {background:var(--canvas-soft);color:var(--ink);}
 @media(hover:hover) {.home-project-more:hover {background:var(--canvas-soft);color:var(--ink);}}
 @media(prefers-reduced-motion:reduce) {.home-project-more {transition:none;}}
+.home-project-grid {grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:40px 28px;}
+.home-project-grid .portfolio-card {min-width:0;display:flex;flex-direction:column;}
+.home-project-grid .portfolio-card-image img,.home-project-grid .project-carousel-slide img {aspect-ratio:3/2;object-fit:cover;object-position:50% 30%;}
+.home-project-grid .portfolio-card-info {display:flex;flex-direction:column;flex:1;padding-top:16px;margin-top:14px;}
+.home-project-grid .portfolio-card h2 {font-size:clamp(19px,1.5vw,24px);line-height:1.35;min-height:2.7em;margin-bottom:10px;}
+.home-project-grid .portfolio-card-info p {margin-bottom:12px;}
+.home-project-grid .portfolio-card-info p:not(.project-card-summary) {min-height:3.1em;}
+.home-project-grid .project-categories {min-height:3.1em;margin:0 0 10px;align-content:start;}
+.home-project-grid .project-card-summary {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.7;min-height:3.4em;}
+.home-project-grid .portfolio-card-info>.text-link {margin-top:auto;align-self:start;}
 @media(min-width:641px) {
   .home-project-heading h2 {font-size:clamp(32px,3.6vw,52px);margin-bottom:18px;}
-  .home-project-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 28px;}
-  .home-project-grid .portfolio-card {min-width:0;display:flex;flex-direction:column;}
-  .home-project-grid .portfolio-card-image img,.home-project-grid .project-carousel-slide img {aspect-ratio:3/2;}
-  .home-project-grid .portfolio-card-info {display:flex;flex-direction:column;flex:1;padding-top:16px;margin-top:14px;}
-  .home-project-grid .portfolio-card h2 {font-size:clamp(19px,1.5vw,24px);line-height:1.35;margin-bottom:10px;}
-  .home-project-grid .portfolio-card-info p {margin-bottom:12px;}
-  .home-project-grid .portfolio-card-info p:empty {display:none;}
-  .home-project-grid .project-categories {margin-bottom:10px;}
-  .home-project-grid .project-card-summary {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.7;}
-  .home-project-grid .portfolio-card-info>.text-link {margin-top:auto;}
 }
+@media(min-width:801px) {.home-project-grid {grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(min-width:641px) and (max-width:800px) {
   .portfolio-grid,.home-project-grid,.case-gallery {grid-template-columns:minmax(0,1fr);gap:60px;}
 }
 @media(max-width:640px) {.home-project-footer {padding-bottom:64px;}}
 
 .portfolio-card-image img[data-preserve-frame],.project-carousel-slide img[data-preserve-frame] {object-fit:contain;background:var(--canvas-soft);}
+.portfolio-card-image img[data-portrait],.project-carousel-slide img[data-portrait] {object-fit:contain;object-position:center;background:var(--canvas-soft);}
 .case-cover img[data-preserve-frame],.case-gallery img[data-preserve-frame] {aspect-ratio:auto;object-fit:contain;max-height:80dvh;background:var(--canvas-soft);}
 
 
 .home-project-heading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 16px 32px; }
 .home-project-heading > .text-link { flex: none; }
 .portfolio-intro { padding-block: clamp(32px, 5vw, 74px); }
-@media (min-width: 1000px) {
-  .home-project-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .home-project-grid .portfolio-card { grid-column: span 2; }
-  .home-project-grid .portfolio-card:nth-child(-n+2) { grid-column: span 3; }
-}
+/* Keep identical card frames while preserving portrait photos and editor-selected compositions. */
+.home-project-grid .portfolio-card-image img[data-preserve-frame],.home-project-grid .project-carousel-slide img[data-preserve-frame],
+.home-project-grid .portfolio-card-image img[data-portrait],.home-project-grid .project-carousel-slide img[data-portrait] {object-fit:contain;object-position:center;background:var(--canvas-soft);}
+@media (min-width:1100px) {.home-project-grid {grid-template-columns:repeat(3,minmax(0,1fr));}}

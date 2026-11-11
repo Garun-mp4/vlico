@@ -91,7 +91,7 @@ async page => {
   });
   check(stickyOrClear, 'Sticky contact CTA overlaps a portfolio control');
   const dimensions = [];
-  for (const [width, columns] of [[1920,6],[1440,6],[1280,6],[1100,6],[1024,6],[801,2],[800,1],[768,1],[641,1],[390,1],[360,1],[320,1]]) {
+  for (const [width, columns] of [[1920,3],[1440,3],[1280,3],[1100,3],[1099,2],[1024,2],[801,2],[800,1],[768,1],[641,1],[390,1],[360,1],[320,1]]) {
     await page.setViewportSize({ width,height:1000 });
     await grid.scrollIntoViewIfNeeded();
     const actual = await grid.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
@@ -110,7 +110,7 @@ async page => {
       width: img.width, height: img.height, naturalWidth: img.naturalWidth,
     }));
     check(imageContract.srcset.includes('/thumb/') && imageContract.srcset.includes('/full/'), 'Project preview does not offer responsive public derivatives');
-    check(imageContract.sizes.includes('46vw') && imageContract.width > 0 && imageContract.height > 0 && imageContract.naturalWidth > 0, 'Project image dimensions or sizes are missing');
+    check(imageContract.sizes.includes('/ 3') && imageContract.width > 0 && imageContract.height > 0 && imageContract.naturalWidth > 0, 'Project image dimensions or sizes are missing');
     await gallery.getByRole('button',{name:'Следующая фотография',exact:true}).click();
     check(await gallery.locator('[data-photo-number]').innerText() === '2', 'Gallery arrows stopped working');
     await gallery.locator('.project-carousel-track').press('ArrowLeft');
@@ -136,7 +136,12 @@ async page => {
   // Six-card layout fixture lives only in the browser, never in the database.
   await grid.evaluate(node => { while(node.children.length < 6 && node.firstElementChild) node.append(node.firstElementChild.cloneNode(true)); });
   const rows = await grid.locator(':scope>.portfolio-card').evaluateAll(nodes => new Set(nodes.map(node=>Math.round(node.getBoundingClientRect().top))).size);
-  check(rows === 3, 'Six large cards do not form three desktop rows');
+  check(rows === 2, 'Six cards do not form two desktop rows');
+  const frames = await grid.locator(':scope>.portfolio-card').evaluateAll(cards => cards.map(card => { const box=card.getBoundingClientRect(); const image=card.querySelector('img').getBoundingClientRect(); return {width:box.width,height:box.height,ratio:image.width/image.height}; }));
+  check(Math.max(...frames.map(x=>x.height))-Math.min(...frames.map(x=>x.height)) < 2, 'Homepage card heights differ');
+  check(frames.every(x=>Math.abs(x.ratio-1.5)<.02), 'Homepage photos are not consistently 3:2');
+  const portraits = await grid.locator('img[data-portrait]').evaluateAll(nodes => nodes.map(img => ({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,fit:getComputedStyle(img).objectFit})));
+  check(portraits.length > 0 && portraits.every(img => img.fit === 'contain' && Math.abs(img.width/img.height-1.5)<.02), 'Portrait photos must remain fully visible inside the common homepage frame');
   await page.locator('.home-project-footer a').click();
   check(new URL(page.url()).pathname === '/projects/', 'View-all does not open the catalogue');
   const catalogGrid = page.locator('.portfolio-grid');
@@ -171,6 +176,7 @@ async page => {
   }
   check(new Set(coverOrientations).size === 2, 'The catalogue did not exercise both landscape and portrait covers');
   const wideSource = await coverImages.first().evaluate(img => img.currentSrc);
+  check(await catalogGrid.locator('img[data-portrait]').evaluateAll(nodes => nodes.every(img=>getComputedStyle(img).objectFit==='contain')), 'Catalogue portrait photos are cropped');
   check(wideSource.includes('/full/'), 'A large desktop card did not select the full-size WebP derivative');
 
   await page.setViewportSize({width:390,height:844});
@@ -221,5 +227,5 @@ async page => {
   await slowContext.close();
   check(!mediaErrors.length, mediaErrors.join('; '));
   check(!errors.length, errors.join('; '));
-  return { aboutLayouts, zoomEquivalent, maximum:6, dimensions, sixCards:'three rows on desktop', catalogProjects:catalogCount, catalogue:'two-column desktop and one-column tablet/mobile', gallery:'arrows, keyboard, drag and full portrait viewing preserved', responsiveImages:'mobile thumbnail and desktop full derivative selected', stickyCta:'visible before portfolio and hidden while portfolio is in view', delayedImage:'reserved frame prevented layout shift', mediaErrors, errors };
+  return { aboutLayouts, zoomEquivalent, maximum:6, dimensions, sixCards:'two equal rows on desktop', catalogProjects:catalogCount, catalogue:'two-column desktop and one-column tablet/mobile', gallery:'arrows, keyboard, drag and full portrait viewing preserved', responsiveImages:'mobile thumbnail and desktop full derivative selected', stickyCta:'visible before portfolio and hidden while portfolio is in view', delayedImage:'reserved frame prevented layout shift', mediaErrors, errors };
 }

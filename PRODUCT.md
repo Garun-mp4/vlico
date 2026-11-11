@@ -34,7 +34,7 @@ VLICO plans and installs stretched ceilings with integrated lighting for homes a
 - Keep the preview `noindex` and publish only the `wireframe/` directory. Do not expose the rest of `from-client/`.
 
 ## Evidence
-The owner confirmed 17 years of experience for publication. Client materials also state more than 10,000 objects and more than 500,000 m² of ceilings; those figures still need confirmation. The client brief documents a penthouse at Rumyantseva 11 and the Podlesnaya hotel in Zelenogradsk. The hotel brief gives 10 floors, 49 rooms, and 5,500 m² of ceiling work, and says not to publish the price. No local case video was found.
+The owner confirmed 17 years of experience for publication. Client materials also state more than 10,000 objects and more than 500,000 m² of ceilings; those figures still need confirmation. The client brief documents a penthouse at Rumyantseva 11 and the Podlesnaya hotel in Zelenogradsk. The hotel brief gives 10 floors, 49 rooms, and 5,500 m² of ceiling work, and says not to publish the price. Seven real object videos supplied by the client are available in the homepage project-video section.
 
 ## Product principles
 - Make the service, pricing method, timing, region, and next step clear in the first screen.

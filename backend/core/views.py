@@ -6,6 +6,7 @@ from django.views.decorators.http import require_safe
 @require_safe
 def home(request):
     from .portfolio import published_projects
+    from .project_videos import PROJECT_VIDEOS
     from .lead_views import initial_lead_form, quick_calculator_context
     lead_form = initial_lead_form(request, "project")
     lead_form.fields["kind"].choices = [
@@ -25,6 +26,7 @@ def home(request):
     about_projects = [about_by_slug[slug] for slug in about_slugs if slug in about_by_slug]
     return render(request, "site/home.html", {
         "homepage_projects": homepage_projects,
+        "project_videos": PROJECT_VIDEOS,
         "about_projects": about_projects or homepage_projects[:3],
         "lead_form": lead_form,
         **quick_calculator_context(request),

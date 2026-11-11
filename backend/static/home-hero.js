@@ -166,7 +166,7 @@
   const sticky = document.querySelector('[data-home-sticky-cta]');
   const primaryAction = document.querySelector('.home-hero-primary');
   const contact = document.getElementById('contact');
-  const portfolioControls = document.querySelectorAll('#projects a, #projects button, .new-solutions a, .new-solutions button, .partners-home-entry a');
+  const portfolioControls = document.querySelectorAll('#projects a, #projects button, #project-videos a, #project-videos button, .new-solutions a, .new-solutions button, .partners-home-entry a');
   const contactHeading = document.getElementById('contact-title');
   const privacyPanel = document.querySelector('[data-privacy-panel]');
   const mobileMenu = document.querySelector('[data-header-mobile]');

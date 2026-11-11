@@ -38,6 +38,8 @@
     <script defer src="{% static 'site.js' %}"></script>
     <script defer src="{% static 'home-hero.js' %}"></script>
     <script defer src="{% static 'new-solutions.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'project-videos.css' %}">
+    <script defer src="{% static 'project-videos.js' %}"></script>
     <script src="{% static 'solutions-preview.js' %}" defer></script>
   </head>
   <body class="home-page">
@@ -303,6 +305,7 @@
         </div>
       </section>
 
+      {% include 'site/project-videos.html' %}
       {% include 'site/calculator-section.html' %}
 
       <section class="approach section-dark" id="approach" aria-labelledby="approach-title">
