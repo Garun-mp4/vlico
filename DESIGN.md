@@ -185,6 +185,6 @@ Public lead forms, including both partnership entry points, contain no file inpu
 
 ## Rating visibility and mobile rail spacing
 
-Remove the decorative vertical grid overlay globally; retain the underlying layout grid and functional separators. One shared homepage rating strip sits directly below the first photo row, before the new solutions, and is visible on both desktop and mobile. Use the unmodified live Yandex rating badge and its reviews link; do not duplicate the badge or hard-code its value.
+Remove the decorative vertical grid overlay globally; retain the underlying layout grid and functional separators. At 1100px and wider, place the homepage Yandex rating inside the main photo, at the bottom right of the copy grid, alongside the contact links with a reserved 150px column. On tablets and phones retain the compact rating-and-reviews strip directly below the photo row, before the new solutions. Move the same unmodified live badge between these positions; do not duplicate it or hard-code its value. Without JavaScript retain the visible strip at all widths.
 
 On phones, size the solutions rail to the active card, observing card/image/font size changes, so the long TEQTUM text does not leave a gap below the short smart-home card. Preserve all copy, horizontal swipe, arrow controls, zoom, and keyboard access. Keep only 16px of section padding after the rail. Restore natural equal-height columns on desktop.

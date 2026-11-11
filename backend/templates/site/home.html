@@ -103,11 +103,14 @@
                   <a class="home-hero-secondary" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
                 </div>
               </div>
-              <nav class="home-hero-contact" aria-label="Связаться с VLICO">
-                <a href="{{ company.phone_href }}" data-goal="phone_click">Позвонить <span>{{ company.phone }}</span></a>
-                <a href="{{ company.telegram }}" target="_blank" rel="noopener noreferrer" data-goal="telegram_click">Telegram <span aria-hidden="true">↗</span></a>
-                <a href="{{ company.whatsapp }}" target="_blank" rel="noopener noreferrer" data-goal="whatsapp_click">WhatsApp <span aria-hidden="true">↗</span></a>
-              </nav>
+              <div class="home-hero-footer">
+                <nav class="home-hero-contact" aria-label="Связаться с VLICO">
+                  <a href="{{ company.phone_href }}" data-goal="phone_click">Позвонить <span>{{ company.phone }}</span></a>
+                  <a href="{{ company.telegram }}" target="_blank" rel="noopener noreferrer" data-goal="telegram_click">Telegram <span aria-hidden="true">↗</span></a>
+                  <a href="{{ company.whatsapp }}" target="_blank" rel="noopener noreferrer" data-goal="whatsapp_click">WhatsApp <span aria-hidden="true">↗</span></a>
+                </nav>
+                <div class="home-hero-rating-slot" data-hero-rating-slot></div>
+              </div>
             </div>
           </div>
 
@@ -200,7 +203,7 @@
             </div>
           </aside>
         </div>
-        <aside class="home-rating" aria-label="Рейтинг и отзывы VLICO на Яндекс Картах"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener noreferrer" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
+        <aside class="home-rating" aria-label="Рейтинг и отзывы VLICO на Яндекс Картах"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener noreferrer" data-goal="reviews_click">Отзывы о VLICO ↗</a><div data-home-rating-slot>{% include 'site/yandex-rating.html' with home_badge=True %}</div></aside>
         {% include 'site/new-solutions.html' %}
       </section>
 

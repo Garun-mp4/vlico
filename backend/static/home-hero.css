@@ -175,6 +175,12 @@
 .home-solution-detail a:hover { text-decoration: underline; text-underline-offset: .25em; }
 .home-hero-contact { padding-top: 2px; border-top: 1px solid rgb(250 248 240 / .32); }
 .home-hero-contact a:first-child { font-weight: 600; }
+.home-hero-footer { width: 100%; }
+.home-hero-footer.has-home-rating { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: end; gap: 16px; }
+.home-hero-footer .home-hero-contact { min-width: 0; }
+.home-hero-footer.has-home-rating .home-hero-contact a:first-child { flex-basis: 100%; }
+.home-hero-rating-slot:empty { display: none; }
+.home-hero-rating-slot .rating-badge { width: 150px; margin: 0; }
 
 .home-page .privacy-panel { padding: 12px 14px; }
 .home-page .privacy-panel h2 { margin-bottom: 4px; }

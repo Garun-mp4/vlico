@@ -21,7 +21,9 @@
 
 .home-rating {display:flex;align-items:center;gap:24px;width:min(1800px,100%);margin-inline:auto;padding:0 clamp(16px,2.3vw,40px) 20px;background:var(--canvas);font-size:12px;}
 .home-rating>a {display:inline-flex;align-items:center;min-height:44px;text-underline-offset:4px;}
-.home-rating .rating-badge {margin:0;flex:0 0 150px;}
+.home-rating[hidden] {display:none;}
+.home-rating [data-home-rating-slot] {flex:0 0 150px;}
+.home-rating .rating-badge {margin:0;}
 @media(max-width:760px) {.home-rating {justify-content:space-between;gap:12px;padding:0 12px 20px;font-size:11px;}.public-header nav a {min-height:44px;display:inline-flex;align-items:center;}.public-header nav {gap:0 12px;}}
 
 .reviews-intro {position:sticky;top:112px;align-self:start;max-width:440px;}

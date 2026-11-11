@@ -146,6 +146,23 @@
   wide.addEventListener('change', syncLayout);
   syncLayout();
 
+  const ratingStrip = document.querySelector('.home-rating');
+  const ratingSource = ratingStrip?.querySelector('[data-home-rating-slot]');
+  const rating = ratingSource?.querySelector('[data-home-rating]');
+  const ratingTarget = intro.querySelector('[data-hero-rating-slot]');
+  const heroFooter = intro.querySelector('.home-hero-footer');
+
+  if (rating && ratingTarget && heroFooter) {
+    function syncRatingPlacement() {
+      const target = wide.matches ? ratingTarget : ratingSource;
+      if (rating.parentElement !== target) target.append(rating);
+      ratingStrip.hidden = wide.matches;
+      heroFooter.classList.toggle('has-home-rating', wide.matches);
+    }
+    wide.addEventListener('change', syncRatingPlacement);
+    syncRatingPlacement();
+  }
+
   const sticky = document.querySelector('[data-home-sticky-cta]');
   const primaryAction = document.querySelector('.home-hero-primary');
   const contact = document.getElementById('contact');
