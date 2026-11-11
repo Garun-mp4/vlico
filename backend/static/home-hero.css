@@ -114,6 +114,7 @@
 .home-hero-contact { display: flex; flex-wrap: wrap; gap: 0 16px; }
 
 .home-hero-primary,
+.home-hero-partner,
 .home-hero-secondary,
 .home-hero-contact a,
 .home-solution-detail a {
@@ -137,12 +138,15 @@
 }
 
 .home-hero-primary:hover { background: var(--canvas-soft); }
+.home-hero-primary-row {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:max-content;max-width:100%;align-items:stretch}
+.home-hero-partner {min-height:48px;padding:10px 19px;border:1px solid var(--hero-light);background:transparent;color:var(--hero-light)}
+.home-hero-partner:hover {background:rgb(242 241 233 / .08)}
+.home-hero-partner:focus-visible {outline:2px solid var(--hero-light);outline-offset:4px}
+
 
 @media (prefers-reduced-motion: no-preference) {
-  .home-solution-detail > a:first-of-type { position: relative; }
-
-  html:not(.loader-pending) .home-hero :is(.home-hero-primary, .home-solution-card[open] .home-solution-detail > a:first-of-type)::before,
-  html:not(.loader-pending) .home-hero :is(.home-hero-primary, .home-solution-card[open] .home-solution-detail > a:first-of-type)::after {
+  html:not(.loader-pending) .home-hero .home-hero-primary::before,
+  html:not(.loader-pending) .home-hero .home-hero-primary::after {
     content: "";
     position: absolute;
     inset: -1px;
@@ -153,10 +157,10 @@
     animation: hero-action-wave 5.6s var(--ease-out, ease-out) var(--hero-wave-delay, .35s) infinite;
   }
 
-  .home-hero :is(.home-hero-primary, .home-solution-detail > a:first-of-type)::after { --hero-wave-delay: .7s; }
+  .home-hero .home-hero-primary::after { --hero-wave-delay: .7s; }
 
-  .home-hero :is(.home-hero-primary, .home-solution-detail > a:first-of-type):is(:hover, :focus-visible, :active)::before,
-  .home-hero :is(.home-hero-primary, .home-solution-detail > a:first-of-type):is(:hover, :focus-visible, :active)::after {
+  .home-hero .home-hero-primary:is(:hover, :focus-visible, :active)::before,
+  .home-hero .home-hero-primary:is(:hover, :focus-visible, :active)::after {
     visibility: hidden;
   }
 
@@ -486,4 +490,9 @@
   .home-hero-layout[data-hero-wide][data-hero-motion],
   [data-hero-wide][data-hero-motion] .home-hero-copy,
   [data-hero-wide][data-hero-motion] .home-solution-detail { transition: none; }
+}
+
+@media(max-width:760px) {
+ .home-hero-primary-row {gap:10px;width:100%}
+ .home-hero-primary-row>a {min-height:52px;padding:10px 8px;font-size:11px;gap:6px;justify-content:center}
 }

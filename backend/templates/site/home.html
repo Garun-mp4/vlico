@@ -98,12 +98,14 @@
               <p class="home-hero-description">Подберём потолок и свет под интерьер. Смету и сроки согласуем до монтажа.</p>
               <p class="home-hero-proof">17 лет опыта · Сложные дизайнерские решения · Детальная смета</p>
               <div class="home-hero-actions">
-                <a class="home-hero-primary" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+                <div class="home-hero-primary-row">
+                  <a class="home-hero-primary" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+                  <a class="home-hero-partner" href="{% url 'partners' %}#partner-form">Стать партнёром <span aria-hidden="true">↗</span></a>
+                </div>
                 <div class="home-hero-secondary-actions">
                   <a class="home-hero-secondary" href="#calculator">Рассчитать стоимость <span aria-hidden="true">↓</span></a>
                   <a class="home-hero-secondary" href="{% url 'request_form' 'measurement' %}">Заказать замер <span aria-hidden="true">↗</span></a>
                   <a class="home-hero-secondary" href="#projects">Посмотреть работы <span aria-hidden="true">↓</span></a>
-                  <a class="home-hero-secondary" href="{% url 'partners' %}#partner-form">Стать партнёром <span aria-hidden="true">↗</span></a>
                 </div>
               </div>
               <nav class="home-hero-contact" aria-label="Связаться с VLICO">
