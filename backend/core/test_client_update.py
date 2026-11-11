@@ -15,6 +15,7 @@ class ClientUpdateTests(TestCase):
         response = self.client.post(reverse('lead_submit'), data)
         self.assertEqual(response.status_code, 201, response.content)
         self.assertEqual(response.json()['message'], 'Спасибо! Ваша заявка успешно отправлена. Наш специалист свяжется с вами в ближайшее время.')
+        self.assertEqual(response.json()['new_request_url'], '/request/partner/')
         lead = Lead.objects.get(pk=response.json()['reference'])
         self.assertEqual(lead.context['contact_method'], 'WhatsApp')
         self.assertIn('Способ связи: WhatsApp', email_body(lead))

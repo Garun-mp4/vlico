@@ -146,7 +146,9 @@ async page => {
 
   await page.evaluate(() => {
     const button = document.querySelector('.home-hero-primary').getBoundingClientRect();
-    scrollBy(0, button.bottom + 40);
+    // Test the persistent action away from the solution rail, where it intentionally yields to card controls.
+    const about = document.querySelector('#about').getBoundingClientRect();
+    scrollTo(0, scrollY + about.top + 100);
   });
   await waitForState(() => !document.querySelector('[data-home-sticky-cta]').hidden, 'Sticky CTA did not appear after the hero CTA left view');
   const sticky = page.locator('[data-home-sticky-cta]');

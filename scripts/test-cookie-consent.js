@@ -6,7 +6,7 @@ async page => {
   const baseUrl = /^https?:/.test(page.url()) ? new URL('/', page.url()).href : 'http://127.0.0.1:8000/';
   await page.goto(baseUrl);
   const panel = page.locator('[data-privacy-panel]');
-  for (const width of [1440, 390, 320]) {
+  for (const width of [1440, 1280, 1024, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(() => localStorage.removeItem('vlicoPrivacy'));
     await page.reload();
@@ -17,13 +17,13 @@ async page => {
     await page.evaluate(() => document.fonts.ready);
     check(await panel.isVisible(), 'Initial cookie notice is absent');
     check(await page.locator('[data-home-sticky-cta]').isHidden(), 'Mobile sticky CTA is visible behind the cookie notice');
-    if (width <= 760) {
-      const bounds = await panel.boundingBox();
-      const header = await page.locator('[data-site-header]').boundingBox();
-      const action = await page.locator('.home-hero-primary').boundingBox();
-      check(bounds.y >= header.y + header.height, 'Cookie notice covers the header');
-      check(bounds.y + bounds.height <= action.y, 'Cookie notice covers the primary action');
-    }
+    const bounds = await panel.boundingBox();
+    const header = await page.locator('[data-site-header]').boundingBox();
+    check(await panel.evaluate(el => getComputedStyle(el).position) === 'fixed', 'Cookie notice became a grid row');
+    check(bounds.x >= 10 && bounds.x <= 22, 'Cookie notice is not anchored to the left');
+    check(bounds.y >= header.y + header.height, 'Cookie notice covers the header');
+    check(bounds.y + bounds.height <= 845 && bounds.y + bounds.height >= 820, 'Cookie notice is not anchored to the bottom');
+    check(bounds.width <= Math.min(480, width - 24) + 1, 'Cookie notice spans the whole desktop row');
     check(await panel.locator('input[type=checkbox]').count() === 0, 'Initial notice still has checkboxes');
     check(await page.locator('iframe').count() >= 2, 'Widgets wait for consent');
     check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), 'Overflow at ' + width);
@@ -43,5 +43,5 @@ async page => {
   }
   check(!errors.length, errors.join('; '));
   await page.unroute('https://yandex.ru/**');
-  return { widths: [1440, 390, 320], controls: 'accept/reject without checkboxes', persistence: 'both choices retained', widgets: 'present before and after either choice', errors };
+  return { widths: [1440, 1280, 1024, 390, 320], controls: 'accept/reject without checkboxes', persistence: 'both choices retained', widgets: 'present before and after either choice', errors };
 }

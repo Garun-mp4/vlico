@@ -40,3 +40,4 @@
 .lead-feedback[data-state=success] {padding:24px;background:#ddedea;color:#172b34;border:1px solid #a6a498;font-size:16px;line-height:1.6;font-weight:500;}
 .lead-feedback[data-state=sending] {padding:16px;background:var(--canvas-soft);color:var(--ink);}
 .lead-feedback:focus-visible {outline:2px solid var(--focus,#075f40);outline-offset:4px;}
+.lead-new-request {display:inline-flex;align-items:center;min-height:44px;margin:0 0 16px;}

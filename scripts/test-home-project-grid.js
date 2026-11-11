@@ -21,8 +21,8 @@ async page => {
     const founder = about.locator('.about-founder');
     const portrait = founder.locator('.about-founder-photo');
     const gallery = about.locator('.about-projects');
-    check((await about.locator('#about-title').textContent()).trim() === 'Хороший свет начинается с плана потолка', 'About heading changed at ' + width);
-    check((await copy.locator('.about-text').innerText()).includes('17 лет') && (await copy.locator('.about-text').innerText()).includes('премиальными потолочными системами') && (await copy.locator('.about-text').innerText()).includes('архитектурным освещением') && (await copy.locator('.about-text').innerText()).includes('сложные дизайнерские проекты'), 'About copy lost a confirmed focus at ' + width);
+    check((await about.locator('#about-title').textContent()).trim() === 'ПОТОЛОК — ОСНОВА КРАСИВОГО ИНТЕРЬЕРА', 'About heading changed at ' + width);
+    check((await copy.locator('.about-text').innerText()).includes('17 лет') && (await copy.locator('.about-text').innerText()).includes('премиальные потолочные системы') && (await copy.locator('.about-text').innerText()).includes('архитектурным освещением') && (await copy.locator('.about-text').innerText()).includes('сложные дизайнерские решения'), 'About copy lost a confirmed focus at ' + width);
     check((await founder.locator('figcaption').innerText()).replace(/\s+/g,' ').trim() === 'Владлен Гизерский — основатель и руководитель VLICO', 'Founder caption mismatch at ' + width);
     check(/vladlen-gizerskiy-portrait-640\.[a-f0-9]+\.webp/.test(await portrait.getAttribute('srcset')) && /vladlen-gizerskiy-portrait-960\.[a-f0-9]+\.webp/.test(await portrait.getAttribute('srcset')), 'Responsive founder portrait variants are missing');
     check((await portrait.getAttribute('alt')).includes('Владлена Гизерского'), 'Founder portrait has no descriptive alt text');

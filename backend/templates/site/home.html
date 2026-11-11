@@ -37,6 +37,7 @@
     <script defer src="{% static 'header.js' %}"></script>
     <script defer src="{% static 'site.js' %}"></script>
     <script defer src="{% static 'home-hero.js' %}"></script>
+    <script defer src="{% static 'new-solutions.js' %}"></script>
     <script src="{% static 'solutions-preview.js' %}" defer></script>
   </head>
   <body class="home-page">
@@ -76,6 +77,7 @@
     </div>
 
     {% include 'site/header.html' %}
+    {% include 'site/privacy-controls.html' %}
 
     <main id="main">
       <section class="home-hero" id="top" aria-labelledby="hero-title">
@@ -111,7 +113,6 @@
             </div>
           </div>
 
-          {% include 'site/privacy-controls.html' %}
           <aside class="home-hero-directions" aria-labelledby="home-hero-directions-title">
             <h2 class="home-hero-directions-title" id="home-hero-directions-title">Решения и предложение</h2>
             <div class="home-solution-grid" data-home-solutions>
@@ -201,9 +202,8 @@
             </div>
           </aside>
         </div>
+        {% include 'site/new-solutions.html' %}
       </section>
-
-      {% include 'site/new-solutions.html' %}
 
       <aside class="mobile-rating"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
 
@@ -274,6 +274,16 @@
         {% if homepage_projects %}<div class="home-project-footer"><a class="home-project-more" href="{% url 'projects' %}">Смотреть все проекты <span aria-hidden="true">↗</span></a></div>{% endif %}
       </section>
 
+      <section class="partners-home-entry page-gutter" id="partners" aria-labelledby="partners-home-title">
+        <div>
+          <p class="eyebrow">ПАРТНЁРАМ</p><h2 id="partners-home-title">СОЗДАЁМ ПРОЕКТЫ ВМЕСТЕ</h2>
+          <p class="partners-home-audience">Для дизайнеров, архитекторов, строительных и ремонтных компаний</p>
+          <p>Приглашаем дизайнеров, архитекторов и строительные компании к сотрудничеству. Реализуем сложные потолочные решения и архитектурное освещение. Предлагаем индивидуальные условия для партнёров.</p>
+        </div>
+        <figure class="partners-home-visual"><img src="{% static 'client-updates/partnership-studio.webp' %}" width="1536" height="1024" loading="lazy" decoding="async" alt="Дизайнер и технический специалист обсуждают чертежи и образцы потолочных профилей в студии, визуализация"><figcaption>Визуализация сотрудничества · создано с помощью ИИ</figcaption></figure>
+        <a class="partners-home-action" href="{% url 'partners' %}#partner-form">Стать партнёром <span aria-hidden="true">↗</span></a>
+      </section>
+
       <section class="solutions section-sand" id="solutions" aria-labelledby="solutions-title">
         <div class="solutions-layout page-gutter">
           <div class="solutions-intro reveal">
@@ -288,14 +298,6 @@
         </div>
       </section>
 
-      <section class="partners-home-entry page-gutter" aria-labelledby="partners-home-title">
-        <div>
-          <p class="eyebrow">ПАРТНЁРАМ</p><h2 id="partners-home-title">СОЗДАЁМ ПРОЕКТЫ ВМЕСТЕ</h2>
-          <p>Приглашаем дизайнеров, архитекторов и строительные компании к сотрудничеству. Реализуем сложные потолочные решения и архитектурное освещение. Предлагаем индивидуальные условия для партнёров.</p>
-        </div>
-        <a href="{% url 'partners' %}">Стать партнёром <span aria-hidden="true">↗</span></a>
-      </section>
-
       {% include 'site/calculator-section.html' %}
 
       <section class="approach section-dark" id="approach" aria-labelledby="approach-title">
@@ -307,14 +309,16 @@
         <div class="approach-layout page-gutter">
           <div class="approach-intro reveal">
             <p class="eyebrow">КАК МЫ РАБОТАЕМ</p>
-            <h2 class="display-heading" id="approach-title">СНАЧАЛА РЕШЕНИЕ. ПОТОМ МОНТАЖ.</h2>
-            <p>Обсуждаем помещение, подбираем комплектацию, согласуем смету и сроки. К монтажу приступаем, когда все детали понятны.</p>
+            <h2 class="display-heading" id="approach-title">СОВЕРШЕНСТВО<br>НАЧИНАЕТСЯ<br>С ДЕТАЛЕЙ.</h2>
+            <p>Красивый потолок — результат продуманного подхода. Мы учитываем особенности помещения, подбираем материалы и освещение, согласовываем каждую деталь. Чтобы всё выглядело гармонично и радовало долгие годы.</p>
             <a class="text-link text-link-light" href="#contact">Обсудить задачу <span aria-hidden="true">↗</span></a>
           </div>
           <ol class="approach-steps">
-            <li class="approach-step reveal"><span>01</span><div><h3>Замер и задача</h3><p>Уточняем размеры, пожелания к свету и особенности помещения. Замер в Калининграде бесплатный.</p></div></li>
-            <li class="approach-step reveal"><span>02</span><div><h3>Смета и сроки</h3><p>Подбираем систему, составляем смету и фиксируем график работ до начала монтажа.</p></div></li>
-            <li class="approach-step reveal"><span>03</span><div><h3>Монтаж и настройка</h3><p>Устанавливаем потолок, интегрируем освещение и проверяем согласованные решения.</p></div></li>
+            <li class="approach-step reveal"><span aria-hidden="true">01</span><div><h3>Знакомство с проектом</h3></div></li>
+            <li class="approach-step reveal"><span aria-hidden="true">02</span><div><h3>Подбор решений и материалов</h3></div></li>
+            <li class="approach-step reveal"><span aria-hidden="true">03</span><div><h3>Подробная смета и сроки</h3></div></li>
+            <li class="approach-step reveal"><span aria-hidden="true">04</span><div><h3>Профессиональный монтаж</h3></div></li>
+            <li class="approach-step reveal"><span aria-hidden="true">05</span><div><h3>Результат, которым можно гордиться</h3></div></li>
           </ol>
         </div>
       </section>

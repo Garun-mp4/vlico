@@ -92,6 +92,11 @@
         if (xhr.status >= 200 && xhr.status < 300 && result.ok) {
           status.textContent = `${result.message}`; form.dataset.submitted = 'true';
           status.dataset.state = 'success';
+          const again = document.createElement('a');
+          again.className = 'text-link lead-new-request';
+          again.href = result.new_request_url || form.action;
+          again.textContent = 'Отправить ещё одну заявку ↗';
+          status.after(again);
           status.focus({ preventScroll: true });
           status.scrollIntoView({ block: 'nearest', behavior: 'instant' });
           document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind, reference: result.reference } }));
