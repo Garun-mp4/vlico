@@ -85,10 +85,14 @@ def save_submission(request, form):
     context = {"interest": data.get("interest", ""), "project_title": project.title if project else "", "service_title": service.title if service else ""}
     if company:
         context["company"] = company
+    if data["kind"] == "partner":
+        context["contact_method"] = dict(form.fields["contact_method"].choices).get(data.get("contact_method"), "")
     context["consent"] = consent_record()
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
     payload.update(project=project.pk if project else None, service=service.pk if service else None, company=company,
         attachment_sha256=upload_digest, legal_version=data["legal_version"])
+    if context.get("contact_method"):
+        payload["contact_method"] = context["contact_method"]
     if quick_answers:
         payload["pricing_version"] = ""
         payload["calculator_schema"] = QUICK_CALCULATOR_SCHEMA

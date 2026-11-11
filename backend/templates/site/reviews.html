@@ -8,6 +8,12 @@
       <a class="text-link" href="{{ company.yandex }}reviews/?add-review=true" target="_blank" rel="noopener" data-goal="review_write_click">Оставить отзыв ↗</a>
     </div>
     {% include 'site/yandex-rating.html' %}
+    <aside class="review-offer" aria-labelledby="review-offer-title">
+      <p class="eyebrow">ВАШ ОПЫТ ВАЖЕН</p>
+      <h3 id="review-offer-title">Поделитесь впечатлением о нашей работе — получите скидку 10% на следующий заказ!</h3>
+      <a class="lead-submit" href="{{ company.yandex }}reviews/?add-review=true" target="_blank" rel="noopener noreferrer" data-goal="review_write_click">Оставить отзыв <span aria-hidden="true">↗</span></a>
+      <p>Скидка предоставляется за честный отзыв независимо от оценки.</p>
+    </aside>
   </div>
   <div class="reviews-widget" data-external-widget="reviews">
     <iframe src="https://yandex.ru/maps-reviews-widget/164382623295?comments" title="Отзывы клиентов VLICO на Яндекс Картах" width="760" height="960" loading="lazy" referrerpolicy="no-referrer"></iframe>

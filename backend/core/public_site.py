@@ -11,7 +11,7 @@ from django.utils.html import json_script
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_safe
 from .blog import cover_url
-from .site_content import SERVICES, BY_SLUG, CONTACTS
+from .site_content import SERVICES, BY_SLUG, CONTACTS, NEW_SOLUTIONS
 from .portfolio import published_projects
 from .legal import consent_revision, legal_context
 from .models import ProjectCategory, ProjectMedia
@@ -85,7 +85,7 @@ def public_context(request):
     config = {"counter": settings.YANDEX_METRIKA_ID, "analytics_enabled": settings.ANALYTICS_ENABLED and settings.APP_ENV == "production" and public_tracking,
         "canonical": canonical, "consent_version": consent_revision()}
     navigation = project_navigation() if name in INDEXABLE | {"privacy", "consent", "cookies", "request_form"} else []
-    return {**legal_context(), "service_pages": SERVICES, "company": CONTACTS, "site_origin": settings.SITE_URL, "project_navigation": navigation,
+    return {**legal_context(), "service_pages": SERVICES, "new_solutions": NEW_SOLUTIONS, "company": CONTACTS, "site_origin": settings.SITE_URL, "project_navigation": navigation,
         "seo": {"title": title, "description": description, "canonical": "" if private else canonical, "image": image, "indexable": settings.SITE_INDEXABLE and name in INDEXABLE, "schema": schema}, "site_config": config}
 
 
@@ -105,7 +105,8 @@ def service(request, slug):
 
 @require_safe
 def partners(request):
-    return render(request, "site/partners.html")
+    from .lead_views import initial_lead_form
+    return render(request, "site/partners.html", {"lead_form": initial_lead_form(request, "partner"), "request_kind": "partner"})
 
 
 @require_safe

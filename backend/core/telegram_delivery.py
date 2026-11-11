@@ -116,7 +116,7 @@ def legacy_message_parts(lead):
     quote = lead.calculation
     lines = ["VLICO · Новая заявка", f"ID: {lead.pk}", f"Время: {timezone.localtime(lead.created_at):%d.%m.%Y %H:%M}",
         f"Тип: {dict(KINDS).get(lead.kind, lead.kind)}", f"Имя: {lead.name}", f"Контакт: {lead.contact}"]
-    for label, value in [("Услуга", lead.context.get("service_title")), ("Интерес", lead.context.get("interest")), ("Кейс", lead.context.get("project_title")), ("Пожелания", lead.comment)]:
+    for label, value in [("Услуга", lead.context.get("service_title")), ("Компания", lead.context.get("company")), ("Способ связи", lead.context.get("contact_method")), ("Интерес", lead.context.get("interest")), ("Кейс", lead.context.get("project_title")), ("Пожелания", lead.comment)]:
         if value:
             lines.append(f"{label}: {value}")
     if quote:

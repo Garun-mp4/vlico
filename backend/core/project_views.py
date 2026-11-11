@@ -9,7 +9,13 @@ from .portfolio import editor_required, is_editor, published_projects
 
 def project_context(project):
     media = list(project.media.all())
-    return {"project": project, "cover": next((m for m in media if m.is_cover), None), "results": [m for m in media if m.section == "result" and not m.is_cover], "process": [m for m in media if m.section == "process" and not m.is_cover]}
+    comparison = None
+    if project.slug == "ceiling-installation-detail":
+        before = next((m for m in media if m.section == "process"), None)
+        after = next((m for m in media if m.section == "result"), None)
+        if before and after:
+            comparison = {"before": before, "after": after}
+    return {"installation_comparison": comparison, "project": project, "cover": next((m for m in media if m.is_cover), None), "results": [m for m in media if m.section == "result" and not m.is_cover], "process": [m for m in media if m.section == "process" and not m.is_cover]}
 
 
 @require_safe

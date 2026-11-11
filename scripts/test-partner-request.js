@@ -12,25 +12,25 @@ async page => {
   ];
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto(origin + '/');
+    await page.goto(origin + '/', {waitUntil:'domcontentloaded'});
     if (await page.locator('[data-privacy-panel]').isVisible()) {
       await page.getByRole('button', { name: 'Отклонить', exact: true }).click();
     }
-    check((await page.locator('.partners-home-entry > a').innerText()).replace(/\s+/g, ' ').trim() === 'Дизайнерам и архитекторам ↗', 'Homepage partner entry is missing at ' + viewport.name);
+    check((await page.locator('.partners-home-entry > a').innerText()).replace(/\s+/g, ' ').trim() === 'Стать партнёром ↗', 'Homepage partner entry is missing at ' + viewport.name);
     check(await page.getByRole('link', { name: 'Обсудить проект', exact: true }).count() > 0, 'Primary project action is missing at ' + viewport.name);
     await page.evaluate(() => document.querySelector('.partners-home-entry > a')?.focus({ preventScroll: true }));
     check(await page.evaluate(() => document.activeElement === document.querySelector('.partners-home-entry > a')), 'Homepage partner entry cannot receive keyboard focus at ' + viewport.name);
     await page.locator('.partners-home-entry > a').click();
 
-    check(await page.locator('h1').innerText() === 'Партнёрство, в котором продумана каждая деталь', 'Partner heading mismatch at ' + viewport.name);
+    check(await page.locator('h1').textContent() === 'Партнёрство, в котором продумана каждая деталь', 'Partner heading mismatch at ' + viewport.name);
     check((await page.locator('.partners-intro .page-intro').innerText()).includes('Сотрудничаем с дизайнерами, архитекторами и строительными компаниями.'), 'Partner introduction is missing at ' + viewport.name);
     check(await page.locator('.partners-benefit-list li').count() === 4, 'Partner benefits count mismatch at ' + viewport.name);
     check(await page.locator('.partners-step-list li').count() === 3, 'Partner process count mismatch at ' + viewport.name);
-    check(await page.getByRole('link', { name: /Обсудить сотрудничество/ }).first().getAttribute('href') === '/request/partner/', 'Partner CTA does not open the SSR route');
+    check(await page.getByRole('link', { name: /Обсудить сотрудничество/ }).first().getAttribute('href') === '#partner-form', 'Partner CTA does not open the SSR route');
     check(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'Horizontal overflow at ' + viewport.name);
     await page.screenshot({ path: 'C:/Users/admin/AppData/Local/Temp/vlico-m04-partners-' + viewport.name + '.png', fullPage: true });
 
-    await page.goto(origin + '/request/partner/');
+    await page.goto(origin + '/request/partner/', {waitUntil:'domcontentloaded'});
     const form = page.locator('[data-lead-form]');
     check(await form.getAttribute('enctype') === 'multipart/form-data', 'Partner form is not multipart');
     check(await form.locator('[name=company]').count() === 1, 'Optional company field is missing');
@@ -63,7 +63,7 @@ async page => {
     return route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ ok: true, kind: 'partner', reference: 'browser-test-only', message: 'Заявка принята. Мы свяжемся с вами по указанному контакту.' }),
+      body: JSON.stringify({ ok: true, kind: 'partner', reference: 'browser-test-only', message: 'Спасибо! Ваша заявка успешно отправлена. Наш специалист свяжется с вами в ближайшее время.' }),
     });
   });
   const form = page.locator('[data-lead-form]');
@@ -94,7 +94,7 @@ async page => {
   check(requests === 3, 'Network and validation retries did not issue exactly three requests');
   check(retriedPayload.includes('name="company"') && retriedPayload.includes('Studio North'), 'Company was not included in FormData');
   check(retriedPayload.includes('filename="revised-project.pdf"'), 'Corrected project file was not included in FormData');
-  check(await form.locator('[data-lead-status]').innerText() === 'Заявка принята. Мы свяжемся с вами по указанному контакту.', 'Successful retry did not show saved status');
+  check(await form.locator('[data-lead-status]').innerText() === 'Спасибо! Ваша заявка успешно отправлена. Наш специалист свяжется с вами в ближайшее время.', 'Successful retry did not show saved status');
   check(await form.locator('[data-field-error]').count() === 0, 'A field error remained after the successful retry');
   check(!(await page.locator('body').innerText()).includes('Прикрепите проект в формате PDF, JPG или PNG.'), 'A stale attachment error remained after success');
   await page.unroute('**/api/leads/');
@@ -113,7 +113,7 @@ async page => {
       check(body.includes('filename="project.pdf"'), 'No-JS form omitted the project file');
       return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!doctype html><html lang="ru"><h1>Заявка принята</h1></html>' });
     });
-    await noJsPage.goto(origin + '/request/partner/');
+    await noJsPage.goto(origin + '/request/partner/', {waitUntil:'domcontentloaded'});
     const nativeForm = noJsPage.locator('[data-lead-form]');
     await nativeForm.locator('[name=name]').fill('Тест без JavaScript');
     await nativeForm.locator('[name=contact]').fill('+7 900 000-00-03');

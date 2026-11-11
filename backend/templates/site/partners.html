@@ -4,7 +4,7 @@
   <header class="partners-intro">
     <h1 class="display-heading" id="partners-title">Партнёрство, в котором продумана каждая деталь</h1>
     <p class="page-intro">Сотрудничаем с дизайнерами, архитекторами и строительными компаниями. Берём на себя реализацию потолочных систем и интеграцию архитектурного освещения — от технической проработки до монтажа.</p>
-    <a class="lead-submit" href="{% url 'request_form' 'partner' %}">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
+    <a class="lead-submit" href="#partner-form">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
   </header>
 
   <section class="partners-benefits" aria-label="Преимущества сотрудничества">
@@ -40,7 +40,16 @@
       <h2 id="partners-cta-title">Обсудим ваш проект</h2>
       <p>Имя и телефон обязательны. Компанию и файл проекта можно добавить по желанию.</p>
     </div>
-    <a class="lead-submit" href="{% url 'request_form' 'partner' %}">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
+    <a class="lead-submit" href="#partner-form">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
+  </section>
+  <section class="partner-form-section" id="partner-form" aria-labelledby="partner-form-title">
+    <div><p class="eyebrow">СОТРУДНИЧЕСТВО</p><h2 id="partner-form-title">Стать партнёром</h2><p>Расскажите о себе и выберите удобный способ связи. Обсудим проект и индивидуальные условия сотрудничества.</p></div>
+    <form class="lead-form" method="post" action="{% url 'request_form' 'partner' %}" enctype="multipart/form-data" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
+      <input type="hidden" name="source_page" value="/partners/">
+      {% include 'site/lead-fields.html' %}
+      {% include 'site/lead-feedback.html' %}
+      <button class="lead-submit" type="submit">Отправить заявку</button>
+    </form>
   </section>
 </section>
 {% endblock %}

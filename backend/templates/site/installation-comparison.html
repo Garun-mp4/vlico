@@ -1,0 +1,6 @@
+<section class="installation-comparison" aria-labelledby="installation-comparison-title">
+<h2 id="installation-comparison-title">До и после</h2>
+<div class="installation-pair">
+{% with item=installation_comparison.before %}<figure><a href="{% url 'project_image' item.pk 'full' %}" data-gallery data-alt="{{ item.alt }}" data-caption="До — закладная под кухонную вытяжку"><img src="{% url 'project_image' item.pk 'full' %}" width="{{ item.width }}" height="{{ item.height }}" alt="Закладная конструкция и воздуховод до установки потолка"></a><figcaption><strong>До</strong><span>Закладная под кухонную вытяжку</span></figcaption></figure>{% endwith %}
+{% with item=installation_comparison.after %}<figure><a href="{% url 'project_image' item.pk 'full' %}" data-gallery data-alt="{{ item.alt }}" data-caption="После — установленная вытяжка"><img src="{% url 'project_image' item.pk 'full' %}" width="{{ item.width }}" height="{{ item.height }}" alt="Установленная чёрная вытяжка под готовым потолком рядом с синим кухонным шкафом"></a><figcaption><strong>После</strong><span>Вытяжка в готовом интерьере</span></figcaption></figure>{% endwith %}
+</div></section>

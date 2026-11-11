@@ -8,9 +8,9 @@ class HomePreviewTests(TestCase):
     def test_about_section_uses_exact_copy_and_supplied_responsive_portrait(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<h2 class="display-heading reveal" id="about-title">Хороший свет начинается с плана потолка</h2>', html=True)
-        self.assertContains(response, '17 лет работаем с премиальными потолочными системами и архитектурным освещением.')
-        self.assertContains(response, 'сложные дизайнерские проекты')
+        self.assertContains(response, '<h2 class="display-heading reveal" id="about-title">ПОТОЛОК — ОСНОВА КРАСИВОГО ИНТЕРЬЕРА</h2>', html=True)
+        self.assertContains(response, '17 лет создаём премиальные потолочные системы с архитектурным освещением.')
+        self.assertContains(response, 'сложные дизайнерские решения')
         self.assertContains(response, 'Владлен Гизерский')
         self.assertContains(response, '— основатель и руководитель VLICO')
         html = response.content.decode()

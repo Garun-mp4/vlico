@@ -20,6 +20,7 @@
   document.querySelectorAll('[data-lead-form]').forEach(form => {
     const errors = form.querySelector('[data-lead-errors]'), status = form.querySelector('[data-lead-status]');
     const submit = form.querySelector('button[type="submit"]:not([data-calculate])');
+    const submitLabel = submit?.textContent;
     let busy = false;
 
     function clearFieldError(input) {
@@ -78,18 +79,21 @@
       const quoteSubmit = event.submitter?.hasAttribute('data-calculate') || (!event.submitter && form.querySelector('[data-quick-contact][hidden]'));
       if (quoteSubmit) return;
       event.preventDefault();
-      if (busy || form.dataset.submitted === 'true') return;
+      if (busy) return;
+      if (form.dataset.submitted === 'true') { status.focus(); return; }
       clearFieldErrors();
       errors.replaceChildren();
       const data = new FormData(form); data.set('source_page', form.elements.namedItem('source_page')?.value || location.pathname); data.set('attribution', JSON.stringify(attribution));
-      busy = true; submit.disabled = true; errors.hidden = true; status.hidden = false; status.textContent = 'Отправляем заявку…';
+      busy = true; submit.disabled = true; submit.textContent = 'Отправляем заявку…'; form.setAttribute('aria-busy', 'true'); errors.hidden = true; status.hidden = false; status.dataset.state = 'sending'; status.textContent = 'Отправляем заявку…';
       const xhr = new XMLHttpRequest(); xhr.open('POST', form.dataset.api); xhr.setRequestHeader('Accept', 'application/json'); xhr.timeout = 90000;
-      const finish = () => { busy = false; if (form.dataset.submitted !== 'true') submit.disabled = false; };
+      const finish = () => { busy = false; submit.disabled = false; form.removeAttribute('aria-busy'); submit.textContent = form.dataset.submitted === 'true' ? 'Заявка отправлена' : submitLabel; };
       xhr.onload = () => {
         let result; try { result = JSON.parse(xhr.responseText); } catch { result = {}; }
         if (xhr.status >= 200 && xhr.status < 300 && result.ok) {
           status.textContent = `${result.message}`; form.dataset.submitted = 'true';
-          form.querySelectorAll('input,select,textarea,button').forEach(input => { input.disabled = true; });
+          status.dataset.state = 'success';
+          status.focus({ preventScroll: true });
+          status.scrollIntoView({ block: 'nearest', behavior: 'instant' });
           document.dispatchEvent(new CustomEvent('vlico:lead-saved', { detail: { kind: result.kind, reference: result.reference } }));
         } else {
           status.hidden = true;

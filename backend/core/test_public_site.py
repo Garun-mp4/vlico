@@ -23,7 +23,7 @@ class PublicSiteTests(TestCase):
             self.assertContains(response, 'application/ld+json')
             self.assertEqual(response['X-Robots-Tag'], 'noindex, nofollow')
             titles.add(response.context['seo']['title'])
-        self.assertEqual(len(titles), 6)
+        self.assertEqual(len(titles), 9)
 
     def test_public_contacts_and_widgets_are_server_rendered(self):
         for path in ('/', '/contacts/'):
@@ -41,7 +41,7 @@ class PublicSiteTests(TestCase):
     def test_partner_content_home_entry_and_primary_project_action(self):
         home = self.client.get('/')
         self.assertContains(home, 'class="partners-home-entry page-gutter"')
-        self.assertContains(home, 'Дизайнерам и архитекторам')
+        self.assertContains(home, 'СОЗДАЁМ ПРОЕКТЫ ВМЕСТЕ')
         self.assertContains(home, 'class="home-hero-primary"')
         self.assertContains(home, '>Обсудить проект <span')
         self.assertNotContains(home, 'Дизайнерам и строителям')
@@ -62,7 +62,7 @@ class PublicSiteTests(TestCase):
         steps = ('Техническая проработка', 'Согласование решений', 'Реализация проекта')
         positions = [markup.index(item) for item in steps]
         self.assertEqual(positions, sorted(positions))
-        self.assertContains(response, 'href="/request/partner/"')
+        self.assertContains(response, 'action="/request/partner/"')
         self.assertContains(response, 'Обсудить сотрудничество')
 
     def test_only_explicitly_linked_published_projects_appear_on_services(self):

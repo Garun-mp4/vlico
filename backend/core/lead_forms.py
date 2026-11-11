@@ -100,6 +100,7 @@ class LeadForm(forms.Form):
     name = forms.CharField(label="Как к вам обращаться", min_length=2, max_length=100, widget=forms.TextInput(attrs={"autocomplete": "name"}))
     contact = forms.CharField(label="Телефон, email или Telegram", max_length=160, widget=forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "+7, email или @username"}))
     company = forms.CharField(label="Компания", required=False, max_length=160, widget=forms.TextInput(attrs={"autocomplete": "organization"}))
+    contact_method = forms.ChoiceField(label="Удобный способ связи", required=False, choices=[("", "Выберите способ связи"), ("phone", "Звонок"), ("telegram", "Telegram"), ("whatsapp", "WhatsApp")])
     attachment = forms.FileField(label="Прикрепить проект", required=False, max_length=255,
         help_text="PDF, JPG или PNG, до 5 МБ. Необязательно.",
         widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"}))

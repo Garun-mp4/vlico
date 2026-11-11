@@ -101,3 +101,8 @@
   .site-header[data-site-header] .header-cta .header-cta-short {display:inline;}
 }
 @media(prefers-reduced-motion:reduce) {.project-nav-panel,.project-nav-toggle svg,.site-header[data-site-header],.site-header[data-site-header] .brand img,.site-header[data-site-header] .mobile-nav>summary span {transition:none;}.project-nav-panel {transform:none;}}
+@media(min-width:1101px) and (max-width:1270px) {
+ .site-header[data-site-header] .header-inner {gap:16px}
+ .site-header[data-site-header] .desktop-nav {gap:14px}
+ .header-phone {display:none}
+}

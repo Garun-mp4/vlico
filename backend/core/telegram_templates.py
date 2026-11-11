@@ -85,7 +85,7 @@ def message_blocks(lead):
     contact = [f"Клиент: {lead.name}", f"Контакт: {lead.contact}"]
     if lead.kind != "calculator":
         contact.append(f"Решение: {lead.context.get('service_title') or 'Нужна помощь с выбором'}")
-        for key, label in (("interest", "Интерес"), ("project_title", "Кейс")):
+        for key, label in (("company", "Компания"), ("contact_method", "Способ связи"), ("interest", "Интерес"), ("project_title", "Кейс")):
             if lead.context.get(key):
                 contact.append(f"{label}: {lead.context[key]}")
     add(lead_title(lead), "\n".join(contact))

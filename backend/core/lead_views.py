@@ -47,7 +47,7 @@ def accept(request, expected_kind=None):
         if expected_kind and post.get("kind") != expected_kind:
             raise SubmissionError({"kind": ["Обновите форму сотрудничества и отправьте её ещё раз."]})
         lead, created = save_submission(request, LeadForm(post, files))
-        return {"ok": True, "reference": str(lead.pk), "created": created, "kind": lead.kind, "message": "Заявка принята. Мы свяжемся с вами по указанному контакту."}, 201 if created else 200
+        return {"ok": True, "reference": str(lead.pk), "created": created, "kind": lead.kind, "message": "Спасибо! Ваша заявка успешно отправлена. Наш специалист свяжется с вами в ближайшее время."}, 201 if created else 200
     except SubmissionError as exc:
         body = {"ok": False, "errors": exc.errors}
         if exc.quote:

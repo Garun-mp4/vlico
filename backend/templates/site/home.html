@@ -203,15 +203,17 @@
         </div>
       </section>
 
+      {% include 'site/new-solutions.html' %}
+
       <aside class="mobile-rating"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
 
       <section class="about section-dark" id="about" aria-labelledby="about-title">
         <div class="about-grid page-gutter">
           <div class="about-copy">
             <p class="eyebrow reveal">ПОДХОД VLICO</p>
-            <h2 class="display-heading reveal" id="about-title">Хороший свет начинается с плана потолка</h2>
+            <h2 class="display-heading reveal" id="about-title">ПОТОЛОК — ОСНОВА КРАСИВОГО ИНТЕРЬЕРА</h2>
             <div class="about-text reveal">
-              <p>17 лет работаем с премиальными потолочными системами и архитектурным освещением. Прорабатываем сложные дизайнерские проекты, чтобы потолок и свет образовали единую систему.</p>
+              <p>17 лет создаём премиальные потолочные системы с архитектурным освещением. Реализуем сложные дизайнерские решения, объединяя эстетику, технологии и безупречное исполнение.</p>
             </div>
             <a class="text-link text-link-light about-link reveal" href="{% url 'projects' %}">Смотреть все проекты <span aria-hidden="true">↗</span></a>
           </div>
@@ -288,10 +290,10 @@
 
       <section class="partners-home-entry page-gutter" aria-labelledby="partners-home-title">
         <div>
-          <h2 id="partners-home-title">Сотрудничество по проекту</h2>
-          <p>Для дизайнеров, архитекторов и строительных компаний.</p>
+          <p class="eyebrow">ПАРТНЁРАМ</p><h2 id="partners-home-title">СОЗДАЁМ ПРОЕКТЫ ВМЕСТЕ</h2>
+          <p>Приглашаем дизайнеров, архитекторов и строительные компании к сотрудничеству. Реализуем сложные потолочные решения и архитектурное освещение. Предлагаем индивидуальные условия для партнёров.</p>
         </div>
-        <a href="{% url 'partners' %}">Дизайнерам и архитекторам <span aria-hidden="true">↗</span></a>
+        <a href="{% url 'partners' %}">Стать партнёром <span aria-hidden="true">↗</span></a>
       </section>
 
       {% include 'site/calculator-section.html' %}
@@ -328,7 +330,6 @@
 
           <form class="contact-form lead-form reveal" id="contact-form" method="post" action="{% url 'request_form' 'consultation' %}" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
             {% include 'site/lead-fields.html' %}
-            <p class="lead-help">Замер в Калининграде бесплатный. Выезд по области обсудим отдельно.</p>
             {% include 'site/lead-feedback.html' %}
             <button class="lead-submit" type="submit">Отправить заявку</button>
           </form>

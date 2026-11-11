@@ -22,7 +22,7 @@
 <dt>Локация</dt>
 <dd>Нужно указать город или разрешённый адрес</dd>
 </div>{% endif %}</dl>
-</section>{% if cover %}<figure class="case-cover">
+</section>{% if installation_comparison %}{% include 'site/installation-comparison.html' %}{% endif %}{% if cover and not installation_comparison %}<figure class="case-cover">
 <a href="{% url 'project_image' cover.pk 'full' %}" data-gallery data-caption="{{ cover.caption }}" data-alt="{{ cover.alt }}">
 <img {% if cover.editing.ratio %}data-preserve-frame{% endif %}
 src="{% url 'project_image' cover.pk 'thumb' %}"

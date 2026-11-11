@@ -28,6 +28,7 @@ def email_body(lead):
     for label, value in (
         ("Услуга", lead.context.get("service_title")),
         ("Компания", lead.context.get("company")),
+        ("Способ связи", lead.context.get("contact_method")),
         ("Интерес", lead.context.get("interest")),
         ("Проект", lead.context.get("project_title")),
         ("Комментарий", lead.comment),

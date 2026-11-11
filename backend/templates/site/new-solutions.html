@@ -1,0 +1,12 @@
+{% load static %}
+<section class="new-solutions page-gutter" aria-labelledby="new-solutions-title">
+  <header class="new-solutions-heading"><div><p class="eyebrow">ВОЗМОЖНОСТИ VLICO</p><h2 class="display-heading" id="new-solutions-title">Больше комфорта.<br>Больше возможностей.</h2></div><p>Технологии и материалы для продуманного интерьера.<span class="rail-hint">Листайте карточки →</span></p></header>
+  <div class="new-solutions-rail" tabindex="0" role="region" aria-label="Новые решения: три карточки, листайте горизонтально на телефоне">
+    {% for item in new_solutions %}<article class="new-solution">
+      <figure><a href="{% url 'service' item.slug %}" tabindex="-1" aria-hidden="true"><img src="{% static item.image %}" alt="" width="1536" height="1024" loading="lazy" decoding="async"></a><figcaption>Визуализация интерьера</figcaption></figure>
+      <p class="eyebrow">{{ item.label }}</p><h3><a href="{% url 'service' item.slug %}">{{ item.title }}</a></h3><p>{{ item.description }}</p>
+      {% if item.slug == 'teqtum' %}<p class="new-solution-note">Подбор класса и проверка подтверждающих сертификатов для вашего объекта.</p>{% endif %}
+      <a class="text-link" href="{% url 'service' item.slug %}">{{ item.action }} <span aria-hidden="true">↗</span></a>
+    </article>{% endfor %}
+  </div>
+</section>

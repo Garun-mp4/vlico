@@ -43,8 +43,9 @@
       </div>
 
       {% if quick_submission_errors %}<div class="lead-errors" role="alert">{% for error in quick_submission_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+      <p class="lead-help lead-measurement-note">Бесплатный замер в Калининграде. Возможен выезд специалиста в день обращения.</p>
       <div class="lead-errors" data-lead-errors role="alert" hidden></div>
-      <p class="lead-feedback" data-lead-status data-quick-status role="status" aria-live="polite" hidden></p>
+      <p class="lead-feedback" data-lead-status data-quick-status role="status" aria-live="polite" aria-atomic="true" tabindex="-1" hidden></p>
 
       <fieldset class="quick-calculator__contact" data-quick-contact {% if not quick_show_contact %}hidden disabled{% endif %}>
         <legend>Оставьте контакт для уточнения</legend>
