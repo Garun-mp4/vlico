@@ -46,5 +46,5 @@ class Command(BaseCommand):
                 photo.caption = caption
                 photo.alt = "Чёрная кухонная вытяжка под готовым потолком рядом с синим шкафом"
                 photo.save(update_fields=["caption", "alt"])
-            Project.objects.filter(pk=project.pk).update(solution="До монтажа потолка подготовили закладную конструкцию и воздуховод под кухонную вытяжку. После установки полотна смонтировали вытяжку: на фотографиях рядом показаны подготовка узла и результат.")
+                Project.objects.filter(pk=project.pk).update(solution="До монтажа потолка подготовили закладную конструкцию и воздуховод под кухонную вытяжку. После установки полотна смонтировали вытяжку: на фотографиях рядом показаны подготовка узла и результат.")
         self.stdout.write(self.style.SUCCESS("Client update applied."))

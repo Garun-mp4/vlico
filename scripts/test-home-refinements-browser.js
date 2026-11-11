@@ -14,9 +14,12 @@ async page => {
   if(width<=760)await page.waitForFunction(()=>{const rail=document.querySelector('.new-solutions-rail'),style=getComputedStyle(rail);return Math.abs(rail.clientHeight-rail.children[0].getBoundingClientRect().height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom))<2});
   const next=page.locator('[data-solutions-next]'),prev=page.locator('[data-solutions-prev]');
   if(width<=1100){
-   await next.scrollIntoViewIfNeeded();check(await prev.isDisabled(),'Initial previous should be disabled');const y=await page.evaluate(()=>scrollY);
+   await next.evaluate(button=>button.scrollIntoView({block:'center',behavior:'instant'}));
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   check(await prev.isDisabled(),'Initial previous should be disabled');const y=await page.evaluate(()=>scrollY);
    await next.click();await page.waitForFunction(()=>document.querySelector('.new-solutions-rail').scrollLeft>20&&!document.querySelector('[data-solutions-prev]').disabled);
-   check(Math.abs(await page.evaluate(()=>scrollY)-y)<3,'Carousel moved the page at '+width);check(await prev.isEnabled(),'Previous did not enable');
+   const afterY=await page.evaluate(()=>scrollY);
+   check(Math.abs(afterY-y)<3,`Carousel moved the page at ${width}: ${y} -> ${afterY}`);check(await prev.isEnabled(),'Previous did not enable');
    if(await next.isEnabled())await next.click();await page.waitForFunction(()=>document.querySelector('[data-solutions-next]').disabled);
    check(await page.locator('[data-solutions-count]').innerText()==='3 / 3','Incorrect end counter');await prev.click();await page.waitForFunction(()=>document.querySelector('[data-solutions-prev]').disabled===(document.querySelector('.new-solutions-rail').scrollLeft<=2));if(await prev.isEnabled())await prev.click();
    await page.waitForFunction(()=>document.querySelector('[data-solutions-prev]').disabled);
