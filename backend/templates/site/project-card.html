@@ -4,7 +4,7 @@
 <h2>
 <a href="{% url 'project' project.slug %}">{{ project.title }}</a>
 </h2>
-{% include 'site/categories.html' %}
+{% if compact_card %}<div class="project-card-category-slot">{% include 'site/categories.html' %}</div>{% else %}{% include 'site/categories.html' %}{% endif %}
 <p>{{ project.location }}{% if project.area %} · {{ project.area|floatformat:'-2' }} м²{% endif %}</p>
 <p{% if compact_card %} class="project-card-summary"{% endif %}>{{ project.solution|truncatewords:28 }}</p>
 <a class="text-link" href="{% url 'project' project.slug %}">Смотреть проект <span aria-hidden="true">↗</span>

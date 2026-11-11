@@ -164,7 +164,11 @@ class PortfolioTests(TestCase):
             f'{reverse("project_image", args=[portrait.pk, "full"])} 720w'
         )
         self.assertContains(home, f'srcset="{portrait_srcset}"')
-        self.assertContains(home, 'sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, 46vw"')
+        self.assertContains(home, '(max-width: 1099px) calc((93.3vw - 28px) / 2), calc((100vw - clamp(40px, 6.7vw, 128px) - 56px) / 3)')
+        self.assertContains(home, 'data-portrait')
+        catalogue = self.client.get(reverse("projects"))
+        self.assertContains(catalogue, 'sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, 46vw"')
+        self.assertContains(catalogue, 'data-portrait')
         detail = self.client.get(reverse("project", args=[self.project.slug]))
         self.assertContains(detail, f'srcset="{portrait_srcset}"')
         self.assertContains(detail, reverse("project_image", args=[portrait.pk, "full"]))

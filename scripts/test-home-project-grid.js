@@ -140,6 +140,17 @@ async page => {
   const frames = await grid.locator(':scope>.portfolio-card').evaluateAll(cards => cards.map(card => { const box=card.getBoundingClientRect(); const image=card.querySelector('img').getBoundingClientRect(); return {width:box.width,height:box.height,ratio:image.width/image.height}; }));
   check(Math.max(...frames.map(x=>x.height))-Math.min(...frames.map(x=>x.height)) < 2, 'Homepage card heights differ');
   check(frames.every(x=>Math.abs(x.ratio-1.5)<.02), 'Homepage photos are not consistently 3:2');
+  const textRows = await grid.locator(':scope>.portfolio-card').evaluateAll(cards=>cards.map(card=>({
+    row:Math.round(card.getBoundingClientRect().top),
+    location:card.querySelector('.portfolio-card-info>p').getBoundingClientRect().top,
+    summary:card.querySelector('.project-card-summary').getBoundingClientRect().top,
+    action:card.querySelector('.portfolio-card-info>.text-link').getBoundingClientRect().top,
+  })));
+  for(const row of new Set(textRows.map(card=>card.row))){
+    const cards=textRows.filter(card=>card.row===row);
+    for(const field of ['location','summary','action'])check(Math.max(...cards.map(card=>card[field]))-Math.min(...cards.map(card=>card[field]))<2,'Card '+field+' is not aligned when a project has no category');
+  }
+
   const portraits = await grid.locator('img[data-portrait]').evaluateAll(nodes => nodes.map(img => ({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,fit:getComputedStyle(img).objectFit})));
   check(portraits.length > 0 && portraits.every(img => img.fit === 'contain' && Math.abs(img.width/img.height-1.5)<.02), 'Portrait photos must remain fully visible inside the common homepage frame');
   await page.locator('.home-project-footer a').click();

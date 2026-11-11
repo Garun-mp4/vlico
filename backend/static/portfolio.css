@@ -414,6 +414,7 @@ a:focus-visible,button:focus-visible {
 .home-project-grid .portfolio-card-info p {margin-bottom:12px;}
 .home-project-grid .portfolio-card-info p:not(.project-card-summary) {min-height:3.1em;}
 .home-project-grid .project-categories {min-height:3.1em;margin:0 0 10px;align-content:start;}
+.home-project-grid .project-card-category-slot {display:flow-root;min-height:calc(3.1em + 10px);font-size:12px;}
 .home-project-grid .project-card-summary {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.7;min-height:3.4em;}
 .home-project-grid .portfolio-card-info>.text-link {margin-top:auto;align-self:start;}
 @media(min-width:641px) {
