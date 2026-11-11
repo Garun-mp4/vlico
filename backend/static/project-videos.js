@@ -96,13 +96,8 @@
       play();
     });
   });
-  dialog.querySelector('[data-video-close]').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const box = dialog.getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
-  });
-  dialog.addEventListener('close', () => {
+  function releaseVideo() {
+    if (!active) return null;
     const opener = active;
     active = null;
     generation++;
@@ -111,6 +106,27 @@
     video.removeAttribute('poster');
     video.load();
     document.body.style.overflow = savedOverflow;
+    return opener;
+  }
+  function closeVideo() {
+    const opener = releaseVideo();
+    dialog.close();
+    opener?.focus({preventScroll:true});
+  }
+  dialog.querySelector('[data-video-close]').addEventListener('click', closeVideo);
+  dialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    closeVideo();
+  });
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeVideo();
+  });
+  dialog.addEventListener('close', () => {
+    // A queued close event from an earlier viewing must not stop a newly opened video.
+    if (dialog.open) return;
+    const opener = releaseVideo();
     opener?.focus({preventScroll:true});
   });
   retry.addEventListener('click', play);

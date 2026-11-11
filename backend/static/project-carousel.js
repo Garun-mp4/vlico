@@ -13,8 +13,18 @@ document.querySelectorAll('[data-project-carousel]').forEach((carousel) => {
   let suppressClick = false;
   let clickTimer;
 
+  function loadImage(position) {
+    const image = slides[position]?.querySelector('img[data-src]');
+    if (!image) return;
+    image.srcset = image.dataset.srcset;
+    image.src = image.dataset.src;
+    delete image.dataset.srcset;
+    delete image.dataset.src;
+  }
+
   function update(current) {
     index = Math.max(0, Math.min(slides.length - 1, current));
+    loadImage(index);
     previous.disabled = index === 0;
     next.disabled = index === slides.length - 1;
     number.textContent = String(index + 1);
@@ -54,6 +64,11 @@ document.querySelectorAll('[data-project-carousel]').forEach((carousel) => {
       destination = Math.round(track.scrollLeft / track.clientWidth);
       update(destination);
     }, 140);
+  }, { passive: true });
+
+  track.addEventListener('pointerdown', () => {
+    loadImage(index - 1);
+    loadImage(index + 1);
   }, { passive: true });
 
   // Touch uses native scrolling; only mouse dragging needs an additional handler.

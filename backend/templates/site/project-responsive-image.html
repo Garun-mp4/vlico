@@ -1,6 +1,7 @@
 <img {% if media.editing.ratio %}data-preserve-frame{% endif %}{% if media.height > media.width %} data-portrait{% endif %}
-  src="{% url 'project_image' media.pk 'thumb' %}"
-  {% if media.thumbnail and media.thumbnail_width < media.width %}srcset="{% url 'project_image' media.pk 'thumb' %} {{ media.thumbnail_width }}w, {% url 'project_image' media.pk 'full' %} {{ media.width }}w"{% else %}srcset="{% url 'project_image' media.pk 'full' %} {{ media.width }}w"{% endif %}
+  {% if deferred_image %}data-src{% else %}src{% endif %}="{% url 'project_image' media.pk 'thumb' %}"
+  {% if deferred_image %}data-srcset{% else %}srcset{% endif %}="{% if media.thumbnail and media.thumbnail_width < media.width %}{% url 'project_image' media.pk 'thumb' %} {{ media.thumbnail_width }}w, {% endif %}{% url 'project_image' media.pk 'full' %} {{ media.width }}w"
   sizes="{% if compact_card %}(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, (max-width: 1099px) calc((93.3vw - 28px) / 2), calc((100vw - clamp(40px, 6.7vw, 128px) - 56px) / 3){% else %}(max-width: 640px) calc(100vw - 40px), (max-width: 800px) 93vw, 46vw{% endif %}"
   width="{{ media.width }}" height="{{ media.height }}" alt="{{ media.alt }}"
   loading="lazy" decoding="async"{% if no_drag %} draggable="false"{% endif %}>
+{% if deferred_image %}<noscript>{% include 'site/project-responsive-image.html' with deferred_image=False %}</noscript>{% endif %}

@@ -103,6 +103,7 @@ async page => {
   await grid.scrollIntoViewIfNeeded();
   const gallery = grid.locator('[data-project-carousel]').first();
   if (await gallery.count()) {
+    check(await gallery.locator('img[data-src]').count() > 0, 'Hidden carousel photos downloaded before interaction');
     const leadImage = gallery.locator('img').first();
     await leadImage.evaluate(img => img.decode());
     const imageContract = await leadImage.evaluate(img => ({
@@ -113,6 +114,7 @@ async page => {
     check(imageContract.sizes.includes('/ 3') && imageContract.width > 0 && imageContract.height > 0 && imageContract.naturalWidth > 0, 'Project image dimensions or sizes are missing');
     await gallery.getByRole('button',{name:'Следующая фотография',exact:true}).click();
     check(await gallery.locator('[data-photo-number]').innerText() === '2', 'Gallery arrows stopped working');
+    await gallery.locator('.project-carousel-slide').nth(1).locator('img').evaluate(img => img.decode());
     await gallery.locator('.project-carousel-track').press('ArrowLeft');
     check(await gallery.locator('[data-photo-number]').innerText() === '1', 'Gallery keyboard navigation stopped working');
     const track = gallery.locator('.project-carousel-track');
@@ -151,7 +153,7 @@ async page => {
     for(const field of ['location','summary','action'])check(Math.max(...cards.map(card=>card[field]))-Math.min(...cards.map(card=>card[field]))<2,'Card '+field+' is not aligned when a project has no category');
   }
 
-  const portraits = await grid.locator('img[data-portrait]').evaluateAll(nodes => nodes.map(img => ({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,fit:getComputedStyle(img).objectFit})));
+  const portraits = await grid.locator('img[src][data-portrait]').evaluateAll(nodes => nodes.map(img => ({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,fit:getComputedStyle(img).objectFit})));
   check(portraits.length > 0 && portraits.every(img => img.fit === 'contain' && Math.abs(img.width/img.height-1.5)<.02), 'Portrait photos must remain fully visible inside the common homepage frame');
   await page.locator('.home-project-footer a').click();
   check(new URL(page.url()).pathname === '/projects/', 'View-all does not open the catalogue');

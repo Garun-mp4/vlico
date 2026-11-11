@@ -382,6 +382,7 @@ a:focus-visible,button:focus-visible {
 .project-carousel-track.is-dragging {scroll-snap-type:none;cursor:grabbing;user-select:none;}
 .project-carousel-slide {display:block;flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;-webkit-user-drag:none;}
 .project-carousel-slide img {display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;user-select:none;-webkit-user-drag:none;}
+.project-carousel-slide img[data-src] {display:none;}
 .project-carousel-controls {position:absolute;inset:0;pointer-events:none;}
 .project-carousel-controls[hidden] {display:none;}
 .project-carousel-arrow {position:absolute;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--rule);border-radius:50%;background:var(--canvas);color:var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation;transition:background-color 150ms ease;}
