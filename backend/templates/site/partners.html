@@ -38,13 +38,13 @@
   <section class="partners-cta" aria-labelledby="partners-cta-title">
     <div>
       <h2 id="partners-cta-title">Обсудим ваш проект</h2>
-      <p>Имя и телефон обязательны. Компанию и файл проекта можно добавить по желанию.</p>
+      <p>Имя и телефон обязательны. Компанию можно указать по желанию.</p>
     </div>
     <a class="lead-submit" href="#partner-form">Обсудить сотрудничество <span aria-hidden="true">↗</span></a>
   </section>
   <section class="partner-form-section" id="partner-form" aria-labelledby="partner-form-title">
     <div><p class="eyebrow">СОТРУДНИЧЕСТВО</p><h2 id="partner-form-title">Стать партнёром</h2><p>Расскажите о себе и выберите удобный способ связи. Обсудим проект и индивидуальные условия сотрудничества.</p></div>
-    <form class="lead-form" method="post" action="{% url 'request_form' 'partner' %}" enctype="multipart/form-data" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
+    <form class="lead-form" method="post" action="{% url 'request_form' 'partner' %}" data-lead-form data-api="{% url 'lead_submit' %}">{% csrf_token %}
       <input type="hidden" name="source_page" value="/partners/">
       {% include 'site/lead-fields.html' %}
       {% include 'site/lead-feedback.html' %}

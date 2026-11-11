@@ -1,38 +1,14 @@
 from datetime import timedelta
 from hashlib import sha256
 import json
-import logging
-from pathlib import PurePosixPath
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from .attribution import safe_path, submission_attribution
-from .models import Lead, LeadAttachment, Delivery, SubmissionBucket, PricingVersion, attachment_path
+from .models import Lead, Delivery, SubmissionBucket, PricingVersion
 from .configurator import calculation_form, calculate_answers
 from .legal import consent_record
-from .lead_forms import partner_attachment_digest
 from .quick_calculator import QuickCalculatorForm, QUICK_CALCULATOR_SCHEMA, quick_snapshot
-
-logger = logging.getLogger(__name__)
-
-
-def _clean_attachment_name(upload):
-    name = PurePosixPath(upload.name.replace("\\", "/")).name
-    name = "".join(character for character in name if character.isprintable()).strip()
-    suffix = PurePosixPath(name).suffix.lower()
-    stem = name[:-len(suffix)] if suffix else name
-    return (stem[:255 - len(suffix)] + suffix)[:255] or "project.pdf"
-
-
-def _cleanup_attachment(storage, name):
-    if not storage or not name:
-        return
-    try:
-        storage.delete(name)
-    except OSError:
-        logger.exception("Could not remove a partner attachment after a rolled back submission")
-
 
 class SubmissionError(Exception):
     def __init__(self, errors, status=400, quote=None):
@@ -58,7 +34,7 @@ def save_submission(request, form):
     if not form.is_valid():
         raise SubmissionError(dict(form.errors))
     data = form.cleaned_data
-    if request.FILES and data["kind"] != "partner":
+    if request.FILES:
         raise SubmissionError({"__all__": ["Обновите страницу и отправьте заявку без прикреплённых файлов."]})
     submitted_schema = request.POST.get("calculator_schema", "")
     if submitted_schema and submitted_schema != QUICK_CALCULATOR_SCHEMA:
@@ -77,11 +53,6 @@ def save_submission(request, form):
             raise SubmissionError(dict(answers.errors))
     project, service = data.get("project"), data.get("service")
     company = data.get("company", "") if data["kind"] == "partner" else ""
-    upload = data.get("attachment") if data["kind"] == "partner" else None
-    try:
-        upload_digest = partner_attachment_digest(upload) if upload else ""
-    except ValidationError as exc:
-        raise SubmissionError({"attachment": exc.messages}) from exc
     context = {"interest": data.get("interest", ""), "project_title": project.title if project else "", "service_title": service.title if service else ""}
     if company:
         context["company"] = company
@@ -89,8 +60,9 @@ def save_submission(request, form):
         context["contact_method"] = dict(form.fields["contact_method"].choices).get(data.get("contact_method"), "")
     context["consent"] = consent_record()
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
+    # Retain the empty legacy digest so existing no-file submission keys stay valid.
     payload.update(project=project.pk if project else None, service=service.pk if service else None, company=company,
-        attachment_sha256=upload_digest, legal_version=data["legal_version"])
+        attachment_sha256="", legal_version=data["legal_version"])
     if context.get("contact_method"):
         payload["contact_method"] = context["contact_method"]
     if quick_answers:
@@ -105,8 +77,6 @@ def save_submission(request, form):
         if existing.payload_hash != digest:
             raise SubmissionError({"__all__": ["Эта форма уже отправлена с другими данными. Откройте новую форму для нового обращения."]}, 409)
         return existing, False
-    stored_name = requested_name = None
-    storage = None
     try:
         with transaction.atomic():
             version, quote = None, {}
@@ -123,14 +93,6 @@ def save_submission(request, form):
             lead = Lead.objects.create(idempotency_key=data["idempotency_key"], payload_hash=digest, kind=data["kind"], name=data["name"], contact=data["contact"],
                 service=service, project=project, comment=data.get("comment", ""), context=context, source_page=safe_path(request.POST.get("source_page", "/")),
                 attribution=submission_attribution(request), calculation=quote, pricing_version=version, consent_at=timezone.now())
-            if upload:
-                original_name = _clean_attachment_name(upload)
-                attachment = LeadAttachment(lead=lead, original_name=original_name, content_type=upload.content_type.split(";", 1)[0].strip().lower(), size=upload.size)
-                storage = attachment.file.storage
-                requested_name = attachment_path(attachment, original_name)
-                stored_name = storage.save(requested_name, upload)
-                attachment.file.name = stored_name
-                attachment.save()
             Delivery.objects.create(lead=lead)
             if settings.EMAIL_DELIVERY_ENABLED:
                 Delivery.objects.create(lead=lead, channel="email")
@@ -139,13 +101,9 @@ def save_submission(request, form):
                 Delivery.objects.create(lead=lead, channel="email", status="failed", error_code=error_code)
             return lead, True
     except IntegrityError:
-        _cleanup_attachment(storage, stored_name or requested_name)
         existing = Lead.objects.filter(idempotency_key=data["idempotency_key"]).first()
         if existing:
             if existing.payload_hash == digest:
                 return existing, False
             raise SubmissionError({"__all__": ["Эта форма уже отправлена с другими данными. Откройте новую форму для нового обращения."]}, 409) from None
-        raise
-    except Exception:
-        _cleanup_attachment(storage, stored_name or requested_name)
         raise

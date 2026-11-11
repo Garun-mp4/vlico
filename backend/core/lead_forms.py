@@ -1,98 +1,14 @@
 import re
 import uuid
-import warnings
-from hashlib import sha256
-from pathlib import PurePosixPath
 from django import forms
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from PIL import Image, UnidentifiedImageError
 from .models import Lead, Project, Service
 from .legal import consent_revision
 
 KINDS = Lead._meta.get_field("kind").choices
 TOKEN_SALT = "vlico.lead-submission.v1"
-MAX_PARTNER_ATTACHMENT_SIZE = 5 * 1024 * 1024
-PARTNER_ATTACHMENT_TYPES = {
-    ".pdf": "application/pdf",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".png": "image/png",
-}
-
-
-def partner_attachment_digest(upload):
-    digest = sha256()
-    total = 0
-    upload.seek(0)
-    for chunk in upload.chunks():
-        total += len(chunk)
-        if total > MAX_PARTNER_ATTACHMENT_SIZE:
-            upload.seek(0)
-            raise ValidationError("Файл проекта не должен превышать 5 МБ.")
-        digest.update(chunk)
-    upload.seek(0)
-    return digest.hexdigest()
-
-
-def _valid_pdf(data):
-    if not re.search(br"%PDF-(?:1\.[0-7]|2\.0)\b", data[:1024]):
-        return False
-    if re.search(br"/(?:JavaScript|JS|Launch|EmbeddedFile|EmbeddedFiles|RichMedia|OpenAction|AA)\b", data):
-        return False
-    eof = data.rfind(b"%%EOF")
-    if eof < 0 or len(data) - eof > 1024:
-        return False
-    marker = data.rfind(b"startxref", 0, eof)
-    if marker < 0:
-        return False
-    offset_match = re.match(br"startxref\s+(\d+)\s*$", data[marker:eof].strip())
-    if not offset_match:
-        return False
-    offset = int(offset_match.group(1))
-    if offset >= len(data):
-        return False
-    target = data[offset:offset + 1024].lstrip()
-    if target.startswith(b"xref"):
-        trailer = data.find(b"trailer", offset)
-        return trailer >= 0 and b"/Root" in data[trailer:eof]
-    if re.match(br"\d+\s+\d+\s+obj\b", target):
-        end = data.find(b"endobj", offset)
-        xref_object = data[offset:end] if end >= 0 else b""
-        return bool(re.search(br"/Type\s*/XRef\b", xref_object) and b"/Root" in xref_object)
-    return False
-
-
-def validate_partner_attachment(upload):
-    if upload.size > MAX_PARTNER_ATTACHMENT_SIZE:
-        raise ValidationError("Файл проекта не должен превышать 5 МБ.")
-    filename = PurePosixPath(upload.name.replace("\\", "/")).name
-    extension = PurePosixPath(filename).suffix.lower()
-    expected_type = PARTNER_ATTACHMENT_TYPES.get(extension)
-    declared_type = (upload.content_type or "").split(";", 1)[0].strip().lower()
-    if not expected_type or declared_type != expected_type:
-        raise ValidationError("Прикрепите проект в формате PDF, JPG или PNG.")
-
-    upload.seek(0)
-    if extension == ".pdf":
-        data = upload.read()
-        valid = _valid_pdf(data)
-    else:
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", Image.DecompressionBombWarning)
-                upload.seek(0)
-                with Image.open(upload) as image:
-                    image_type = "image/jpeg" if image.format == "JPEG" else "image/png" if image.format == "PNG" else ""
-                    valid = image_type == expected_type and image.width * image.height <= 50_000_000
-                    image.verify()
-        except (Image.DecompressionBombError, Image.DecompressionBombWarning, OSError, UnidentifiedImageError):
-            valid = False
-    upload.seek(0)
-    if not valid:
-        raise ValidationError("Файл не похож на исправный PDF, JPG или PNG.")
-    return upload
 
 
 class LeadForm(forms.Form):
@@ -101,9 +17,6 @@ class LeadForm(forms.Form):
     contact = forms.CharField(label="Телефон, email или Telegram", max_length=160, widget=forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "+7, email или @username"}))
     company = forms.CharField(label="Компания", required=False, max_length=160, widget=forms.TextInput(attrs={"autocomplete": "organization"}))
     contact_method = forms.ChoiceField(label="Удобный способ связи", required=False, choices=[("", "Выберите способ связи"), ("phone", "Звонок"), ("telegram", "Telegram"), ("whatsapp", "WhatsApp")])
-    attachment = forms.FileField(label="Прикрепить проект", required=False, max_length=255,
-        help_text="PDF, JPG или PNG, до 5 МБ. Необязательно.",
-        widget=forms.ClearableFileInput(attrs={"accept": ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"}))
     service = forms.ModelChoiceField(label="Решение", queryset=Service.objects.all().order_by("position", "pk"), required=False, empty_label="Нужна помощь с выбором")
     comment = forms.CharField(label="Что нужно учесть", max_length=1200, required=False, widget=forms.Textarea(attrs={"rows": 3}))
     consent = forms.BooleanField(label="Согласен на обработку имени, контакта, параметров для ответа на заявку")
@@ -157,12 +70,6 @@ class LeadForm(forms.Form):
     def clean_company(self):
         return " ".join(self.cleaned_data["company"].split())
 
-    def clean_attachment(self):
-        upload = self.cleaned_data.get("attachment")
-        if upload:
-            return validate_partner_attachment(upload)
-        return upload
-
     def clean_legal_version(self):
         if self.cleaned_data["legal_version"] != consent_revision():
             raise ValidationError("Условия обработки данных обновились. Обновите страницу и ознакомьтесь с согласием.")
@@ -171,13 +78,10 @@ class LeadForm(forms.Form):
     def clean(self):
         data = super().clean()
         kind = data.get("kind")
-        uploaded_fields = set(self.files.keys())
-        if uploaded_fields - {"attachment"}:
-            self.add_error(None, "Можно прикрепить только один файл проекта.")
-        if len(self.files.getlist("attachment")) > 1:
-            self.add_error("attachment", "Прикрепите один файл проекта.")
-        if kind != "partner" and (data.get("company") or uploaded_fields):
-            self.add_error(None, "Компания и файл доступны только для заявки о сотрудничестве.")
+        if self.files:
+            self.add_error(None, "Прикрепление файлов недоступно. Отправьте заявку без вложений.")
+        if kind != "partner" and data.get("company"):
+            self.add_error(None, "Компания доступна только для заявки о сотрудничестве.")
         if kind == "partner" and not data.get("contact"):
             self.add_error("contact", "Укажите телефон для связи.")
         try:

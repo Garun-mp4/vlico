@@ -8,10 +8,10 @@ async page => {
     const body = route.request().postData() || '';
     check(!body.includes('filename=') && !body.includes('name="attachments"'), 'Upload data is still being sent');
     sent.push(route.request().url());
-    return route.fulfill({ status:201,contentType:'application/json',body:JSON.stringify({ok:true,kind:'project',reference:'ui-no-file-test',message:'Заявка принята. Мы свяжемся с вами по указанному контакту.'}) });
+    return route.fulfill({ status:201,contentType:'application/json',body:JSON.stringify({ok:true,kind:'project',reference:'ui-no-file-test',message:'Спасибо! Ваша заявка успешно отправлена. Наш специалист свяжется с вами в ближайшее время.'}) });
   });
-  for (const path of ['/', '/request/consultation/', '/request/measurement/', '/request/project/']) {
-    await page.goto(origin + path);
+  for (const path of ['/', '/request/consultation/', '/request/measurement/', '/request/project/', '/partners/', '/request/partner/']) {
+    await page.goto(origin + path,{waitUntil:'domcontentloaded'});
     if (await page.locator('[data-privacy-panel]').isVisible()) await page.getByRole('button',{name:'Отклонить',exact:true}).click();
     check(await page.locator('input[type=file]').count() === 0, 'Upload control remains at ' + path);
     const forms = page.locator('[data-lead-form]');
@@ -26,7 +26,7 @@ async page => {
     const formSelector = path === '/' ? '#contact-form' : '[data-lead-form]';
     await page.waitForFunction(selector => document.querySelector(selector)?.dataset.submitted === 'true', formSelector);
     const confirmation = await form.locator('[data-lead-status]').innerText();
-    check(confirmation.includes('Заявка принята.') && !confirmation.includes('ui-no-file-test'), 'Confirmation exposes an internal reference at ' + path);
+    check(confirmation.includes('Спасибо! Ваша заявка успешно отправлена.') && !confirmation.includes('ui-no-file-test'), 'Confirmation exposes an internal reference at ' + path);
   }
   await page.goto(origin + '/calculator/');
   check(await page.locator('input[type=file]').count() === 0, 'Calculator still has an upload control');

@@ -37,14 +37,14 @@ def accept(request, expected_kind=None):
     try:
         content_length = int(request.META.get("CONTENT_LENGTH") or 0)
         if content_length < 0 or content_length > settings.LEAD_MAX_REQUEST_SIZE:
-            raise SubmissionError({"__all__": ["Файл или форма слишком велики. Максимальный размер файла проекта — 5 МБ."]}, 413)
+            raise SubmissionError({"__all__": ["Форма слишком велика. Сократите текст заявки и попробуйте снова."]}, 413)
         throttle(request)
         try:
             post, files = request.POST, request.FILES
         except RequestDataTooBig:
-            raise SubmissionError({"__all__": ["Форма превышает допустимый размер. Сократите файл проекта и попробуйте снова."]}, 413) from None
+            raise SubmissionError({"__all__": ["Форма превышает допустимый размер. Сократите текст заявки и попробуйте снова."]}, 413) from None
         except TooManyFilesSent:
-            raise SubmissionError({"attachment": ["Можно прикрепить только один файл проекта."]}) from None
+            raise SubmissionError({"__all__": ["Прикрепление файлов недоступно. Отправьте заявку без вложений."]}) from None
         if expected_kind and post.get("kind") != expected_kind:
             raise SubmissionError({"kind": ["Обновите форму сотрудничества и отправьте её ещё раз."]})
         lead, created = save_submission(request, LeadForm(post, files))
@@ -73,7 +73,7 @@ def request_form(request, kind="consultation"):
         return HttpResponse(status=404)
     if kind == "calculator":
         return redirect("calculator")
-    kind_description = ("Оставьте имя и телефон. Компания и файл проекта необязательны; подготовим заявку к обсуждению сотрудничества."
+    kind_description = ("Оставьте имя и телефон, укажите удобный способ связи. Компанию можно добавить по желанию; обсудим сотрудничество."
         if kind == "partner" else "Расскажите о помещении и оставьте удобный контакт. Обсудим потолок, освещение и следующий шаг.")
     if request.method == "POST":
         body, status = accept(request, expected_kind="partner" if kind == "partner" else None)

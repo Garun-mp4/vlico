@@ -177,3 +177,7 @@ The cookie notice stays fixed at the bottom left at every breakpoint, outside th
 The homepage partnership invitation is a full photo-and-copy section immediately after real projects and before the service list. Retain the approved headline and cooperation copy, a labelled AI visualization of a designer and technical specialist working together in a showroom inspired by the supplied VLICO office photo, and a high-contrast “Стать партнёром” action linking directly to `/partners/#partner-form`. On phones place the action before the photo. Keep the header “Партнёрам” link to the complete cooperation page.
 
 The process section uses the approved three-line headline “СОВЕРШЕНСТВО / НАЧИНАЕТСЯ / С ДЕТАЛЕЙ.”, the supplied explanatory paragraph, and five numbered rule-separated stages. Keep the existing background, larger readable step labels, a five-column intro on wide screens, and one continuous reading order on phones.
+
+The hero introduction pairs “Обсудить проект” with a transparent, light 1px outlined “Стать партнёром” button to its right. Keep both in the same row on phones with readable wrapping. Only the project button has the restrained pulse; the partnership action has no pulse.
+
+Public lead forms, including both partnership entry points, contain no file inputs and reject all file uploads at the form and submission boundaries. Keep existing private historical attachments and cabinet portfolio/article image uploads intact.

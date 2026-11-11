@@ -183,7 +183,8 @@ class PublicSiteTests(TestCase):
         self.assertEqual(record['version'], settings.LEGAL_VERSION)
         self.assertEqual(record['sha256'], sha256(record['text'].encode()).hexdigest())
         self.assertIn('Telegram Bot API', record['text'])
-        self.assertIn('приложенного файла проекта', record['text'])
+        self.assertNotIn('приложенного файла проекта', record['text'])
+        self.assertIn('названия компании', record['text'])
 
     def test_local_analytics_disabled_even_if_switch_enabled(self):
         with override_settings(APP_ENV='local', ANALYTICS_ENABLED=True):
