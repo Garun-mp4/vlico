@@ -19,8 +19,10 @@
 @media(max-width:760px) {.editorial-page {padding:40px 6vw 64px;}.service-grid,.service-hero,.editorial-columns,.contacts-layout,.reviews-block {grid-template-columns:1fr;gap:32px;}.service-grid {margin-top:40px;}.service-hero h1 {font-size:36px;}.editorial-columns {margin-top:48px;}.service-next {padding:24px;margin-top:40px;}.page-section {margin-top:48px;}.reviews-block {padding:48px 6vw;}.reviews-widget iframe {height:960px;}.public-links {padding:24px 6vw;gap:14px 22px;}.privacy-panel {top:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:12px;width:calc(100% - 24px);max-height:calc(100dvh - 100px - env(safe-area-inset-bottom,0px));padding:16px;}.privacy-panel h2 {font-size:16px;}.privacy-panel p {font-size:11px;}.privacy-actions {gap:8px;margin-top:8px;}.privacy-actions button {padding:10px;font-size:11px;}.public-header {gap:20px;align-items:flex-start;}.public-header nav {gap:14px;font-size:11px;}.hero-side .rating-badge {display:none;}}
 @media(prefers-reduced-motion:reduce) {.privacy-panel {scroll-behavior:auto;}}
 
-.mobile-rating {display:none;}
-@media(max-width:760px) {.mobile-rating {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 6vw;font-size:11px;background:var(--canvas,#f1f0e9);}.mobile-rating .rating-badge {margin:0;}.public-header nav a {min-height:44px;display:inline-flex;align-items:center;}.public-header nav {gap:0 12px;}}
+.home-rating {display:flex;align-items:center;gap:24px;width:min(1800px,100%);margin-inline:auto;padding:0 clamp(16px,2.3vw,40px) 20px;background:var(--canvas);font-size:12px;}
+.home-rating>a {display:inline-flex;align-items:center;min-height:44px;text-underline-offset:4px;}
+.home-rating .rating-badge {margin:0;flex:0 0 150px;}
+@media(max-width:760px) {.home-rating {justify-content:space-between;gap:12px;padding:0 12px 20px;font-size:11px;}.public-header nav a {min-height:44px;display:inline-flex;align-items:center;}.public-header nav {gap:0 12px;}}
 
 .reviews-intro {position:sticky;top:112px;align-self:start;max-width:440px;}
 .reviews-intro h2 {font-size:clamp(30px,3.2vw,48px);line-height:1.18;letter-spacing:-.035em;max-width:13ch;margin:20px 0 24px;}
@@ -358,4 +360,9 @@
  .approach-steps {width:100%}
  .approach-step {min-height:0;padding-block:22px;grid-template-columns:28px 1fr;gap:14px}
  .approach-step h3 {font-size:19px;line-height:1.4}
+}
+
+@media(max-width:760px) {
+ .new-solutions {padding-bottom:16px}
+ .new-solutions-rail {overflow-y:hidden;overflow-anchor:none}
 }

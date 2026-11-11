@@ -71,11 +71,6 @@
       </div>
     </div>
 
-    <div class="grid-overlay" aria-hidden="true">
-      <span></span><span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span><span></span>
-    </div>
-
     {% include 'site/header.html' %}
     {% include 'site/privacy-controls.html' %}
 
@@ -205,10 +200,10 @@
             </div>
           </aside>
         </div>
+        <aside class="home-rating" aria-label="Рейтинг и отзывы VLICO на Яндекс Картах"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener noreferrer" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
         {% include 'site/new-solutions.html' %}
       </section>
 
-      <aside class="mobile-rating"><a href="{{ company.yandex }}reviews/" target="_blank" rel="noopener" data-goal="reviews_click">Отзывы о VLICO ↗</a>{% include 'site/yandex-rating.html' %}</aside>
 
       <section class="about section-dark" id="about" aria-labelledby="about-title">
         <div class="about-grid page-gutter">

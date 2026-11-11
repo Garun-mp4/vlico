@@ -151,18 +151,6 @@ button, a, summary { -webkit-tap-highlight-color: transparent; }
 }
 .skip-link:focus { transform: translateY(0); }
 
-.grid-overlay {
-  position: fixed;
-  z-index: 25;
-  inset: 0 var(--grid-gutter);
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  pointer-events: none;
-  mix-blend-mode: difference;
-  opacity: .13;
-}
-.grid-overlay span { border-right: 1px solid #fff; }
-
 .loader {
   position: fixed;
   z-index: 60;
@@ -560,8 +548,6 @@ html.loader-pending .loader-copy-group:last-child span:nth-child(2) { animation-
   :root { --grid-gutter: 20px; --grid-gap: 12px; }
   html { scroll-padding-top: 68px; }
   body { font-size: 13px; }
-  .grid-overlay { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .grid-overlay span:nth-child(n + 7) { display: none; }
   .header-inner { min-height: 66px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .brand { grid-column: 1 / span 2; width: 100px; }
   .header-cta .header-cta-short { display: none; }

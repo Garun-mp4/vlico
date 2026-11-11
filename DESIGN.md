@@ -44,7 +44,7 @@ motion:
 
 ## Direction
 
-Use Eleos as a composition and motion reference: an editorial, photo-led first screen, visible 12-column grid, editorial project layouts, thin rules, and a large fully visible wordmark in the footer. Build the page with VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
+Use Eleos as a composition and motion reference: an editorial, photo-led first screen, consistent 12-column alignment, editorial project layouts, thin rules, and a large fully visible wordmark in the footer. Build the page with VLICO markup, styles, copy, and imagery. Keep Eleos branding and project content out of the VLICO site.
 
 The result should feel like an architecture and interiors portfolio, with the ceiling and light as the subject. Keep the supplied green VLICO mark as the brand accent. The page's main canvas stays warm cream, the dark sections use charcoal, and photography carries most of the visual richness.
 
@@ -53,7 +53,7 @@ The result should feel like an architecture and interiors portfolio, with the ce
 - Use `#f2f1e9` for the primary canvas and `#eae8dd` for the softer sand surface.
 - Use `#19191a` for text on light backgrounds and `#f2f1e9` on dark backgrounds.
 - Reserve `#27be82` for the VLICO mark, active states, and a rare detail.
-- Draw vertical grid guides and section rules in the existing warm gray. Avoid cards with rounded corners, pill buttons, decorative gradients, and stacked shadows. Keep pointer responses restrained and tied to an actionable element.
+- Use the existing column alignment without decorative grid guides; keep functional section rules in warm gray. Avoid cards with rounded corners, pill buttons, decorative gradients, and stacked shadows. Keep pointer responses restrained and tied to an actionable element.
 - Grade photography with restrained warmth and reduced saturation. Keep architectural lines legible. Use grain lightly and only over the hero image.
 
 ## Typography
@@ -181,3 +181,10 @@ The process section uses the approved three-line headline “СОВЕРШЕНС�
 The hero introduction pairs “Обсудить проект” with a transparent, light 1px outlined “Стать партнёром” button to its right. Keep both in the same row on phones with readable wrapping. Only the project button has the restrained pulse; the partnership action has no pulse.
 
 Public lead forms, including both partnership entry points, contain no file inputs and reject all file uploads at the form and submission boundaries. Keep existing private historical attachments and cabinet portfolio/article image uploads intact.
+
+
+## Rating visibility and mobile rail spacing
+
+Remove the decorative vertical grid overlay globally; retain the underlying layout grid and functional separators. One shared homepage rating strip sits directly below the first photo row, before the new solutions, and is visible on both desktop and mobile. Use the unmodified live Yandex rating badge and its reviews link; do not duplicate the badge or hard-code its value.
+
+On phones, size the solutions rail to the active card, observing card/image/font size changes, so the long TEQTUM text does not leave a gap below the short smart-home card. Preserve all copy, horizontal swipe, arrow controls, zoom, and keyboard access. Keep only 16px of section padding after the rail. Restore natural equal-height columns on desktop.

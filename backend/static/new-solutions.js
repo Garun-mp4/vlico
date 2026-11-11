@@ -7,6 +7,8 @@
   const next = controls.querySelector('[data-solutions-next]');
   const count = controls.querySelector('[data-solutions-count]');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const mobile = matchMedia('(max-width: 760px)');
+  let scheduled = false;
   let current = 0;
   function positions() {
     const origin = cards[0].getBoundingClientRect().left;
@@ -14,10 +16,19 @@
   }
   function update() {
     const max = rail.scrollWidth - rail.clientWidth;
-    controls.hidden = max <= 2;
     const offsets = positions();
     current = offsets.reduce((best, offset, i) => Math.abs(offset - rail.scrollLeft) < Math.abs(offsets[best] - rail.scrollLeft) ? i : best, 0);
     if (rail.scrollLeft >= max - 2 && max > 2) current = cards.length - 1;
+    // Off-screen long descriptions must not reserve blank space below the active card.
+    let height = null;
+    if (mobile.matches && max > 2) {
+      const style = getComputedStyle(rail);
+      const scrollbar = rail.offsetHeight - rail.clientHeight;
+      height = Math.ceil(cards[current].getBoundingClientRect().height + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + scrollbar);
+    }
+    controls.hidden = max <= 2;
+    if (height === null) rail.style.removeProperty('height');
+    else if (rail.style.height !== `${height}px`) rail.style.height = `${height}px`;
     previous.disabled = rail.scrollLeft <= 2;
     next.disabled = rail.scrollLeft >= max - 2;
     const label = `${current + 1} / ${cards.length}`;
@@ -31,7 +42,16 @@
   }
   previous.addEventListener('click', () => move(-1));
   next.addEventListener('click', () => move(1));
-  rail.addEventListener('scroll', update, {passive:true});
-  new ResizeObserver(update).observe(rail);
+  function scheduleUpdate() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => { scheduled = false; update(); });
+  }
+  rail.addEventListener('scroll', scheduleUpdate, {passive:true});
+  const resize = new ResizeObserver(scheduleUpdate);
+  resize.observe(rail);
+  cards.forEach(card => resize.observe(card));
+  mobile.addEventListener('change', scheduleUpdate);
+  document.fonts?.ready.then(scheduleUpdate);
   update();
 })();

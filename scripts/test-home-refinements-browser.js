@@ -11,11 +11,12 @@ async page => {
   await panel.getByRole('button',{name:'Отклонить',exact:true}).click();
   const rail=page.locator('.new-solutions-rail');check(await page.locator('.home-hero .new-solutions').count()===1,'Solutions not attached to hero');
   await page.evaluate(()=>document.fonts.ready);
+  if(width<=760)await page.waitForFunction(()=>{const rail=document.querySelector('.new-solutions-rail'),style=getComputedStyle(rail);return Math.abs(rail.clientHeight-rail.children[0].getBoundingClientRect().height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom))<2});
   const next=page.locator('[data-solutions-next]'),prev=page.locator('[data-solutions-prev]');
   if(width<=1100){
    await next.scrollIntoViewIfNeeded();check(await prev.isDisabled(),'Initial previous should be disabled');const y=await page.evaluate(()=>scrollY);
    await next.click();await page.waitForFunction(()=>document.querySelector('.new-solutions-rail').scrollLeft>20&&!document.querySelector('[data-solutions-prev]').disabled);
-   check(Math.abs(await page.evaluate(()=>scrollY)-y)<3,'Carousel moved the page');check(await prev.isEnabled(),'Previous did not enable');
+   check(Math.abs(await page.evaluate(()=>scrollY)-y)<3,'Carousel moved the page at '+width);check(await prev.isEnabled(),'Previous did not enable');
    if(await next.isEnabled())await next.click();await page.waitForFunction(()=>document.querySelector('[data-solutions-next]').disabled);
    check(await page.locator('[data-solutions-count]').innerText()==='3 / 3','Incorrect end counter');await prev.click();await page.waitForFunction(()=>document.querySelector('[data-solutions-prev]').disabled===(document.querySelector('.new-solutions-rail').scrollLeft<=2));if(await prev.isEnabled())await prev.click();
    await page.waitForFunction(()=>document.querySelector('[data-solutions-prev]').disabled);
