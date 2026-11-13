@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe, require_POST, require_http_methods
-from .models import Lead, LeadAttachment, Delivery, PricingVersion
+from .models import Lead, LeadAttachment, Delivery, PricingVersion, EvaSyncJob
 from .pricing import RatesForm, CalculationForm
 from .quick_calculator import quick_input_rows, QUICK_CALCULATOR_SCHEMA
 from .telegram_delivery import ERROR_LABELS
@@ -85,7 +85,20 @@ def detail(request, pk):
             if hasattr(field, "choices"):
                 value = dict(field.choices).get(value, value)
             inputs.append((field.label, value if value is not None else "Не указан"))
-    return render(request, "cabinet/lead.html", {"lead": lead, "deliveries": deliveries, "attachments": lead.attachments.all(), "calculation_inputs": inputs})
+    return render(request, "cabinet/lead.html", {"lead": lead, "deliveries": deliveries, "attachments": lead.attachments.all(), "calculation_inputs": inputs, "eva_sync": EvaSyncJob.objects.filter(lead=lead).first()})
+
+
+@never_cache
+@capability_required("core.change_lead")
+@require_POST
+def retry_eva(request, pk):
+    with transaction.atomic():
+        job = get_object_or_404(EvaSyncJob.objects.select_for_update(), lead_id=pk)
+        if job.status in {"retry", "blocked", "review"} and job.error_code != "write_uncertain":
+            job.status, job.attempts = "pending", 0
+            job.next_attempt_at = None
+            job.save(update_fields=["status", "attempts", "next_attempt_at", "updated_at"])
+    return redirect("cabinet_lead", pk=pk)
 
 
 @never_cache

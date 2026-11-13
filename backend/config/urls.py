@@ -3,6 +3,7 @@ from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
 from core import article_cabinet, blog, public_site
 urlpatterns = [
+    path("cabinet/leads/<uuid:pk>/eva/retry/", lead_cabinet.retry_eva, name="cabinet_eva_retry"),
     path("", views.home, name="home"),
     path("request/<str:kind>/", lead_views.request_form, name="request_form"),
     path("calculator/", lead_views.calculator, name="calculator"),

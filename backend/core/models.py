@@ -142,6 +142,22 @@ class Lead(Timestamped):
     status = models.CharField(max_length=12, choices=[("new", "Новая"), ("contacted", "В работе"), ("closed", "Закрыта"), ("archived", "В архиве")], default="new")
 
 
+class EvaSyncJob(Timestamped):
+    lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name="eva_sync")
+    contact_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    remote_lead_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    status = models.CharField(max_length=16, default="pending", choices=[(x, x) for x in ("pending", "sending", "sent", "retry", "blocked", "review")])
+    attempts = models.PositiveIntegerField(default=0)
+    next_attempt_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    error_code = models.CharField(max_length=64, blank=True)
+    lease_token = models.UUIDField(null=True, blank=True)
+    locked_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["status", "next_attempt_at"], name="eva_sync_due")]
+
+
 class LeadAttachment(Timestamped):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="attachments")
     file = models.FileField(upload_to=attachment_path, storage=PrivateMediaStorage())

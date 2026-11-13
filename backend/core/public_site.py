@@ -84,6 +84,12 @@ def public_context(request):
     public_tracking = not private or name == "request_form"
     config = {"counter": settings.YANDEX_METRIKA_ID, "analytics_enabled": settings.ANALYTICS_ENABLED and settings.APP_ENV == "production" and public_tracking,
         "canonical": canonical, "consent_version": consent_revision()}
+    if public_tracking and settings.EVA_WIDGET_ENABLED:
+        import uuid
+        try:
+            config["eva_widget_id"] = str(uuid.UUID(settings.EVA_WIDGET_ID))
+        except (ValueError, TypeError, AttributeError):
+            pass
     navigation = project_navigation() if name in INDEXABLE | {"privacy", "consent", "cookies", "request_form"} else []
     return {**legal_context(), "service_pages": SERVICES, "new_solutions": NEW_SOLUTIONS, "company": CONTACTS, "site_origin": settings.SITE_URL, "project_navigation": navigation,
         "seo": {"title": title, "description": description, "canonical": "" if private else canonical, "image": image, "indexable": settings.SITE_INDEXABLE and name in INDEXABLE, "schema": schema}, "site_config": config}

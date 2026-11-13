@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from .attribution import safe_path, submission_attribution
-from .models import Lead, Delivery, SubmissionBucket, PricingVersion
+from .models import Lead, Delivery, SubmissionBucket, PricingVersion, EvaSyncJob
 from .configurator import calculation_form, calculate_answers
 from .legal import consent_record
 from .quick_calculator import QuickCalculatorForm, QUICK_CALCULATOR_SCHEMA, quick_snapshot
@@ -94,6 +94,8 @@ def save_submission(request, form):
                 service=service, project=project, comment=data.get("comment", ""), context=context, source_page=safe_path(request.POST.get("source_page", "/")),
                 attribution=submission_attribution(request), calculation=quote, pricing_version=version, consent_at=timezone.now())
             Delivery.objects.create(lead=lead)
+            if settings.EVA_CAPTURE_ENABLED:
+                EvaSyncJob.objects.create(lead=lead)
             if settings.EMAIL_DELIVERY_ENABLED:
                 Delivery.objects.create(lead=lead, channel="email")
             elif lead.kind == "partner":

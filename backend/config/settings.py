@@ -89,6 +89,17 @@ SESSION_COOKIE_AGE = 8 * 60 * 60
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 DATA_UPLOAD_MAX_NUMBER_FILES = 8
 
+EVA_CAPTURE_ENABLED = os.environ.get("EVA_CAPTURE_ENABLED", "false").lower() == "true"
+EVA_SYNC_ENABLED = os.environ.get("EVA_SYNC_ENABLED", "false").lower() == "true"
+EVA_WIDGET_ENABLED = os.environ.get("EVA_WIDGET_ENABLED", "false").lower() == "true"
+EVA_WIDGET_ID = os.environ.get("EVA_WIDGET_ID", "").strip()
+EVA_API_KEY = os.environ.get("EVA_API_KEY", "")
+EVA_FUNNEL_ID = os.environ.get("EVA_FUNNEL_ID", "")
+EVA_STATUS_ID = os.environ.get("EVA_STATUS_ID", "")
+EVA_EXECUTOR_ID = os.environ.get("EVA_EXECUTOR_ID", "")
+EVA_PARTNER_FUNNEL_ID = os.environ.get("EVA_PARTNER_FUNNEL_ID", "")
+EVA_PARTNER_STATUS_ID = os.environ.get("EVA_PARTNER_STATUS_ID", "")
+EVA_PARTNER_EXECUTOR_ID = os.environ.get("EVA_PARTNER_EXECUTOR_ID", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_DELIVERY_ENABLED = os.environ.get("TELEGRAM_DELIVERY_ENABLED", "false").lower() == "true"
