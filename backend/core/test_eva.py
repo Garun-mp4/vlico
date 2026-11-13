@@ -158,7 +158,7 @@ class EvaTests(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             html = response.content.decode()
-            self.assertEqual(html.count('src="https://eva.bz/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38"'), 1)
+            self.assertEqual(html.count('src="https://eva.bz/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38&amp;language=ru"'), 1)
             self.assertEqual(html.count(f'src="{static("eva-widget.js")}"'), 1)
             self.assertNotIn("test-only", html)
             self.assertNotIn('containerId=', html)
