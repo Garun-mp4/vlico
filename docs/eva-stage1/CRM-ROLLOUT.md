@@ -13,6 +13,14 @@
 - On later readback, the test WhatsApp and widget leads both reached «Ожидает согласования замера» through dialogue. The observed delays were roughly 11 minutes and 10½ minutes respectively. Neither reached «Замер назначен». The rule's one-minute delay does not establish a one-minute end-to-end transition.
 - Eva sees the isolated `VLICO — тест` Google calendar and returns its controlled busy interval and empty adjacent intervals. See [the execution journal](STATUS.md#m4--google-calendar-readback-2026-11-14) for the test. Live agent lookup and the full manager approval flow remain unverified.
 
+## SpaceWeb form delivery and campaign check
+
+- On release `e7e0962`, exercised all five Django form submissions and the real Eva adapter on SpaceWeb. The synthetic batch `b4eda955` read back from Eva with the expected funnel, initial stage, executor, UTM, comment and calculator snapshot. Repeat submissions reused the same lead. The local test transaction was rolled back before the existing notification worker could see it. The five CRM records were marked as test records.
+- Configured the API key and both routes in the private hosting environment. A separate SpaceWeb Crontab task invokes the active release through its WSGI adapter each minute. Capture and delivery remain disabled while VLICO reviews the form disclosure.
+- Eva reported both knowledge sets indexed. The test Telegram bot and connected WhatsApp were online. The agreed production channel switch is still pending.
+- Production touch tasks are disabled and have no assigned channels or contacts. The partner delays are set to 4320 and 11520 minutes from entry to the proposal stage. The client delay is 1440 minutes from entry to the quote stage. Eva documents removal from the queue when a lead leaves the stage or ceases to match filters. Actual cancellation remains unverified.
+- The isolated touch task contained only the previously approved Telegram test contact and test bot, with automatic contact sync off. Eva moved the queue item to `error` without returning a reason. No matching message appeared in the test conversation. The task was disabled. A separate direct message request timed out and readback did not find the diagnostic text. Delivery is unconfirmed.
+
 ## Measurement approval
 
 1. Artem records the location or district, preferred time and reply channel. CRM should move to «Ожидает согласования замера».
