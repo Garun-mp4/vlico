@@ -15,7 +15,8 @@
       width: 56px !important;
       height: 56px !important;
       padding: 0 !important;
-      justify-content: center;
+      justify-content: flex-end;
+      padding-inline-end: 16px !important;
       gap: 0;
       cursor: pointer;
       touch-action: manipulation;
@@ -34,7 +35,49 @@
       #chat-widget .chat-bar:hover::before { background: #064f36; }
     }
     #chat-widget .chat-bar .text, #chat-widget .chat-bar__close { display: none; }
-    #chat-widget .chat-bar .icon { width: 24px; height: 24px; }
+    #chat-widget .chat-bar .icon { width: 24px; height: 24px; flex: 0 0 24px; }
+    #chat-widget .vlico-chat-label {
+      position: absolute;
+      inset-inline-end: 52px;
+      white-space: nowrap;
+      font: 600 14px/1 system-ui, sans-serif;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    @media (min-width: 761px) {
+      #chat-widget.chat-widget--popup .chat-bar {
+        transition: width 200ms ease-in-out;
+      }
+      #chat-widget.chat-widget--popup .chat-bar:focus-visible {
+        width: 156px !important;
+        transition: none;
+      }
+      #chat-widget .chat-bar:focus-visible .vlico-chat-label {
+        opacity: 1;
+        visibility: visible;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        #chat-widget.chat-widget--popup .chat-bar:hover {
+          width: 156px !important;
+        }
+        #chat-widget .chat-bar:hover .vlico-chat-label {
+          visibility: visible;
+          animation: vlico-chat-label-in 160ms ease-out both;
+        }
+      }
+      #chat-widget.chat-widget--chat-open .chat-window.popup {
+        animation: vlico-chat-open 220ms ease-out both;
+      }
+    }
+    @keyframes vlico-chat-label-in {
+      from { opacity: 0; transform: translateX(4px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes vlico-chat-open {
+      from { opacity: .65; clip-path: inset(88% 0 0 0 round 14px); }
+      to { opacity: 1; clip-path: inset(0 round 14px); }
+    }
     #chat-widget .chat-bar .badge { position: absolute; top: -3px; right: -3px; border-color: #075f40; }
     #chat-widget.chat-widget--chat-open .chat-bar { visibility: hidden; }
     #chat-widget:not(.chat-widget--chat-open) .chat-window.popup { visibility: hidden; }
@@ -44,7 +87,13 @@
       outline-offset: -4px;
     }
     @media (prefers-reduced-motion: reduce) {
-      .chat-window.popup { transition: none !important; }
+      #chat-widget.chat-widget--popup .chat-bar,
+      #chat-widget .chat-bar .vlico-chat-label,
+      #chat-widget.chat-widget--chat-open .chat-window.popup {
+        transition: none !important;
+        animation: none !important;
+      }
+      #chat-widget .chat-bar:hover .vlico-chat-label { opacity: 1; }
     }
   `;
 
@@ -114,6 +163,14 @@
       widget = root.querySelector('#chat-widget');
       const launcher = widget?.querySelector('.chat-bar');
       if (!launcher) return;
+      if (!launcher.querySelector('.vlico-chat-label')) {
+        const label = document.createElement('span');
+        label.className = 'vlico-chat-label';
+        label.textContent = 'Открыть чат';
+        label.setAttribute('aria-hidden', 'true');
+        launcher.append(label);
+      }
+      launcher.setAttribute('aria-label', 'Открыть чат');
       const open = chatIsOpen();
       launcher.setAttribute('aria-expanded', String(open));
       labelChat(root);
