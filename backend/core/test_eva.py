@@ -157,13 +157,13 @@ class EvaTests(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             html = response.content.decode()
-            self.assertEqual(html.count('id="vlico-eva-dialog"'), 1)
+            self.assertEqual(html.count('src="https://eva.bz/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38"'), 1)
             self.assertNotIn("test-only", html)
-            self.assertNotIn('src="https://eva.bz/', html)
+            self.assertNotIn('containerId=', html)
 
     @override_settings(EVA_WIDGET_ENABLED=True, EVA_WIDGET_ID="invalid")
     def test_invalid_widget_id_does_not_load(self):
-        self.assertNotContains(self.client.get("/"), 'id="vlico-eva-dialog"')
+        self.assertNotContains(self.client.get("/"), 'eva.bz/widget/chat-widget.js')
 
     def test_requeue_is_protected_and_uncertain_write_cannot_be_replayed(self):
         job, _ = self.submit()

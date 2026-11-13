@@ -1,11 +1,1 @@
-{% load static %}{% if site_config.eva_widget_id %}
-<link rel="stylesheet" href="{% static 'eva-widget.css' %}">
-<button type="button" class="eva-launch" data-eva-open aria-haspopup="dialog" aria-controls="vlico-eva-dialog">Чат с VLICO</button>
-<dialog id="vlico-eva-dialog" class="eva-dialog" aria-labelledby="vlico-eva-title">
-  <header><h2 id="vlico-eva-title">ИИ-помощник VLICO</h2><button type="button" data-eva-close aria-label="Закрыть чат">Закрыть</button></header>
-  <p class="eva-notice">Чат работает через Eva.bz. Не отправляйте пароли и платёжные данные. <a href="{% url 'privacy' %}">О данных</a></p>
-  <p role="status" data-eva-status>Загружаем чат…</p>
-  <div class="eva-chat-host" id="{{ site_config.eva_widget_id }}"></div>
-</dialog>
-<script src="{% static 'eva-widget.js' %}" defer></script>
-{% endif %}
+{% if site_config.eva_widget_id %}<script src="https://eva.bz/widget/chat-widget.js?widgetId={{ site_config.eva_widget_id }}" type="text/javascript" defer></script>{% endif %}
