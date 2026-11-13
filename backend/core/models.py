@@ -144,7 +144,7 @@ class Lead(Timestamped):
 
 class EvaSyncJob(Timestamped):
     lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name="eva_sync")
-    contact_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    contact_id = models.UUIDField(default=uuid.uuid4, editable=False)
     remote_lead_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     status = models.CharField(max_length=16, default="pending", choices=[(x, x) for x in ("pending", "sending", "sent", "retry", "blocked", "review")])
     attempts = models.PositiveIntegerField(default=0)

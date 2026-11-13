@@ -1,0 +1,20 @@
+# Eva CRM rollout and controlled checks
+
+## 13 November 2026
+
+- Incoming CRM explicitly routes the website widget and the connected WhatsApp channel to «Новая заявка». The old sales funnel was detached from all channels and moved after the main funnel. The reserve has no channel assignments. The Telegram test funnel remains in use for the allowlist.
+- In isolated PostgreSQL, five synthetic submissions passed Django endpoint → Eva worker → REST read-back. Repeat POST returned the same local reference. Verified source, UTM, test marker, next action, responsible and initial stage. The quick calculator preserved its snapshot. Four client submissions went to Artem; partnership went to Viktoria.
+- With the same phone, Eva reused the contact and rejected an additional deal for the same executor with `userId: Parameters are not unique`. The site keeps every submission; the queue flags this case for manual review. Existing deals are preserved.
+- The approved test WhatsApp sender received an Artem estimate and a reply that the requested measurement slot awaits Vladlen. The contact was linked to an incoming lead and marked as a test. The configured dialogue rule delays were 60 or 1440 minutes. All 23 dialogue rules now read back as 1 minute; zero fell back to 1440 in Eva. A fresh widget test after the delay change produced the expected estimate and measurement reply, but the deal still stayed at «Новая заявка». Automatic progression is unverified. No rule targets «Замер назначен».
+- All 207 Django tests passed on isolated PostgreSQL and migration consistency passed. Docker Compose rebuilt the local web and Eva worker containers; both became healthy.
+
+## Measurement approval
+
+1. Artem records the location or district, preferred time and reply channel. CRM should move to «Ожидает согласования замера».
+2. Vladlen opens the lead and reads the linked conversation, checks calendar availability, then creates or confirms the event and moves the lead to «Замер назначен». Only then does he confirm to the customer.
+3. Configure Vladlen's verified Telegram notification channel before launch. A notification should identify the lead, source channel, request, preferred slot and link to the CRM. Verify what the native message contains and that it arrives. Where native fields are limited, the linked CRM card is the source of detail. Confirm receipt with a controlled recipient before routing notifications to Vladlen.
+
+## Channel limits
+
+- Eva's documented message creation takes an existing conversation ID; its Conversations API does not document creating a conversation. The Telegram bot requires the customer to start a chat. For a new WhatsApp recipient, a number alone does not authorize outreach. A customer-initiated conversation can be tested without automatic outreach to submitted numbers. Workflows should use the selected channel and require a verified conversation or approved platform workflow before sending.
+- Partner campaign and client follow-up tasks are off. Calendar authorization, live manager notifications, campaign timing and opt-out tests, four KPIs, document deduplication and the production switch still require verification.

@@ -53,7 +53,8 @@ class EvaTests(TestCase):
         def read(method, path, *args, **kwargs):
             self.assertEqual(method, "GET")
             return {"code": 200, "data": {"id": path.split("/")[-1],
-                "externalId": "vlico:" + str(job.lead_id), "contactId": str(job.contact_id)}}
+                "phone": job.lead.contact, "contactId": str(job.contact_id),
+                "props": {"localleaduuid": str(job.lead_id)}}}
         with patch("core.eva_delivery.api", side_effect=read):
             self.assertTrue(deliver_eva_one())
         job.refresh_from_db()
@@ -115,8 +116,9 @@ class EvaTests(TestCase):
             self.assertTrue(data["skipNotifications"])
             fields = next(iter(data["data"].values()))
             self.assertNotIn("skipNotifications", fields)
-            self.assertEqual(fields["props"]["utmsource"], "test_campaign")
-            self.assertEqual(fields["props"]["source"], "site_form")
+            if path == "leads":
+                self.assertEqual(fields["props"]["utmsource"], "test_campaign")
+                self.assertEqual(fields["props"]["source"], "site_form")
             allocated = str(uuid.uuid4())
             records[path + "/" + allocated] = {"id": allocated, **fields}
             posts.append(path)
@@ -137,6 +139,29 @@ class EvaTests(TestCase):
         self.assertEqual(job.status, "review")
         self.assertEqual(job.error_code, "write_uncertain")
 
+    def test_eva_can_reuse_one_phone_contact_for_two_distinct_leads(self):
+        first, _ = self.submit("consultation")
+        second, _ = self.submit("measurement")
+        contact_id = str(uuid.uuid4())
+        records = {}
+
+        def remote(method, path, data=None, **kwargs):
+            if method == "GET":
+                return {"code": 200, "data": records[path]} if path in records else None
+            fields = next(iter(data["data"].values()))
+            allocated = contact_id if path == "contacts" else str(uuid.uuid4())
+            records.setdefault(path + "/" + allocated, {"id": allocated, **fields})
+            return {"code": 200, "items": [{"id": allocated}]}
+
+        with patch("core.eva_delivery.api", side_effect=remote):
+            self.assertTrue(deliver_eva_one())
+            self.assertTrue(deliver_eva_one())
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual((first.status, second.status), ("sent", "sent"))
+        self.assertEqual(first.contact_id, second.contact_id)
+        self.assertNotEqual(first.remote_lead_id, second.remote_lead_id)
+
     @patch("core.eva_delivery.build_opener")
     def test_http_success_with_json_error_is_not_success(self, opener):
         response = opener.return_value.open.return_value.__enter__.return_value
@@ -144,6 +169,16 @@ class EvaTests(TestCase):
         with self.assertRaises(EvaError) as caught:
             api("GET", "contacts/test")
         self.assertEqual(caught.exception.code, "eva_402")
+
+    @patch("core.eva_delivery.build_opener")
+    def test_eva_existing_lead_rejection_is_distinguished_from_other_validation_errors(self, opener):
+        opener.return_value.open.return_value.__enter__.return_value.read.return_value = (
+            b'{"code":422,"validationErrors":{"temp":{"userId":["Parameters are not unique"]}}}'
+        )
+        with self.assertRaises(EvaError) as caught:
+            api("POST", "leads", {})
+        self.assertEqual(caught.exception.code, "existing_contact_lead")
+        self.assertFalse(caught.exception.retry)
 
     @patch("core.eva_delivery.build_opener")
     def test_invalid_response_is_retryable_read_failure(self, opener):

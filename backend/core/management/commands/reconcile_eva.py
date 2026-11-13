@@ -18,7 +18,9 @@ class Command(BaseCommand):
             job = EvaSyncJob.objects.get(pk=options["job"])
             contact = api("GET", "contacts/" + str(options["contact_id"]))["data"]
             lead = api("GET", "leads/" + str(options["lead_id"]))["data"]
-            if contact.get("externalId") != "vlico:" + str(job.lead_id) or lead.get("contactId") != str(options["contact_id"]):
+            if (contact.get("id") != str(options["contact_id"]) or
+                    lead.get("contactId") != str(options["contact_id"]) or
+                    (lead.get("props") or {}).get("localleaduuid") != str(job.lead_id)):
                 raise CommandError("Remote ownership does not match. Nothing changed.")
             with transaction.atomic():
                 locked = EvaSyncJob.objects.select_for_update().get(pk=job.pk)

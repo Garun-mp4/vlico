@@ -97,6 +97,8 @@ EVA_API_KEY = os.environ.get("EVA_API_KEY", "")
 EVA_FUNNEL_ID = os.environ.get("EVA_FUNNEL_ID", "")
 EVA_STATUS_ID = os.environ.get("EVA_STATUS_ID", "")
 EVA_EXECUTOR_ID = os.environ.get("EVA_EXECUTOR_ID", "")
+EVA_RESPONSIBLE_ID = os.environ.get("EVA_RESPONSIBLE_ID", "").strip()
+EVA_TEST_RECORD = APP_ENV == "local" and os.environ.get("EVA_TEST_RECORD", "false").lower() == "true"
 EVA_PARTNER_FUNNEL_ID = os.environ.get("EVA_PARTNER_FUNNEL_ID", "")
 EVA_PARTNER_STATUS_ID = os.environ.get("EVA_PARTNER_STATUS_ID", "")
 EVA_PARTNER_EXECUTOR_ID = os.environ.get("EVA_PARTNER_EXECUTOR_ID", "")

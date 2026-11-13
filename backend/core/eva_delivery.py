@@ -51,6 +51,13 @@ def api(method, resource, data=None, *, missing_ok=False):
     if code == 404 and missing_ok:
         return None
     if code != 200:
+        if code == 422 and resource == "leads" and method == "POST":
+            errors = result.get("validationErrors")
+            if isinstance(errors, dict) and any(
+                isinstance(fields, dict) and fields.get("userId") == ["Parameters are not unique"]
+                for fields in errors.values()
+            ):
+                raise EvaError("existing_contact_lead")
         raise EvaError(f"eva_{code}", code == 429 or code >= 500)
     return result
 
@@ -113,9 +120,17 @@ def ensure_record(resource, record_id, fields, ownership, checkpoint=None, befor
     record = existing.get("data") if isinstance(existing, dict) else None
     if not isinstance(record, dict) or record.get("id") != str(record_id):
         raise EvaError("unconfirmed_write", True)
-    if any(record.get(key) != value for key, value in ownership.items()):
+    if not ownership(record):
         raise EvaError("remote_identity_conflict")
     return record
+
+
+def matches_contact(record, reference, contact):
+    if contact.get("phone"):
+        return str(record.get("phone") or "").lstrip("+") == contact["phone"].lstrip("+")
+    if contact.get("email"):
+        return str(record.get("email") or "").casefold() == contact["email"].casefold()
+    return record.get("externalId") == reference
 
 
 def deliver_eva_one():
@@ -140,25 +155,41 @@ def deliver_eva_one():
             setattr(item, field, value)
         props = {"localleaduuid": str(lead.pk), "leadkind": lead.kind,
             "sourcepage": lead.source_page, "source": "site_form",
+            "nextaction": "Проверить заявку и согласовать следующий шаг с клиентом.",
             **{key.replace("_", ""): value for key, value in lead.attribution.items()}}
-        contact = {"name": lead.name, "externalId": reference, "props": props}
+        if settings.EVA_TEST_RECORD:
+            props["testrecord"] = True
+        assigned_users = []
+        if settings.EVA_RESPONSIBLE_ID:
+            try:
+                assigned_users = [str(uuid.UUID(settings.EVA_RESPONSIBLE_ID))]
+            except ValueError:
+                raise EvaError("responsible_not_configured") from None
+        contact = {"name": lead.name, "externalId": reference}
         if lead.contact.startswith("@"):
-            props["telegram_username"] = lead.contact
+            props["telegramusername"] = lead.contact
+            contact["props"] = {"telegramusername": lead.contact}
         elif "@" in lead.contact:
             contact["email"] = lead.contact
         else:
             contact["phone"] = lead.contact
-        ensure_record("contacts", item.contact_id, contact, {"externalId": reference}, lambda value: remember("contact_id", value), lambda: remember("error_code", "write_in_progress"))
+        ensure_record("contacts", item.contact_id, contact, lambda record: matches_contact(record, reference, contact),
+            lambda value: remember("contact_id", value), lambda: remember("error_code", "write_in_progress"))
         # Existing calculator snapshots are preserved; never recalculate historical quotes.
         description = json.dumps({"kind": lead.kind, "contact": lead.contact, "comment": lead.comment,
             "context": {key: value for key, value in lead.context.items() if key != "consent"},
             "calculation": lead.calculation, "source_page": lead.source_page, "attribution": lead.attribution}, ensure_ascii=False)
         fields = {**target, "contactId": str(item.contact_id), "description": description,
             "props": props}
-        ensure_record("leads", item.remote_lead_id, fields, {"contactId": str(item.contact_id)}, lambda value: remember("remote_lead_id", value), lambda: remember("error_code", "write_in_progress"))
+        if assigned_users:
+            fields["users"] = assigned_users
+        ensure_record("leads", item.remote_lead_id, fields, lambda record: (
+            record.get("contactId") == str(item.contact_id) and
+            (record.get("props") or {}).get("localleaduuid") == str(lead.pk)),
+            lambda value: remember("remote_lead_id", value), lambda: remember("error_code", "write_in_progress"))
     except EvaError as exc:
         retry = exc.retry and item.attempts < MAX_ATTEMPTS
-        state = "retry" if retry else "review" if exc.retry or exc.code in {"remote_identity_conflict", "write_uncertain"} else "blocked"
+        state = "retry" if retry else "review" if exc.retry or exc.code in {"remote_identity_conflict", "write_uncertain", "existing_contact_lead"} else "blocked"
         changes = {"status": state, "error_code": exc.code,
             "next_attempt_at": timezone.now() + timedelta(seconds=(30, 120, 600, 1800, 3600)[item.attempts - 1])}
     else:
