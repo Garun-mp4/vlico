@@ -9,6 +9,7 @@ from django.db import close_old_connections
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from django.urls import reverse
+from django.templatetags.static import static
 from django.utils import timezone
 from .models import Lead, EvaSyncJob, Delivery, PricingVersion
 from .test_leads import payload
@@ -158,12 +159,15 @@ class EvaTests(TestCase):
             self.assertEqual(response.status_code, 200)
             html = response.content.decode()
             self.assertEqual(html.count('src="https://eva.bz/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38"'), 1)
+            self.assertEqual(html.count(f'src="{static("eva-widget.js")}"'), 1)
             self.assertNotIn("test-only", html)
             self.assertNotIn('containerId=', html)
 
     @override_settings(EVA_WIDGET_ENABLED=True, EVA_WIDGET_ID="invalid")
     def test_invalid_widget_id_does_not_load(self):
-        self.assertNotContains(self.client.get("/"), 'eva.bz/widget/chat-widget.js')
+        response = self.client.get("/")
+        self.assertNotContains(response, 'eva.bz/widget/chat-widget.js')
+        self.assertNotContains(response, static("eva-widget.js"))
 
     def test_requeue_is_protected_and_uncertain_write_cannot_be_replayed(self):
         job, _ = self.submit()

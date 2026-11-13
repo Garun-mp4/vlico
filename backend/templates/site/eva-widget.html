@@ -1,1 +1,5 @@
-{% if site_config.eva_widget_id %}<script src="https://eva.bz/widget/chat-widget.js?widgetId={{ site_config.eva_widget_id }}" type="text/javascript" defer></script>{% endif %}
+{% load static %}
+{% if site_config.eva_widget_id %}
+<script src="{% static 'eva-widget.js' %}" defer></script>
+<script src="https://eva.bz/widget/chat-widget.js?widgetId={{ site_config.eva_widget_id }}" defer></script>
+{% endif %}
