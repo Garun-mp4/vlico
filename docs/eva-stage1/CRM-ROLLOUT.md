@@ -8,6 +8,11 @@
 - The approved test WhatsApp sender received an Artem estimate and a reply that the requested measurement slot awaits Vladlen. The contact was linked to an incoming lead and marked as a test. The configured dialogue rule delays were 60 or 1440 minutes. All 23 dialogue rules now read back as 1 minute; zero fell back to 1440 in Eva. A fresh widget test after the delay change produced the expected estimate and measurement reply, but the deal still stayed at «Новая заявка». Automatic progression is unverified. No rule targets «Замер назначен».
 - All 207 Django tests passed on isolated PostgreSQL and migration consistency passed. Docker Compose rebuilt the local web and Eva worker containers; both became healthy.
 
+## 14 November 2026
+
+- On later readback, the test WhatsApp and widget leads both reached «Ожидает согласования замера» through dialogue. The observed delays were roughly 11 minutes and 10½ minutes respectively. Neither reached «Замер назначен». The rule's one-minute delay does not establish a one-minute end-to-end transition.
+- Eva sees the isolated `VLICO — тест` Google calendar and returns its controlled busy interval and empty adjacent intervals. See [the execution journal](STATUS.md#m4--google-calendar-readback-2026-11-14) for the test. Live agent lookup and the full manager approval flow remain unverified.
+
 ## Measurement approval
 
 1. Artem records the location or district, preferred time and reply channel. CRM should move to «Ожидает согласования замера».
@@ -17,4 +22,4 @@
 ## Channel limits
 
 - Eva's documented message creation takes an existing conversation ID; its Conversations API does not document creating a conversation. The Telegram bot requires the customer to start a chat. For a new WhatsApp recipient, a number alone does not authorize outreach. A customer-initiated conversation can be tested without automatic outreach to submitted numbers. Workflows should use the selected channel and require a verified conversation or approved platform workflow before sending.
-- Partner campaign and client follow-up tasks are off. Calendar authorization, live manager notifications, campaign timing and opt-out tests, four KPIs, document deduplication and the production switch still require verification.
+- Partner campaign and client follow-up tasks are off. Agent-side calendar lookup, live manager notifications, campaign timing and opt-out tests, four KPIs, document deduplication and the production switch still require verification.
