@@ -164,14 +164,13 @@
   }
 
   const sticky = document.querySelector('[data-home-sticky-cta]');
-  const primaryAction = document.querySelector('.home-hero-primary');
+  const calculator = document.getElementById('calculator');
   const contact = document.getElementById('contact');
-  const portfolioControls = document.querySelectorAll('#projects a, #projects button, #project-videos a, #project-videos button, .new-solutions a, .new-solutions button, .partners-home-entry a');
   const contactHeading = document.getElementById('contact-title');
   const privacyPanel = document.querySelector('[data-privacy-panel]');
   const mobileMenu = document.querySelector('[data-header-mobile]');
 
-  if (!sticky || !primaryAction || !contact) return;
+  if (!sticky || !calculator || !contact) return;
   contactHeading?.setAttribute('tabindex', '-1');
 
   sticky.addEventListener('click', () => {
@@ -180,20 +179,18 @@
 
   function updateSticky() {
     stickyScheduled = false;
-    const bounds = primaryAction.getBoundingClientRect();
-    const primaryHasPassed = bounds.bottom <= 0;
-    const contactBounds = contact.getBoundingClientRect();
-    const contactInView = contactBounds.top < window.innerHeight && contactBounds.bottom > 0;
+    if (!media.matches) {
+      sticky.hidden = true;
+      return;
+    }
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const betweenCalculatorAndContact = calculator.getBoundingClientRect().bottom <= 0
+      && contact.getBoundingClientRect().top >= viewportHeight;
     const textFieldFocused = document.activeElement?.matches('input, textarea, select, [contenteditable="true"]');
     const keyboardOpen = window.visualViewport && window.visualViewport.height < window.innerHeight * .72;
     const consentOpen = privacyPanel && !privacyPanel.hidden;
     const overlayOpen = Boolean(mobileMenu?.open || document.querySelector('dialog[open]'));
-    const overlapsPortfolioControl = media.matches && [...portfolioControls].some(control => {
-      const rect = control.getBoundingClientRect();
-      return rect.width && rect.height && rect.top < window.innerHeight - 12 && rect.bottom > window.innerHeight - 84;
-    });
-    const shouldShow = !overlapsPortfolioControl && media.matches && primaryHasPassed && !contactInView && contactBounds.bottom > 0 && !textFieldFocused && !keyboardOpen && !consentOpen && !overlayOpen;
-    sticky.hidden = !shouldShow;
+    sticky.hidden = !betweenCalculatorAndContact || textFieldFocused || keyboardOpen || consentOpen || overlayOpen;
   }
 
   function scheduleStickyUpdate() {

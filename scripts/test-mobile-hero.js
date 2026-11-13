@@ -144,13 +144,33 @@ async page => {
   disclosures = await page.locator('[data-home-solution]').evaluateAll(cards => cards.map(card => ({ open: card.open, expanded: card.querySelector('summary').getAttribute('aria-expanded') })));
   check(disclosures[2].open && disclosures[2].expanded === 'true', 'Keyboard focus did not reveal the focused card');
 
-  await page.evaluate(() => {
-    const button = document.querySelector('.home-hero-primary').getBoundingClientRect();
-    // Test the persistent action away from the solution rail, where it intentionally yields to card controls.
-    const about = document.querySelector('#about').getBoundingClientRect();
-    scrollTo(0, scrollY + about.top + 100);
+  const scrollStates = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const cta = document.querySelector('[data-home-sticky-cta]');
+    const calculatorEnd = () => scrollY + document.querySelector('#calculator').getBoundingClientRect().bottom;
+    const contactStart = () => scrollY + document.querySelector('#contact').getBoundingClientRect().top - innerHeight;
+    const points = ['#about', '#projects', '#project-videos', '#calculator'].map(selector =>
+      () => scrollY + document.querySelector(selector).getBoundingClientRect().top + 100);
+    points.push(() => calculatorEnd() - 12, () => calculatorEnd() + 12,
+      () => (calculatorEnd() + contactStart()) / 2, () => contactStart() - 12, () => contactStart() + 12);
+    const states = [];
+    for (const position of [...points, ...points.slice().reverse()]) {
+      for (let frame = 0; frame < 3; frame++) {
+        scrollTo({top: position(), behavior: 'instant'});
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+      states.push(cta.hidden);
+    }
+    return states;
   });
-  await waitForState(() => !document.querySelector('[data-home-sticky-cta]').hidden, 'Sticky CTA did not appear after the hero CTA left view');
+  const expected = [true, true, true, true, true, false, false, false, true];
+  check(JSON.stringify(scrollStates) === JSON.stringify([...expected, ...expected.slice().reverse()]),
+    'Sticky CTA changed visibility outside the expected scroll range: ' + scrollStates.join(', '));
+  await page.evaluate(() => {
+    const approach = document.querySelector('#approach').getBoundingClientRect();
+    scrollTo({top: scrollY + approach.top + (approach.height - innerHeight) / 2, behavior: 'instant'});
+  });
+  await waitForState(() => !document.querySelector('[data-home-sticky-cta]').hidden, 'Sticky CTA did not appear after the calculator');
   const sticky = page.locator('[data-home-sticky-cta]');
   const stickyBounds = await sticky.boundingBox();
   check(stickyBounds && stickyBounds.y + stickyBounds.height <= 844 - 11, 'Mobile sticky CTA does not respect the viewport and safe-area edge');

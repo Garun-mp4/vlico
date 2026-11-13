@@ -489,9 +489,9 @@
   .home-sticky-cta:not([hidden]) {
     position: fixed;
     z-index: 35;
-    right: 16px;
+    right: calc(84px + env(safe-area-inset-right, 0px));
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    left: 16px;
+    left: max(16px, env(safe-area-inset-left, 0px));
     display: flex;
     align-items: center;
     justify-content: space-between;

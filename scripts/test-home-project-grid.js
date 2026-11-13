@@ -72,8 +72,8 @@ async page => {
     };
   });
   await page.evaluate(y => window.scrollTo(0,y), scrollCheck.beforeProjects);
-  await page.waitForFunction(() => document.querySelector('[data-home-sticky-cta]')?.hidden === false);
-  check(await page.locator('[data-home-sticky-cta]').isVisible(), 'Sticky contact CTA stopped appearing between hero and portfolio');
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  check(await page.locator('[data-home-sticky-cta]').isHidden(), 'Sticky contact CTA appears before the calculator');
   await page.evaluate(() => {
     const projects = document.getElementById('projects').getBoundingClientRect();
     window.scrollTo(0, projects.top + scrollY + 200);
