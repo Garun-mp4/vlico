@@ -51,3 +51,10 @@ No milestone is declared complete merely because code or a configuration exists.
 Pending: complete dialogue tests, opt-out/handoff/partner automation validation, Google/WhatsApp user authorization, source/KPI filtering demonstration, isolated live form-to-CRM checks, production read-only inspection, consent proposal approval, deploy/working-channel approval, partner Excel, handover and acceptance. No complete milestone or final acceptance is claimed while these checks remain.
 
 - Site implementation committed and pushed as 61b7eda. Pending Telegram retest could not be read after browser access became unavailable and the Eva API timed out during TLS handshake. Retest result unverified.
+
+
+## CRM verification — 2026-11-13
+
+- Read back 23 dialogue transfer rules after tightening the measurement and refusal criteria and adding 12 rules for refusal, neutral partner replies and explicit interest. No automatic rule targets booked or completed measurement, contract, installation or completion. All six touch tasks were off.
+- Live REST smoke check created two synthetic contacts and two leads with notifications suppressed and no email, phone or channel account. Checked source, test marker and UTM on the returned records. Updated and read back 11 incoming stages and seven partner stages, including contract and refusal. See CRM-VERIFICATION.json.
+- These updates verify persistence and routing of manual stage changes. Live AI-driven stage changes from Telegram and widget conversations remain pending because the browser session is unavailable to this chat. Existing Telegram test authorization remains scoped to the user's account. No actual partner outreach was launched.
