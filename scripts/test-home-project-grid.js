@@ -158,6 +158,7 @@ async page => {
   await page.locator('.home-project-footer a').click();
   check(new URL(page.url()).pathname === '/projects/', 'View-all does not open the catalogue');
   const catalogGrid = page.locator('.portfolio-grid');
+  await catalogGrid.waitFor({ state: 'visible' });
   const catalogCount = await catalogGrid.locator(':scope>.portfolio-card').count();
   check(catalogCount >= originalCount, 'Catalogue lost projects');
   for (const width of [320,360,390,641,768,800,801,1024,1280,1440,1920]) {

@@ -15,30 +15,31 @@
       width: 56px !important;
       height: 56px !important;
       padding: 0 !important;
-      justify-content: flex-end;
-      padding-inline-end: 16px !important;
+      justify-content: flex-start;
+      padding-inline-start: 16px !important;
       gap: 0;
       cursor: pointer;
       touch-action: manipulation;
       color: #fff;
-      border-radius: 50%;
+      border-radius: 28px;
       transition: none;
       transform: none;
     }
-    #chat-widget .chat-bar::before {
+    #chat-widget.chat-widget--popup .chat-bar::before {
       background: #075f40;
+      border-radius: 28px !important;
       box-shadow: 0 3px 12px #19191a30;
       animation: none;
       transform: none;
     }
     @media (hover: hover) {
-      #chat-widget .chat-bar:hover::before { background: #064f36; }
+      #chat-widget.chat-widget--popup .chat-bar:hover::before { background: #064f36; }
     }
     #chat-widget .chat-bar .text, #chat-widget .chat-bar__close { display: none; }
     #chat-widget .chat-bar .icon { width: 24px; height: 24px; flex: 0 0 24px; }
     #chat-widget .vlico-chat-label {
       position: absolute;
-      inset-inline-end: 52px;
+      inset-inline-start: 52px;
       white-space: nowrap;
       font: 600 14px/1 system-ui, sans-serif;
       opacity: 0;
