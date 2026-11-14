@@ -53,16 +53,17 @@
       gap: 0;
       cursor: pointer;
       touch-action: manipulation;
-      color: var(--vlico-chat-ink);
+      color: var(--vlico-chat-paper);
       border-radius: 4px;
-      overflow: hidden;
+      overflow: visible;
+      isolation: isolate;
       transition: none;
       transform: none;
     }
     #chat-widget.chat-widget--popup .chat-bar::before {
-      background: var(--vlico-chat-green);
+      background: var(--vlico-chat-ink);
       border-radius: 4px !important;
-      box-shadow: inset 0 0 0 1px var(--vlico-chat-focus), 0 3px 10px #19191a24;
+      box-shadow: none;
       animation: none;
       transform: none;
     }
@@ -70,24 +71,24 @@
     #chat-widget.chat-widget--popup .chat-bar::after {
       content: "";
       position: absolute;
-      inset: 5px auto 5px 5px;
-      width: 46px;
-      box-sizing: border-box;
-      border: 1px solid var(--vlico-chat-focus);
-      border-radius: 3px;
+      z-index: -2;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 9px 2px #f2be8d, 0 0 22px 4px #d8945066;
       pointer-events: none;
-      opacity: 0;
-      animation: vlico-chat-attention 650ms var(--vlico-chat-ease) 2s;
+      opacity: .55;
+      animation: vlico-chat-glow 4s ease-in-out infinite alternate;
     }
-    @keyframes vlico-chat-attention {
-      0% { opacity: .75; transform: scale(.74); }
-      100% { opacity: 0; transform: scale(1.14); }
+    @keyframes vlico-chat-glow {
+      from { opacity: .2; }
+      to { opacity: 1; }
     }
-    #chat-widget.chat-widget--popup .chat-bar:is(:hover, :focus-visible)::after { visibility: hidden; }
     #chat-widget .chat-bar .icon { width: 26px; height: 26px; flex: 0 0 26px; }
     #chat-widget .vlico-chat-label {
       position: absolute;
       inset-inline-start: 50px;
+      inset-inline-end: 0;
+      overflow: hidden;
       white-space: nowrap;
       font: 500 13px/1 var(--vlico-chat-mono);
       opacity: 0;
