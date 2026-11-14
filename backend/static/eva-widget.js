@@ -141,6 +141,15 @@
       box-shadow: 0 8px 28px #19191a24;
       transition: none !important;
     }
+    #chat-widget .chat-window.popup {
+      top: auto !important;
+      bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+      max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    }
+    #chat-widget .chat-window.popup .chat-card {
+      max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+    .chat-window.popup .chat-body { min-height: 0; }
     .chat-window.popup .chat-card, .chat-window.popup .chat-body,
     .chat-window.popup .chat-footer, .chat-window.popup .chat-compose {
       background: var(--vlico-chat-paper);
@@ -547,11 +556,16 @@
 
   function positionLauncher() {
     const targets = [launcherHost, fallback, invitation];
+    // Measure the normal anchor, so a previous obstruction cannot keep it raised.
+    for (const target of targets) target?.style.removeProperty('--vlico-chat-bottom');
+    const button = launcher?.getBoundingClientRect() || fallback?.getBoundingClientRect();
+    if (!button?.width) return;
     let bottom = 0;
     for (const panel of [privacy, stickyAction]) {
       if (!panel || panel.hidden) continue;
       const rect = panel.getBoundingClientRect();
-      if (rect.height && rect.bottom > 0 && rect.top < window.innerHeight) {
+      if (rect.height && rect.left < button.right && rect.right > button.left
+        && rect.top < button.bottom && rect.bottom > button.top) {
         bottom = Math.max(bottom, window.innerHeight - rect.top + 12);
       }
     }
@@ -744,6 +758,8 @@
 
     if (host.id === mobileHostId) {
       mobileHost = host;
+      // Eva keeps this full-screen host after removing the closed chat window.
+      sheet.textContent += ':host { pointer-events: none !important; } .chat-window { pointer-events: auto; }';
       // The vendor adds the mobile window after creating its host.
       if (labelChat(root)) revealChat(root);
       else {

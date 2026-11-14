@@ -50,7 +50,8 @@ async original => {
           verify(!await invitation.isVisible(), 'Invitation over consent panel');
           const panel = await page.locator('[data-privacy-panel]').boundingBox();
           const button = await launcher.boundingBox();
-          verify(button.y + button.height < panel.y, 'Launcher overlaps consent');
+          verify(button.x >= panel.x + panel.width || button.y >= panel.y + panel.height,
+            'Launcher overlaps consent');
         }
         const essential = page.locator('[data-privacy-essential]');
         if (await essential.isVisible()) await essential.click();
@@ -58,6 +59,7 @@ async original => {
         await invitation.waitFor({state: 'visible'});
         verify(await invitation.getAttribute('data-variant') === variant, 'Wrong invitation variant');
         verify((await invitation.innerText()).includes('ИИ-консультант VLICO'), 'Missing AI disclosure');
+        await invitation.locator('img').evaluate(el => el.decode());
         verify(await invitation.locator('img').evaluate(el => el.complete && el.naturalWidth > 0), 'Avatar failed to load');
         const shown = await invitation.locator('[data-chat-invitation-copy]').textContent();
         await page.clock.fastForward(60000);
@@ -118,7 +120,8 @@ async original => {
             await sticky.evaluate(el => {el.hidden = false;});
             await page.waitForTimeout(50);
             const panel = await sticky.boundingBox(); const button = await launcher.boundingBox();
-            verify(panel && button.y + button.height < panel.y, 'Launcher overlaps sticky action');
+            verify(panel && (button.x >= panel.x + panel.width || button.y + button.height < panel.y),
+              'Launcher overlaps sticky action');
             await sticky.evaluate(el => {el.hidden = true;});
           }
           await page.goto(origin + '/contacts/', {waitUntil: 'domcontentloaded'});

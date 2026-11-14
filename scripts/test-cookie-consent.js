@@ -22,7 +22,8 @@ async page => {
     check(await panel.evaluate(el => getComputedStyle(el).position) === 'fixed', 'Cookie notice became a grid row');
     check(bounds.x >= 10 && bounds.x <= 22, 'Cookie notice is not anchored to the left');
     check(bounds.y >= header.y + header.height, 'Cookie notice covers the header');
-    check(bounds.y + bounds.height <= 845 && bounds.y + bounds.height >= 820, 'Cookie notice is not anchored to the bottom');
+    const bottom = width <= 760 && await page.locator('[data-vlico-chat-fallback]').count() ? 760 : 824;
+    check(Math.abs(bounds.y + bounds.height - bottom) <= 5, 'Cookie notice has incorrect bottom clearance');
     check(bounds.width <= Math.min(480, width - 24) + 1, 'Cookie notice spans the whole desktop row');
     check(await panel.locator('input[type=checkbox]').count() === 0, 'Initial notice still has checkboxes');
     check(await page.locator('iframe').count() >= 2, 'Widgets wait for consent');
