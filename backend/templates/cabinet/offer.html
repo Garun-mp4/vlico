@@ -1,0 +1,8 @@
+{% extends 'cabinet/base.html' %}
+{% block title %}{{ offer.title|default:'Новое предложение' }}{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>{{ offer.title|default:'Новое предложение' }}</h1><p>Все даты и время — Калининград. Для включения нужны утверждённые условия.</p></div><a href="{% url 'cabinet_offers' %}">К реестру</a></div>
+<form method="post" class="editor-form offer-form">{% csrf_token %}{{ form.revision }}{{ form.non_field_errors }}
+{% for field in form.visible_fields %}{% if field.name == 'contexts' %}<fieldset class="offer-contexts"><legend>{{ field.label }}</legend>{{ field }}{{ field.errors }}</fieldset>{% else %}<div{% if field.name == 'permanent' %} class="offer-checkbox"{% endif %}><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}</div>{% endif %}{% endfor %}
+<button class="button primary" type="submit">Сохранить</button></form>
+{% endblock %}

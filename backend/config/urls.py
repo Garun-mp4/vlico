@@ -3,6 +3,7 @@ from core import eva_widget_relay
 from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
 from core import article_cabinet, blog, public_site
+from core import offer_cabinet
 urlpatterns = [
     re_path(r"^(?P<path>widget/(?:chat-widget\.js|style\.css|message\.mp3)|socket\.io/|api/dashboard/(?:channels/(?:config|hook)/[0-9a-f-]+|messages|widget-message-actions))$", eva_widget_relay.relay, name="eva_widget_relay"),
     path("cabinet/leads/<uuid:pk>/eva/retry/", lead_cabinet.retry_eva, name="cabinet_eva_retry"),
@@ -18,6 +19,11 @@ urlpatterns = [
     path("cabinet/leads/<uuid:pk>/delivery/<int:delivery_pk>/retry/", lead_cabinet.retry, name="cabinet_delivery_retry"),
     path("cabinet/leads/<uuid:pk>/files/<int:attachment_pk>/", lead_cabinet.attachment, name="cabinet_lead_attachment"),
     path("cabinet/rates/", lead_cabinet.rates, name="cabinet_rates"),
+    path("cabinet/offers/", offer_cabinet.index, name="cabinet_offers"),
+    path("cabinet/offers/new/", offer_cabinet.edit, name="cabinet_offer_new"),
+    path("cabinet/offers/publish/", offer_cabinet.publish, name="cabinet_offers_publish"),
+    path("cabinet/offers/<int:pk>/", offer_cabinet.edit, name="cabinet_offer_edit"),
+    path("api/chat-offer/", offer_cabinet.invitation, name="chat_offer"),
     path("health/", views.health, name="health"),
     path("robots.txt", views.robots, name="robots"),
     path("sitemap.xml", public_site.sitemap, name="sitemap"),

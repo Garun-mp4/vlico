@@ -306,6 +306,19 @@ summary {cursor:pointer;text-underline-offset:4px}
 .article-writing th,.article-writing td {padding:.4em .6em;border:1px solid var(--rule)}
 .article-writing>:first-child {margin-top:0}
 .article-writing>:last-child {margin-bottom:0}
+.offer-form {max-width:760px}
+.offer-form>div {min-width:0}
+.offer-contexts {border:0;padding:0;margin:0}
+.offer-contexts legend {font-size:13px;font-weight:600;margin-bottom:8px}
+.offer-contexts label {display:flex;gap:12px;align-items:center;min-height:44px}
+.offer-form .offer-checkbox {display:flex;gap:12px;align-items:center}
+.offer-form .offer-checkbox input {width:22px;height:22px;min-height:22px}
+.offer-preview {max-width:760px;overflow-wrap:anywhere}
+.offer-preview dt {font-size:13px;color:var(--muted);margin-top:16px}
+.offer-preview dd {margin:4px 0 0}
+@media(max-width:540px) {
+  .offer-form input,.offer-form textarea,.offer-form select {font-size:16px}
+}
 @media(max-width:640px) {
   .article-filters {grid-template-columns:minmax(0,1fr) auto;gap:12px}
   .article-filters label:first-child {grid-column:1/-1}

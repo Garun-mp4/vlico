@@ -23,6 +23,39 @@ class Timestamped(models.Model):
         abstract = True
 
 
+class SalesOffer(Timestamped):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Черновик"
+        APPROVED = "approved", "Утверждено"
+        DISABLED = "disabled", "Выключено"
+
+    title = models.CharField("Название", max_length=120)
+    status = models.CharField("Статус", max_length=12, choices=Status.choices, default=Status.DRAFT)
+    contexts = models.JSONField(default=list)
+    benefit = models.CharField("Размер или состав предложения", max_length=500, blank=True)
+    conditions = models.TextField("Кому и при каких условиях доступно", max_length=1000, blank=True)
+    limits = models.TextField("Ограничения", max_length=1000, blank=True)
+    combination = models.CharField("Совмещение", max_length=300, blank=True)
+    reply = models.CharField("Разрешённая фраза агента", max_length=500, blank=True)
+    invitation = models.CharField("Приглашение в виджете", max_length=180, blank=True)
+    approval = models.CharField("Кем и когда утверждено", max_length=300, blank=True)
+    permanent = models.BooleanField("Без срока окончания", default=False)
+    starts_at = models.DateTimeField("Начало", null=True, blank=True)
+    ends_at = models.DateTimeField("Окончание", null=True, blank=True)
+    priority = models.PositiveIntegerField("Порядок выбора", default=10)
+
+    class Meta:
+        ordering = ["priority", "pk"]
+
+
+class OfferPublication(models.Model):
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    revision = models.UUIDField(default=uuid.uuid4, editable=False)
+    published_revision = models.UUIDField(null=True, blank=True, editable=False)
+    fingerprint = models.CharField(max_length=64, blank=True)
+    synced_at = models.DateTimeField(null=True, blank=True)
+
+
 class Service(Timestamped):
     title = models.CharField(max_length=160)
     slug = models.SlugField(unique=True)

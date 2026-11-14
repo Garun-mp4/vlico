@@ -1,0 +1,15 @@
+{% extends 'cabinet/base.html' %}
+{% block title %}Предложения{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>Предложения для клиентов</h1><p>Условия и сроки по Калининграду. После правок опубликуйте реестр в Eva.</p></div>
+{% if perms.core.add_salesoffer %}<a class="button" href="{% url 'cabinet_offer_new' %}">Добавить предложение</a>{% endif %}</div>
+{% if published %}<p class="notice">Текущая редакция подтверждена Eva{% if state.synced_at %} · {{ state.synced_at|date:'d.m.Y H:i' }}{% endif %}.</p>
+{% else %}<p class="notice">Нужна публикация. В Eva может действовать предыдущая редакция. Виджет пока использует обычное приглашение.</p>{% endif %}
+{% for offer in offers %}<section class="editor-section"><h2>{{ offer.title }}</h2><p>{{ offer.get_status_display }} · {% if offer.permanent %}Постоянное{% else %}{{ offer.starts_at|date:'d.m.Y H:i' }} — {{ offer.ends_at|date:'d.m.Y H:i' }}{% endif %}</p>
+<p>{{ offer.benefit|default:'Состав предложения ожидает согласования' }}</p>
+{% if perms.core.change_salesoffer %}<a class="button" href="{% url 'cabinet_offer_edit' offer.pk %}">Изменить условия</a>{% endif %}</section>{% empty %}<p>Добавьте первое предложение и проверьте условия перед публикацией.</p>{% endfor %}
+<section class="editor-section"><h2>Что будет доступно Артему</h2>
+<p>Только утверждённые предложения в пределах срока. Артем предлагает максимум одно подходящее по условиям. Черновики не публикуются.</p>
+{% for offer in active_offers %}<h3>{{ offer.title }}</h3><dl class="offer-preview"><dt>Когда предлагать</dt><dd>{{ offer.conditions }}</dd><dt>Ограничения</dt><dd>{{ offer.limits }}</dd><dt>Совмещение</dt><dd>{{ offer.combination }}</dd><dt>Ответ Артема</dt><dd>{{ offer.reply }}</dd>{% if offer.invitation %}<dt>Приглашение сайта</dt><dd>{{ offer.invitation }}</dd>{% endif %}</dl>{% empty %}<p>Активных предложений нет. Артем продолжит обычную консультацию, виджет покажет базовое приглашение.</p>{% endfor %}
+{% if perms.core.change_salesoffer %}<form action="{% url 'cabinet_offers_publish' %}" method="post">{% csrf_token %}<input type="hidden" name="revision" value="{{ state.revision }}"><button class="button primary" type="submit">Опубликовать в Eva</button></form>{% endif %}</section>
+{% endblock %}

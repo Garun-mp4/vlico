@@ -22,6 +22,7 @@
 {% if perms.core.view_article %}<a href="{% url 'cabinet_articles' %}">Статьи</a>{% endif %}
 {% if perms.core.view_lead %}<a href="{% url 'cabinet_leads' %}">Заявки</a>{% endif %}{% if perms.core.view_pricingversion %}<a href="{% url 'cabinet_rates' %}">Тарифы</a>{% endif %}
 <a href="{% url 'home' %}">Открыть сайт</a>
+{% if perms.core.view_salesoffer %}<a href="{% url 'cabinet_offers' %}">Предложения</a>{% endif %}
 {% if user.is_authenticated %}
 <button class="button danger logout-trigger" type="button" data-logout-open aria-haspopup="dialog" aria-controls="logout-dialog">
 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false"><path d="m4 4 8 8m0-8-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>

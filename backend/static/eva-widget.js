@@ -746,6 +746,50 @@
   if (invitationTemplate && !invitationFinished) {
     invitation = invitationTemplate.content.firstElementChild.cloneNode(true);
     document.body.append(invitation);
+    const copy = invitation.querySelector('[data-chat-invitation-copy]');
+    const defaultCopy = copy.textContent;
+    let offerExpiry;
+    let refreshingOffer = false;
+    async function refreshOffer() {
+      if (refreshingOffer || invitationFinished || document.hidden) return;
+      refreshingOffer = true;
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 4000);
+      try {
+        const response = await fetch(invitation.dataset.offerUrl, {
+          cache: 'no-store', credentials: 'omit', signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Offer unavailable');
+        const offer = await response.json();
+        const end = offer.expires_at ? Date.parse(offer.expires_at) : null;
+        const valid = typeof offer.text === 'string' && offer.text.trim()
+          && (end === null || Number.isFinite(end) && end > Date.now());
+        copy.textContent = valid ? offer.text : defaultCopy;
+        window.clearTimeout(offerExpiry);
+        if (valid && end !== null) {
+          // Recheck long-running tabs without overflowing the browser's 32-bit timer.
+          offerExpiry = window.setTimeout(() => {
+            copy.textContent = defaultCopy;
+            refreshOffer();
+          }, Math.min(end - Date.now(), 2147483647));
+        }
+      } catch {
+        copy.textContent = defaultCopy;
+      } finally {
+        window.clearTimeout(timeout);
+        refreshingOffer = false;
+      }
+    }
+    refreshOffer();
+    const offerRefresh = window.setInterval(() => {
+      if (invitationFinished) {
+        window.clearInterval(offerRefresh);
+        window.clearTimeout(offerExpiry);
+      } else if (!invitation.hidden) refreshOffer();
+    }, 30000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshOffer();
+    });
     invitation.querySelector('.vlico-chat-dismiss').addEventListener('click', () => {
       finishInvitation(true);
       (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});

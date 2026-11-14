@@ -6,13 +6,13 @@
   <span>Получить консультацию</span>
 </a>
 <template id="vlico-chat-invitation">
-  <aside class="vlico-chat-invitation" aria-label="Консультация VLICO" hidden>
+  <aside class="vlico-chat-invitation" aria-label="Консультация VLICO" data-offer-url="{% url 'chat_offer' %}" hidden>
     <header class="vlico-chat-invitation-header">
       <p class="vlico-chat-heading">Здравствуйте! 👋</p>
       <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
     </header>
     <div class="vlico-chat-invitation-body">
-      <p>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
+      <p data-chat-invitation-copy>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
       <a class="vlico-chat-start" href="{% url 'request_form' 'consultation' %}"><span>Получить консультацию</span><span aria-hidden="true">↗</span></a>
     </div>
   </aside>
