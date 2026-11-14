@@ -6,14 +6,15 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  width: max-content;
-  max-width: 56px;
+  box-sizing: border-box;
+  width: 56px;
   height: 56px;
   padding: 0 16px;
   overflow: hidden;
   border-radius: 4px;
-  background: var(--ink, #19191a);
-  color: var(--night-ink, #f2f1e9);
+  background: var(--brand, #27be82);
+  color: var(--ink, #19191a);
+  box-shadow: inset 0 0 0 1px #075f40, 0 3px 10px #19191a24;
   font: 500 13px/1 "IBM Plex Mono", monospace;
   text-decoration: none;
   white-space: nowrap;
@@ -21,17 +22,41 @@
 
 .vlico-chat-fallback[hidden] { display: none; }
 .vlico-chat-fallback svg { flex: none; }
-.vlico-chat-fallback span { visibility: hidden; }
+.vlico-chat-fallback::after {
+  content: "";
+  position: absolute;
+  inset: 5px auto 5px 5px;
+  width: 46px;
+  box-sizing: border-box;
+  border: 1px solid #075f40;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0;
+  animation: vlico-chat-attention 650ms ease-out 2s;
+}
+@keyframes vlico-chat-attention {
+  0% { opacity: .75; transform: scale(.74); }
+  100% { opacity: 0; transform: scale(1.14); }
+}
+.vlico-chat-fallback:is(:hover, :focus-visible)::after { visibility: hidden; }
+.vlico-chat-fallback span { opacity: 0; }
 .vlico-chat-fallback:focus-visible {
-  max-width: calc(100vw - 32px);
+  width: min(240px, calc(100vw - 32px));
   outline: 2px solid #075f40;
   outline-offset: 3px;
 }
-.vlico-chat-fallback:focus-visible span { visibility: visible; }
+.vlico-chat-fallback:focus-visible span { opacity: 1; }
 
 @media (hover: hover) and (pointer: fine) {
-  .vlico-chat-fallback:hover { max-width: calc(100vw - 32px); }
-  .vlico-chat-fallback:hover span { visibility: visible; }
+  .vlico-chat-fallback { transition: width 240ms var(--ease-out, ease-out); }
+  .vlico-chat-fallback span { transition: opacity 170ms ease-out; }
+  .vlico-chat-fallback:hover { width: min(240px, calc(100vw - 32px)); }
+  .vlico-chat-fallback:hover span { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vlico-chat-fallback, .vlico-chat-fallback span { transition: none !important; }
+  .vlico-chat-fallback::after { animation: none; }
 }
 
 @media (max-width: 760px) {

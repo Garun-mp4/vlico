@@ -45,6 +45,7 @@
     #chat-widget.chat-widget--popup .chat-bar {
       inset: auto max(16px, env(safe-area-inset-right)) var(--vlico-chat-bottom, var(--vlico-chat-gap)) auto !important;
       width: var(--vlico-chat-size) !important;
+      max-width: none !important;
       height: var(--vlico-chat-size) !important;
       padding: 0 !important;
       justify-content: flex-start;
@@ -52,25 +53,37 @@
       gap: 0;
       cursor: pointer;
       touch-action: manipulation;
-      color: var(--vlico-chat-paper);
+      color: var(--vlico-chat-ink);
       border-radius: 4px;
       overflow: hidden;
       transition: none;
       transform: none;
     }
     #chat-widget.chat-widget--popup .chat-bar::before {
-      background: var(--vlico-chat-ink);
+      background: var(--vlico-chat-green);
       border-radius: 4px !important;
-      box-shadow: none;
+      box-shadow: inset 0 0 0 1px var(--vlico-chat-focus), 0 3px 10px #19191a24;
       animation: none;
       transform: none;
     }
-    @media (hover: hover) {
-      #chat-widget.chat-widget--popup .chat-bar:hover::before {
-        box-shadow: inset 0 -2px var(--vlico-chat-green);
-      }
-    }
     #chat-widget .chat-bar .text, #chat-widget .chat-bar__close { display: none; }
+    #chat-widget.chat-widget--popup .chat-bar::after {
+      content: "";
+      position: absolute;
+      inset: 5px auto 5px 5px;
+      width: 46px;
+      box-sizing: border-box;
+      border: 1px solid var(--vlico-chat-focus);
+      border-radius: 3px;
+      pointer-events: none;
+      opacity: 0;
+      animation: vlico-chat-attention 650ms var(--vlico-chat-ease) 2s;
+    }
+    @keyframes vlico-chat-attention {
+      0% { opacity: .75; transform: scale(.74); }
+      100% { opacity: 0; transform: scale(1.14); }
+    }
+    #chat-widget.chat-widget--popup .chat-bar:is(:hover, :focus-visible)::after { visibility: hidden; }
     #chat-widget .chat-bar .icon { width: 26px; height: 26px; flex: 0 0 26px; }
     #chat-widget .vlico-chat-label {
       position: absolute;
@@ -78,37 +91,31 @@
       white-space: nowrap;
       font: 500 13px/1 var(--vlico-chat-mono);
       opacity: 0;
-      visibility: hidden;
       pointer-events: none;
     }
     @media (min-width: 761px) {
       #chat-widget.chat-widget--popup .chat-bar {
-        transition: width 160ms var(--vlico-chat-ease);
+        transition: width 240ms var(--vlico-chat-ease) !important;
       }
       #chat-widget.chat-widget--popup .chat-bar:focus-visible {
         width: 164px !important;
-        transition: none;
+        transition: none !important;
       }
       #chat-widget .chat-bar:focus-visible .vlico-chat-label {
         opacity: 1;
-        visibility: visible;
       }
       @media (hover: hover) and (pointer: fine) {
+        #chat-widget .vlico-chat-label { transition: opacity 170ms ease-out; }
         #chat-widget.chat-widget--popup .chat-bar:hover {
           width: 164px !important;
         }
         #chat-widget .chat-bar:hover .vlico-chat-label {
-          visibility: visible;
-          animation: vlico-chat-label-in 150ms var(--vlico-chat-ease) both;
+          opacity: 1;
         }
       }
       #chat-widget.chat-widget--chat-open .chat-window.popup {
         animation: vlico-chat-open 160ms var(--vlico-chat-ease);
       }
-    }
-    @keyframes vlico-chat-label-in {
-      from { opacity: 0; transform: translateX(4px); }
-      to { opacity: 1; transform: none; }
     }
     @keyframes vlico-chat-open {
       from { opacity: .7; transform: translateY(6px); }
@@ -280,6 +287,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       #chat-widget.chat-widget--popup .chat-bar,
+      #chat-widget.chat-widget--popup .chat-bar::after,
       #chat-widget .chat-bar .vlico-chat-label,
       #chat-widget.chat-widget--chat-open .chat-window.popup,
       .chat-window.popup .chat-footer button,
