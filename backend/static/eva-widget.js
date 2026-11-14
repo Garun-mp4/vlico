@@ -111,6 +111,7 @@
     .vlico-chat-invitation {
       position: fixed;
       z-index: 99999;
+      pointer-events: auto;
       box-sizing: border-box;
       right: max(16px, env(safe-area-inset-right));
       bottom: calc(var(--vlico-chat-bottom, var(--vlico-chat-gap)) + var(--vlico-chat-size) + 12px);
