@@ -77,11 +77,11 @@
       box-shadow: 0 0 9px 2px #f2be8d, 0 0 22px 4px #d8945066;
       pointer-events: none;
       opacity: .55;
-      animation: vlico-chat-glow 4s ease-in-out infinite alternate;
+      animation: vlico-chat-glow 10s ease-in-out infinite;
     }
     @keyframes vlico-chat-glow {
-      from { opacity: .2; }
-      to { opacity: 1; }
+      0%, 35%, 100% { opacity: .2; }
+      25%, 60% { opacity: 1; }
     }
     #chat-widget .chat-bar .icon { width: 26px; height: 26px; flex: 0 0 26px; }
     #chat-widget .vlico-chat-label {
