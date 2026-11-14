@@ -171,7 +171,7 @@
       color: var(--vlico-chat-paper);
     }
     .chat-window .message:not(.user) .message-bubble {
-      background: #e9dfcc;
+      background: #ebeae7;
       color: var(--vlico-chat-ink);
       border: 1px solid #d7c7ad;
     }
