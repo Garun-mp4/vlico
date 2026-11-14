@@ -9,6 +9,9 @@
   const invitationTemplate = document.getElementById('vlico-chat-invitation');
   const invitationKey = 'vlico-chat-invitation-dismissed';
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const vendorScript = document.querySelector('[data-vlico-eva-vendor]');
+  const widgetId = vendorScript && new URL(vendorScript.src).searchParams.get('widgetId');
+  const delivery = widgetId && bindDelivery(widgetId);
   let openingBounds;
   let closing = false;
   let launcherHost;
@@ -219,6 +222,31 @@
       outline: 2px solid var(--vlico-chat-focus);
       outline-offset: 2px;
     }
+    .vlico-chat-delivery {
+      padding: 8px 12px;
+      border-top: 1px solid var(--vlico-chat-rule);
+      color: var(--vlico-chat-ink);
+      background: var(--vlico-chat-sand);
+      font: 400 13px/1.45 var(--vlico-chat-mono);
+      overflow-wrap: anywhere;
+    }
+    .vlico-chat-delivery[hidden] { display: none; }
+    .vlico-chat-delivery[data-error] [role="status"] { color: #8b302b; }
+    .vlico-chat-delivery :is(button, a) {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--vlico-chat-focus);
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .vlico-chat-delivery :is(button, a)[hidden] { display: none; }
+    .vlico-chat-delivery a { margin-inline-start: 10px; }
     .chat-window .messages:has(.vlico-chat-empty) > div { padding-top: 0 !important; min-height: 180px; }
     .chat-window .messages .icon:has(~ .vlico-chat-empty) { display: none; }
     .vlico-chat-empty { color: var(--vlico-chat-ink); padding: 0 6px; }
@@ -239,6 +267,257 @@
       #chat-widget .chat-bar:hover .vlico-chat-label { opacity: 1; }
     }
   `;
+
+  function bindDelivery(channelId) {
+    const hook = `/api/dashboard/channels/hook/${channelId}`;
+    const roots = new Set();
+    const uncertain = new Map();
+    const copy = {
+      sending: 'Отправляем сообщение…',
+      waiting: 'Сообщение принято. Ждём ответ…',
+      delayed: 'Сообщение принято. Ответ пока не пришёл.',
+      received: 'Сообщение принято.',
+      failed: 'Не удалось отправить сообщение. Попробуйте ещё раз.',
+      throttled: 'Слишком много попыток. Подождите немного и повторите отправку.',
+      unavailable: 'Чат временно недоступен. Можно оставить заявку через форму.',
+      unknown: 'Не удалось подтвердить доставку. Проверьте переписку перед повтором.',
+      checking: 'Проверяем, появилось ли сообщение в переписке…',
+      unconfirmed: 'Доставка пока не подтверждена. Если нужен ответ, оставьте заявку через форму.',
+    };
+    let current;
+    let sending;
+
+    function history(account) {
+      try {
+        const messages = JSON.parse(localStorage.getItem(`${account}-${channelId}-chat-widget-messages`));
+        return Array.isArray(messages) ? messages.filter(message => message?.id) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function update(entry, phase) {
+      entry.phase = phase;
+      for (const root of roots) {
+        if (root.host.isConnected) render(root);
+        else roots.delete(root);
+      }
+    }
+
+    function reconcile(entry, messages = entry ? history(entry.account) : []) {
+      if (!entry) return false;
+      // Eva stores the same messages that it renders after polling and reconnect.
+      const received = entry.text && !entry.hasFiles && messages.find(message =>
+        message.isUser && !entry.previousIds.has(message.id) && message.text === entry.text
+        && Date.parse(message.createdAt) >= entry.startedAt - 1000 && !message.attachments?.length);
+      if (uncertain.get(entry.signature) === entry && received) {
+        uncertain.delete(entry.signature);
+        // Leave later drafts alone. Only clear the exact draft Eva just echoed.
+        window.setTimeout(() => {
+          if (current !== entry) return;
+          for (const root of roots) {
+            const input = root.querySelector('.chat-compose .message-input');
+            if (!entry.draftInputs.has(input) || input.value.trim() !== entry.text || input.disabled) continue;
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 0);
+        entry.phase = 'received';
+      }
+      const index = received ? messages.indexOf(received) : -1;
+      if (['waiting', 'delayed', 'received'].includes(entry.phase)) {
+        const reply = index >= 0
+          ? messages.slice(index + 1).some(message => !message.isUser)
+          : entry.hasFiles && messages.some(message => !message.isUser && !entry.previousIds.has(message.id));
+        if (reply) entry.phase = '';
+      }
+      return Boolean(received);
+    }
+
+    function render(root) {
+      const footer = root.querySelector('.chat-compose .chat-footer');
+      if (!footer) return;
+      const phase = current?.phase;
+      let notice = footer.parentElement.querySelector('.vlico-chat-delivery');
+      if (!notice && !phase) return;
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.className = 'vlico-chat-delivery';
+        const status = document.createElement('div');
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-atomic', 'true');
+        const check = document.createElement('button');
+        check.type = 'button';
+        check.textContent = 'Проверить доставку';
+        check.addEventListener('click', () => checkDelivery(current));
+        const formLink = document.createElement('a');
+        formLink.href = fallback.href;
+        formLink.textContent = 'Оставить заявку';
+        notice.append(status, check, formLink);
+        footer.before(notice);
+      }
+      const [status, check, formLink] = notice.children;
+      const needsCheck = ['unknown', 'checking', 'unconfirmed'].includes(phase);
+      const canRestore = needsCheck || ['failed', 'throttled', 'unavailable'].includes(phase);
+      const input = footer.querySelector('.message-input');
+      if (canRestore && current.text && input && !input.disabled && !input.value
+        && input.getClientRects().length && getComputedStyle(input).visibility === 'visible'
+        && !current.draftInputs.has(input)) {
+        current.draftInputs.add(input);
+        input.value = current.text;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      notice.hidden = !phase;
+      notice.toggleAttribute('data-error', needsCheck || ['failed', 'throttled', 'unavailable'].includes(phase));
+      check.hidden = !needsCheck;
+      check.disabled = phase === 'checking';
+      formLink.hidden = !needsCheck && !['unavailable', 'delayed'].includes(phase);
+      if (status.textContent !== (copy[phase] || '')) status.textContent = copy[phase] || '';
+    }
+
+    async function checkDelivery(entry) {
+      if (!entry || uncertain.get(entry.signature) !== entry || entry.phase === 'checking') return;
+      if (reconcile(entry)) {
+        update(entry, entry.phase);
+        return;
+      }
+      update(entry, 'checking');
+      try {
+        const conversationId = localStorage.getItem(`${entry.account}-${channelId}-conversation-id`);
+        if (/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(conversationId || '')) {
+          const response = await fetch(`/api/dashboard/messages?conversationId=${encodeURIComponent(conversationId)}`, {
+            cache: 'no-store', signal: AbortSignal.timeout(6000),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.code === 200 && Array.isArray(data.items)) {
+              const messages = data.items
+                .filter(message => message?.id && message.conversationId === conversationId && ['user', 'assistant'].includes(message.senderType))
+                .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+                .map(message => ({ ...message, id: String(message.id), isUser: message.senderType === 'user' }));
+              reconcile(entry, messages);
+            }
+          }
+        }
+      } catch { /* The read can fail during the same outage. Keep the send unconfirmed. */ }
+      if (uncertain.get(entry.signature) === entry && !reconcile(entry)) update(entry, 'unconfirmed');
+      else update(entry, entry.phase);
+    }
+
+    function guard(root) {
+      roots.add(root);
+      function trackIntent(event) {
+        const form = event.target.closest('.chat-compose');
+        const send = form?.querySelector('.send-btn');
+        if (!send || send.disabled || event.type === 'click' && !event.target.closest('.send-btn')) return;
+        const text = form.querySelector('.message-input')?.value.trim() || '';
+        if (sending) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        const attempt = { form, text };
+        intent = attempt;
+        // Eva calls the same submit handler from pointer clicks and keyboard submit.
+        window.setTimeout(() => { if (intent === attempt) intent = null; }, 0);
+      }
+      root.addEventListener('click', trackIntent, true);
+      root.addEventListener('submit', trackIntent, true);
+      const observer = new MutationObserver(refresh);
+      observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
+
+    function refresh() {
+      for (const entry of uncertain.values()) reconcile(entry);
+      reconcile(current);
+      if (current) update(current, current.phase);
+    }
+
+    function finish(xhr, entry) {
+      sending = null;
+      let code;
+      try { code = Number(JSON.parse(xhr.responseText)?.code); } catch { /* A successful widget response can be plain text. */ }
+      const rejected = [400, 403, 404, 405, 413, 415, 422, 429];
+      if (code === 402 || xhr.status === 402) {
+        update(entry, 'unavailable');
+      } else if (rejected.includes(xhr.status) || rejected.includes(code)) {
+        update(entry, xhr.status === 429 || code === 429 ? 'throttled' : 'failed');
+      } else if (xhr.status >= 200 && xhr.status < 300 && !(code >= 400)) {
+        update(entry, 'waiting');
+        refresh();
+        window.setTimeout(() => {
+          if (entry.phase === 'waiting') update(entry, 'delayed');
+        }, 25000);
+      } else {
+        uncertain.set(entry.signature, entry);
+        update(entry, 'unknown');
+        refresh();
+      }
+      // Eva currently clears the composer for HTTP 200 even if the JSON reports an error.
+      if (xhr.status >= 200 && xhr.status < 300 && code >= 400 && entry.text) {
+        window.setTimeout(() => {
+          const input = entry.form.querySelector('.message-input');
+          if (input?.isConnected && !input.value && !reconcile(entry)) {
+            input.value = entry.text;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 0);
+      }
+    }
+
+    let intent;
+    const xhrOpen = XMLHttpRequest.prototype.open;
+    const xhrSend = XMLHttpRequest.prototype.send;
+    const hookRequests = new WeakSet();
+    XMLHttpRequest.prototype.open = function (method, url, ...options) {
+      hookRequests.delete(this);
+      if (method.toUpperCase() === 'POST') {
+        const target = new URL(url, location.href);
+        if (target.origin === location.origin && target.pathname === hook) hookRequests.add(this);
+      }
+      return xhrOpen.call(this, method, url, ...options);
+    };
+    XMLHttpRequest.prototype.send = function (body) {
+      if (!hookRequests.has(this) || !intent) return xhrSend.call(this, body);
+      let message;
+      const hasFiles = body instanceof FormData;
+      try { message = hasFiles ? JSON.parse(body.get('message')) : JSON.parse(body)?.message; }
+      catch { /* Leave unrelated widget calls alone. */ }
+      if (!/^[a-f0-9]{64}$/.test(message?.accountId || '') || message.text !== intent.text) {
+        return xhrSend.call(this, body);
+      }
+      const files = hasFiles ? [...body.values()].filter(value => value instanceof File) : [];
+      const signature = JSON.stringify([message.accountId, message.text, message.replyToMessageId,
+        files.map(file => [file.name, file.size, file.type, file.lastModified])]);
+      const previous = uncertain.get(signature);
+      if (previous) {
+        current = previous;
+        if (!reconcile(previous)) void checkDelivery(previous);
+        else update(previous, previous.phase);
+        throw new DOMException('Delivery is unconfirmed', 'AbortError');
+      }
+      const entry = { ...intent, signature, account: message.accountId, hasFiles, startedAt: Date.now(),
+        draftInputs: new WeakSet(),
+        previousIds: new Set(history(message.accountId).map(item => item.id)) };
+      const input = intent.form.querySelector('.message-input');
+      if (input) entry.draftInputs.add(input);
+      sending = current = entry;
+      // Bound the vendor's wait even if the reverse proxy connection stalls.
+      this.timeout = this.timeout ? Math.min(this.timeout, 18000) : 18000;
+      this.addEventListener('loadend', () => finish(this, entry), { once: true });
+      try {
+        const result = xhrSend.call(this, body);
+        update(entry, 'sending');
+        return result;
+      } catch (error) {
+        sending = null;
+        update(entry, 'failed');
+        throw error;
+      }
+    };
+    window.addEventListener('online', refresh);
+    return { render, guard };
+  }
 
   function positionLauncher() {
     const targets = [launcherHost, fallback, invitation];
@@ -285,6 +564,7 @@
   }
 
   function prepareChatCopy(root) {
+    delivery?.render(root);
     const status = root.querySelector('.chat-title .subtitle');
     if (status && !status.querySelector('.vlico-consultant')) {
       const label = document.createElement('span');
@@ -385,6 +665,7 @@
     sheet.textContent = styles;
     root.append(sheet);
     bindChatClose(root);
+    delivery?.guard(root);
     new MutationObserver(() => prepareChatCopy(root)).observe(root, {childList: true, subtree: true});
     prepareChatCopy(root);
 
