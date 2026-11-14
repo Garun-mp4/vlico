@@ -146,6 +146,20 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, 'name="legal_version"')
         self.assertFalse(response.context['lead_form'].fields['consent'].initial)
 
+    @override_settings(EVA_CAPTURE_ENABLED=True, EVA_WIDGET_ENABLED=True)
+    def test_eva_form_consent_and_chat_disclosure(self):
+        from core.legal import consent_revision
+
+        self.assertContains(self.client.get("/consent/"), "метки кампании (UTM)")
+        privacy = self.client.get("/privacy/")
+        self.assertContains(privacy, "CRM заявок.")
+        self.assertContains(privacy, "Чат с ИИ-консультантом работает через Eva.bz.")
+        current = consent_revision()
+        with override_settings(EVA_CAPTURE_ENABLED=False):
+            self.assertNotContains(self.client.get("/consent/"), "Eva.bz")
+            self.assertContains(self.client.get("/privacy/"), "Чат с ИИ-консультантом работает через Eva.bz.")
+            self.assertNotEqual(current, consent_revision())
+
     @override_settings(EMAIL_HOST="smtp.spaceweb.ru", LEAD_NOTIFICATION_EMAIL="partners@vlico39.ru")
     def test_spaceweb_notification_is_disclosed_in_policy_and_consent(self):
         privacy = self.client.get("/privacy/")

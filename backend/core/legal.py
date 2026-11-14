@@ -10,6 +10,8 @@ def legal_context():
         "partner_notification_email": settings.PARTNER_NOTIFICATION_EMAIL,
         "lead_notification_uses_mailru": settings.EMAIL_HOST.lower() == "smtp.mail.ru",
         "lead_notification_uses_spaceweb": settings.EMAIL_HOST.lower() == "smtp.spaceweb.ru",
+        "eva_form_capture": settings.EVA_CAPTURE_ENABLED,
+        "eva_website_chat": settings.EVA_WIDGET_ENABLED,
     }
 
 
