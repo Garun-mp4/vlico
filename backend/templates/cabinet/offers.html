@@ -4,7 +4,7 @@
 <div class="page-heading"><div><h1>Предложения для клиентов</h1><p>Условия и сроки по Калининграду. После правок опубликуйте реестр в Eva.</p></div>
 {% if perms.core.add_salesoffer %}<a class="button" href="{% url 'cabinet_offer_new' %}">Добавить предложение</a>{% endif %}</div>
 {% if published %}<p class="notice">Текущая редакция подтверждена Eva{% if state.synced_at %} · {{ state.synced_at|date:'d.m.Y H:i' }}{% endif %}.</p>
-{% else %}<p class="notice">Нужна публикация. В Eva может действовать предыдущая редакция. Виджет пока использует обычное приглашение.</p>{% endif %}
+{% else %}<p class="notice">Нужна публикация. В Eva может действовать предыдущая редакция. Изменённые предложения попадут в приглашение сайта после подтверждения публикации.</p>{% endif %}
 {% for offer in offers %}<section class="editor-section"><h2>{{ offer.title }}</h2><p>{{ offer.get_status_display }} · {% if offer.permanent %}Постоянное{% else %}{{ offer.starts_at|date:'d.m.Y H:i' }} — {{ offer.ends_at|date:'d.m.Y H:i' }}{% endif %}</p>
 <p>{{ offer.benefit|default:'Состав предложения ожидает согласования' }}</p>
 {% if perms.core.change_salesoffer %}<a class="button" href="{% url 'cabinet_offer_edit' offer.pk %}">Изменить условия</a>{% endif %}</section>{% empty %}<p>Добавьте первое предложение и проверьте условия перед публикацией.</p>{% endfor %}

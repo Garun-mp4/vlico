@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+umask 077
 # Resolve the active release through the same adapter as public requests.
 cd "$HOME/public_html"
 exec /usr/bin/flock -n "$HOME/.vlico-offers.lock" /usr/bin/python3.11 -c '
