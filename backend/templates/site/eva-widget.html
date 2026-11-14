@@ -18,5 +18,5 @@
   </aside>
 </template>
 <script src="{% static 'eva-widget.js' %}" defer></script>
-<script src="https://eva.bz/widget/chat-widget.js?widgetId={{ site_config.eva_widget_id }}&amp;language=ru" async></script>
+<script src="{% url 'eva_widget_relay' 'widget/chat-widget.js' %}?widgetId={{ site_config.eva_widget_id }}&amp;language=ru" async></script>
 {% endif %}

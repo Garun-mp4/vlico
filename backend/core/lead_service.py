@@ -15,8 +15,8 @@ class SubmissionError(Exception):
         self.errors, self.status, self.quote = errors, status, quote
 
 
-def throttle(request):
-    key = sha256((settings.SECRET_KEY + ":lead:" + request.META.get("REMOTE_ADDR", "")).encode()).hexdigest()
+def throttle(request, *, scope="lead"):
+    key = sha256((settings.SECRET_KEY + ":" + scope + ":" + request.META.get("REMOTE_ADDR", "")).encode()).hexdigest()
     now = timezone.now()
     with transaction.atomic():
         bucket, _ = SubmissionBucket.objects.get_or_create(key=key, defaults={"expires_at": now + timedelta(minutes=15)})

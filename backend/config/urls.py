@@ -1,8 +1,10 @@
-from django.urls import path
+from django.urls import path, re_path
+from core import eva_widget_relay
 from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
 from core import article_cabinet, blog, public_site
 urlpatterns = [
+    re_path(r"^(?P<path>widget/(?:chat-widget\.js|style\.css)|socket\.io/|api/dashboard/(?:channels/(?:config|hook)/[0-9a-f-]+|messages|widget-message-actions))$", eva_widget_relay.relay, name="eva_widget_relay"),
     path("cabinet/leads/<uuid:pk>/eva/retry/", lead_cabinet.retry_eva, name="cabinet_eva_retry"),
     path("", views.home, name="home"),
     path("request/<str:kind>/", lead_views.request_form, name="request_form"),

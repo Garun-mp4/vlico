@@ -193,7 +193,7 @@ class EvaTests(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             html = response.content.decode()
-            self.assertEqual(html.count('src="https://eva.bz/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38&amp;language=ru"'), 1)
+            self.assertEqual(html.count('src="/widget/chat-widget.js?widgetId=6da2fe48-d1ff-4935-856e-d1cfff9d1d38&amp;language=ru"'), 1)
             self.assertEqual(html.count(f'src="{static("eva-widget.js")}"'), 1)
             self.assertNotIn("test-only", html)
             self.assertNotIn('containerId=', html)
@@ -201,7 +201,7 @@ class EvaTests(TestCase):
     @override_settings(EVA_WIDGET_ENABLED=True, EVA_WIDGET_ID="invalid")
     def test_invalid_widget_id_does_not_load(self):
         response = self.client.get("/")
-        self.assertNotContains(response, 'eva.bz/widget/chat-widget.js')
+        self.assertNotContains(response, '/widget/chat-widget.js')
         self.assertNotContains(response, static("eva-widget.js"))
 
     def test_requeue_is_protected_and_uncertain_write_cannot_be_replayed(self):
