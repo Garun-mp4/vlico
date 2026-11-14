@@ -183,5 +183,30 @@
   ],
   "realExternalMessages": 0,
   "evaAiGenerations": 0,
-  "checkedAt": "2026-11-14T14:31:49.5896124Z"
+  "checkedAt": "2026-11-14T14:31:49.5896124Z",
+  "production": {
+    "leadHashUnchanged": true,
+    "cronM4ErrorsBytes": 0,
+    "databaseMigration": false,
+    "ui": [
+      {
+        "mobile": false,
+        "invitation": true,
+        "avatarPixels": 192,
+        "chatOpened": true,
+        "chatClosed": true,
+        "messagesSent": 0
+      },
+      {
+        "mobile": true,
+        "invitation": true,
+        "avatarPixels": 192,
+        "chatOpened": true,
+        "chatClosed": true,
+        "messagesSent": 0
+      }
+    ],
+    "release": "/home/v/vlico39ru/.vlico-release-20261114-d2868db",
+    "leadCount": 22
+  }
 }
