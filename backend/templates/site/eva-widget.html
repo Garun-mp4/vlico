@@ -7,10 +7,14 @@
 </a>
 <template id="vlico-chat-invitation">
   <aside class="vlico-chat-invitation" aria-label="Консультация VLICO" hidden>
-    <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
-    <p class="vlico-chat-heading">Здравствуйте! 👋</p>
-    <p>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
-    <a class="vlico-chat-start" href="{% url 'request_form' 'consultation' %}">Получить консультацию <span aria-hidden="true">↗</span></a>
+    <header class="vlico-chat-invitation-header">
+      <p class="vlico-chat-heading">Здравствуйте! 👋</p>
+      <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
+    </header>
+    <div class="vlico-chat-invitation-body">
+      <p>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
+      <a class="vlico-chat-start" href="{% url 'request_form' 'consultation' %}"><span>Получить консультацию</span><span aria-hidden="true">↗</span></a>
+    </div>
   </aside>
 </template>
 <script src="{% static 'eva-widget.js' %}" defer></script>

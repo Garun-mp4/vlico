@@ -72,9 +72,7 @@
   right: max(16px, env(safe-area-inset-right));
   bottom: calc(var(--vlico-chat-bottom, max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px))) + 68px);
   width: min(316px, calc(100vw - 36px));
-  padding: 18px 18px 12px;
   border: 1px solid #d5d3c8;
-  border-top: 2px solid #27be82;
   border-radius: 4px;
   background: #f2f1e9;
   color: #19191a;
@@ -82,8 +80,19 @@
   transform-origin: bottom right;
   animation: vlico-invitation-in 170ms var(--ease-out, ease-out) both;
 }
-.vlico-chat-invitation p { margin: 0 0 8px; }
-.vlico-chat-invitation .vlico-chat-heading { padding-right: 40px; font: 700 19px/1.2 Manrope, Arial, sans-serif; }
+.vlico-chat-invitation p { margin: 0; }
+.vlico-chat-invitation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 14px 4px;
+  min-height: 48px;
+  border-radius: 3px 3px 0 0;
+  background: #19191a;
+  color: #f2f1e9;
+}
+.vlico-chat-invitation .vlico-chat-heading { font: 700 17px/1.2 Manrope, Arial, sans-serif; }
+.vlico-chat-invitation-body { padding: 12px 14px 4px; }
 .vlico-chat-start, .vlico-chat-dismiss {
   cursor: pointer;
   min-height: 44px;
@@ -94,22 +103,22 @@
 .vlico-chat-start {
   display: flex;
   align-items: center;
+  gap: 8px;
   justify-content: space-between;
   width: 100%;
   padding: 0;
   border-top: 1px solid #d5d3c8;
+  margin-top: 10px;
   color: #075f40;
   text-align: left;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
   font-weight: 500;
 }
+.vlico-chat-start span:first-child { text-decoration: underline; text-underline-offset: 4px; }
 .vlico-chat-dismiss {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  flex: 0 0 44px;
   width: 44px;
-  color: #4d4c47;
+  color: inherit;
   font: 400 24px/1 system-ui, sans-serif;
 }
 .vlico-chat-invitation :is(button, a):focus-visible { outline: 2px solid #07543b; outline-offset: 2px; }

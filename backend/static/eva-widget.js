@@ -129,7 +129,7 @@
       font-family: var(--vlico-chat-mono);
       border-radius: 4px;
       box-shadow: 0 8px 28px #19191a24;
-      transition: none;
+      transition: none !important;
     }
     .chat-window.popup .chat-card, .chat-window.popup .chat-body,
     .chat-window.popup .chat-footer, .chat-window.popup .chat-compose {
@@ -326,9 +326,9 @@
     // Translate the clipped area back to the trigger, including when it is outside the window.
     const start = {
       clipPath: `inset(${top}px ${rect.width - left - width}px ${rect.height - top - height}px ${left}px round 4px)`,
-      transform: `translate(${openingBounds.left - rect.left - left}px, ${openingBounds.top - rect.top - top}px)`,
+      translate: `${openingBounds.left - rect.left - left}px ${openingBounds.top - rect.top - top}px`,
     };
-    const end = {clipPath: 'inset(0 round 4px)', transform: 'none'};
+    const end = {clipPath: 'inset(0 round 4px)', translate: '0px 0px'};
     return panel.animate(close ? [end, start] : [start, end], {
       duration: close ? 210 : 240,
       easing: 'cubic-bezier(.2,.7,.2,1)',
@@ -337,9 +337,19 @@
   }
 
   function revealChat(root) {
-    const panel = root.querySelector('.chat-window.popup');
-    animateChat(panel);
-    focusOpenChat(root);
+    let framesLeft = 4;
+    function revealWhenVisible() {
+      if (!chatIsOpen() || closing) return;
+      const panel = root.querySelector('.chat-window.popup.visible');
+      if (!panel || getComputedStyle(panel).visibility !== 'visible'
+          || !panel.offsetWidth || !panel.offsetHeight) {
+        if (--framesLeft) requestAnimationFrame(revealWhenVisible);
+        return;
+      }
+      animateChat(panel);
+      focusOpenChat(root);
+    }
+    requestAnimationFrame(revealWhenVisible);
   }
 
   function bindChatClose(root) {
