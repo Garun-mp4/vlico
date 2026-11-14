@@ -6,7 +6,7 @@
   const ttl = 180 * 86400000;
   let choice = { analytics: false }, accepted = false, counterReady = false, tag = null;
   let returnFocus = null;
-  const pendingLeads = new Map(), pendingGoals = [];
+  const pendingLeads = new Map(), pendingGoals = [], pendingChatAcceptances = new Set();
   try {
     const saved = JSON.parse(localStorage.getItem('vlicoPrivacy'));
     if (saved?.version === config.consent_version && saved.expires > Date.now()) {
@@ -15,6 +15,8 @@
   } catch { /* Optional services remain disabled when storage is unavailable. */ }
   const mayTrack = () => choice.analytics && config.analytics_enabled && Boolean(config.counter);
   const goals = new Set(['phone_click', 'telegram_click', 'whatsapp_click', 'instagram_click', 'map_click', 'reviews_click', 'review_write_click', 'service_request_click', 'lead_success', 'lead_consultation', 'lead_measurement', 'lead_project', 'lead_partner', 'lead_calculator']);
+  goals.add('eva_chat_open');
+  goals.add('eva_chat_first_message');
   function goal(name) {
     if (!mayTrack() || !goals.has(name)) return;
     if (counterReady) window.ym(Number(config.counter), 'reachGoal', name);
@@ -29,6 +31,15 @@
     goal('lead_success');
     goal(`lead_${kind}`);
     try { sessionStorage.setItem(key, '1'); } catch { /* Event remains valid. */ }
+  }
+  function trackChatAcceptance(reference) {
+    if (!mayTrack() || !reference) return;
+    // Only the goal name goes to Metrika. The reference stays in this tab.
+    const key = `vlicoChatGoal:${reference}`;
+    try { if (sessionStorage.getItem(key)) return; } catch { /* No persistent deduplication. */ }
+    if (!counterReady) { pendingChatAcceptances.add(reference); return; }
+    goal('eva_chat_first_message');
+    try { sessionStorage.setItem(key, '1'); } catch { /* This page still deduplicates. */ }
   }
   const success = document.querySelector('[data-lead-success]');
   function startAnalytics() {
@@ -46,6 +57,7 @@
       counterReady = true;
       pendingGoals.splice(0).forEach(goal);
       pendingLeads.forEach((kind, reference) => trackLead(kind, reference)); pendingLeads.clear();
+      pendingChatAcceptances.forEach(trackChatAcceptance); pendingChatAcceptances.clear();
       if (success) trackLead(success.dataset.kind, success.dataset.reference);
     };
     script.onerror = () => { script.remove(); if (tag === script) tag = null; };
@@ -56,7 +68,7 @@
     else {
       if (counterReady && window.ym) window.ym(Number(config.counter), 'destruct');
       counterReady = false; tag?.remove(); tag = null;
-      pendingLeads.clear(); pendingGoals.length = 0;
+      pendingLeads.clear(); pendingChatAcceptances.clear(); pendingGoals.length = 0;
     }
   }
   function show(trigger) {
@@ -78,6 +90,8 @@
     if (link) goal(link.dataset.goal);
   });
   document.addEventListener('vlico:lead-saved', event => trackLead(event.detail?.kind, event.detail?.reference));
+  document.addEventListener('vlico:chat-opened', () => goal('eva_chat_open'));
+  document.addEventListener('vlico:chat-first-accepted', event => trackChatAcceptance(event.detail?.reference));
   if (!accepted) show();
   apply();
 })();

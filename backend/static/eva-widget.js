@@ -16,6 +16,7 @@
   const delivery = widgetId && bindDelivery(widgetId);
   let openingBounds;
   let closing = false;
+  let openReported = false;
   let launcherHost;
   let mobileHost;
   let widget;
@@ -298,6 +299,7 @@
     };
     let current;
     let sending;
+    const acceptedAccounts = new Set();
 
     function history(account) {
       try {
@@ -316,6 +318,14 @@
       }
     }
 
+    function reportAcceptance(entry) {
+      if (!entry.firstMessage || acceptedAccounts.has(entry.account)) return;
+      acceptedAccounts.add(entry.account);
+      document.dispatchEvent(new CustomEvent('vlico:chat-first-accepted', {
+        detail: { reference: `${channelId}:${entry.account}` },
+      }));
+    }
+
     function reconcile(entry, messages = entry ? history(entry.account) : []) {
       if (!entry) return false;
       // Eva stores the same messages that it renders after polling and reconnect.
@@ -324,6 +334,7 @@
         && Date.parse(message.createdAt) >= entry.startedAt - 1000 && !message.attachments?.length);
       if (uncertain.get(entry.signature) === entry && received) {
         uncertain.delete(entry.signature);
+        reportAcceptance(entry);
         // Leave later drafts alone. Only clear the exact draft Eva just echoed.
         window.setTimeout(() => {
           if (current !== entry) return;
@@ -455,6 +466,7 @@
       } else if (rejected.includes(xhr.status) || rejected.includes(code)) {
         update(entry, xhr.status === 429 || code === 429 ? 'throttled' : 'failed');
       } else if (xhr.status >= 200 && xhr.status < 300 && !(code >= 400)) {
+        reportAcceptance(entry);
         update(entry, 'waiting');
         refresh();
         window.setTimeout(() => {
@@ -508,9 +520,11 @@
         else update(previous, previous.phase);
         throw new DOMException('Delivery is unconfirmed', 'AbortError');
       }
+      const messages = history(message.accountId);
       const entry = { ...intent, signature, account: message.accountId, hasFiles, startedAt: Date.now(),
+        firstMessage: !messages.some(item => item.isUser),
         draftInputs: new WeakSet(),
-        previousIds: new Set(history(message.accountId).map(item => item.id)) };
+        previousIds: new Set(messages.map(item => item.id)) };
       const input = intent.form.querySelector('.message-input');
       if (input) entry.draftInputs.add(input);
       sending = current = entry;
@@ -673,6 +687,10 @@
       }
       animateChat(panel);
       focusOpenChat(root);
+      if (!openReported) {
+        openReported = true;
+        document.dispatchEvent(new Event('vlico:chat-opened'));
+      }
     }
     requestAnimationFrame(revealWhenVisible);
   }
@@ -784,7 +802,10 @@
         finishInvitation();
         revealChat(root);
       }
-      else launcher.focus({ preventScroll: true });
+      else {
+        openReported = false;
+        launcher.focus({ preventScroll: true });
+      }
     }
     new MutationObserver(updateLauncher).observe(root, {
       childList: true, subtree: true, attributes: true, attributeFilter: ['class'],

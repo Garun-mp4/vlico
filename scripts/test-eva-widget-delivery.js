@@ -16,6 +16,7 @@ async original => {
     try {
       const page = await context.newPage();
       const entries = [];
+      let analyticsLoads = 0;
       let requests = 0;
       let historyReads = 0;
       let failure = 'accepted';
@@ -44,6 +45,13 @@ async original => {
       await page.route('**/*', async route => {
         const request = route.request();
         const url = new URL(request.url());
+        if (url.href === 'https://mc.yandex.ru/metrika/tag.js') {
+          analyticsLoads++;
+          return route.fulfill({ contentType: 'application/javascript', body: `
+            window.testMetrika = [];
+            window.ym = (...args) => window.testMetrika.push(args);
+          ` });
+        }
         if (url.origin !== origin) return route.abort();
         const path = url.pathname;
         if (path === '/socket.io/') return route.abort();
@@ -70,11 +78,22 @@ async original => {
           const response = await route.fetch({ url: vendor + path + url.search, timeout: 10000 });
           return route.fulfill({ response });
         }
+        if (request.isNavigationRequest() && path === '/') {
+          const response = await route.fetch();
+          const body = (await response.text()).replace(
+            /(<script[^>]+id="site-config"[^>]*>)(.*?)(<\/script>)/s,
+            (_, start, json, end) => start + JSON.stringify({
+              ...JSON.parse(json), analytics_enabled: true, counter: 12345,
+            }) + end,
+          );
+          return route.fulfill({ response, body });
+        }
         return route.continue();
       });
       await page.goto(origin + '/', { waitUntil: 'domcontentloaded' });
       const essential = page.locator('[data-privacy-essential]');
-      if (await essential.isVisible()) await essential.click();
+      if (mobile) await essential.click();
+      else await page.locator('[data-privacy-accept]').click();
       await page.clock.install();
       const launcher = page.locator('#chat-widget-container .chat-bar');
       await launcher.click();
@@ -86,11 +105,20 @@ async original => {
       const state = async text => {
         await notice.getByRole('status').getByText(text, { exact: true }).waitFor({ timeout: 5000 });
       };
+      const goals = async expected => {
+        const actual = await page.evaluate(() => (window.testMetrika || []).filter(call => call[1] === 'reachGoal'));
+        strictEqual(JSON.stringify(actual), JSON.stringify(expected.map(goal => [12345, 'reachGoal', goal])), 'goal names and arguments');
+      };
+      const opened = 'eva_chat_open';
+      const first = 'eva_chat_first_message';
+      if (!mobile) await page.waitForFunction(() => window.testMetrika?.some(call => call[2] === 'eva_chat_open'));
+      await goals(mobile ? [] : [opened]);
 
       await input.fill(sample);
       await send.dblclick();
       await state('Отправляем сообщение…');
       await state('Сообщение принято. Ждём ответ…');
+      await goals(mobile ? [] : [opened, first]);
       strictEqual(requests, 1, 'double click');
       await page.clock.fastForward(25000);
       clockOffset += 25000;
@@ -142,7 +170,19 @@ async original => {
       await send.click();
       await state('Сообщение принято. Ждём ответ…');
       strictEqual(requests, 5, 'continue the conversation after reconnect');
-      launches.push({ mobile, requests, historyReads });
+      await goals(mobile ? [] : [opened, first, opened]);
+      strictEqual(analyticsLoads, mobile ? 0 : 1, 'analytics consent gates loading');
+      if (!mobile) {
+        await chat.getByRole('button', { name: 'Закрыть чат' }).click();
+        await page.locator('footer [data-privacy-open]').click();
+        await essential.click();
+        await launcher.click();
+        await input.waitFor({ state: 'visible' });
+        await page.clock.fastForward(350);
+        await goals([opened, first, opened]);
+        strictEqual(await page.evaluate(() => window.testMetrika.filter(call => call[1] === 'destruct').length), 1, 'revocation stops the counter');
+      }
+      launches.push({ mobile, requests, historyReads, analyticsLoads });
     } finally {
       await Promise.all(context.pages().map(page => page.unrouteAll({behavior: 'wait'})));
       await context.close();
