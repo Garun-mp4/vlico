@@ -8,6 +8,8 @@
   const fallback = document.querySelector('[data-vlico-chat-fallback]');
   const invitationTemplate = document.getElementById('vlico-chat-invitation');
   const invitationKey = 'vlico-chat-invitation-dismissed';
+  const invitationSeenKey = 'vlico-chat-invitation-seen';
+  const avatarUrl = invitationTemplate?.content.querySelector('[data-chat-avatar]')?.src;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const vendorScript = document.querySelector('[data-vlico-eva-vendor]');
   const widgetId = vendorScript && new URL(vendorScript.src).searchParams.get('widgetId');
@@ -21,8 +23,12 @@
   let launcher;
   let invitationReady = false;
   let invitationFinished = false;
+  let invitationShown = false;
+  let chooseInvitation = () => {};
+  let cleanInvitation = () => {};
   try {
-    invitationFinished = sessionStorage.getItem(invitationKey) === '1';
+    invitationFinished = sessionStorage.getItem(invitationKey) === '1'
+      || sessionStorage.getItem(invitationSeenKey) === '1';
   } catch {
     // The invitation can still be dismissed on this page if storage is blocked.
   }
@@ -143,6 +149,12 @@
       color: var(--vlico-chat-paper);
       border-radius: 0;
       padding-block: max(10px, env(safe-area-inset-top, 0px)) 10px;
+    }
+    .chat-window .vlico-chat-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .chat-window .vlico-chat-avatar { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 3px; }
+    .chat-window .chat-title .title-content { min-width: 0; }
+    @media (max-width: 768px) {
+      .chat-window.popup .message-input { font-size: 16px; }
     }
     .chat-window .chat-title h3, .vlico-chat-empty strong {
       font: 700 19px/1.2 var(--vlico-chat-title);
@@ -521,8 +533,15 @@
 
   function positionLauncher() {
     const targets = [launcherHost, fallback, invitation];
-    if (privacy && !privacy.hidden) {
-      const bottom = window.innerHeight - privacy.getBoundingClientRect().top + 12;
+    let bottom = 0;
+    for (const panel of [privacy, stickyAction]) {
+      if (!panel || panel.hidden) continue;
+      const rect = panel.getBoundingClientRect();
+      if (rect.height && rect.bottom > 0 && rect.top < window.innerHeight) {
+        bottom = Math.max(bottom, window.innerHeight - rect.top + 12);
+      }
+    }
+    if (bottom) {
       for (const target of targets) target?.style.setProperty('--vlico-chat-bottom', `${bottom}px`);
     } else {
       for (const target of targets) target?.style.removeProperty('--vlico-chat-bottom');
@@ -534,27 +553,36 @@
   }
 
   function rememberInvitation() {
-    try { sessionStorage.setItem(invitationKey, '1'); }
+    try { sessionStorage.setItem(invitationSeenKey, '1'); }
     catch { /* Storage can be unavailable in private or embedded contexts. */ }
   }
 
-  function finishInvitation(dismissed = false) {
+  function finishInvitation() {
     invitationFinished = true;
     if (invitation) invitation.hidden = true;
-    if (dismissed) rememberInvitation();
+    rememberInvitation();
+    cleanInvitation();
   }
 
   function updateInvitation() {
     if (!invitation || invitationFinished || !invitationReady) return;
     const field = document.activeElement?.matches('input, textarea, select, [contenteditable="true"]');
     const keyboard = window.visualViewport?.height < window.innerHeight * .72;
-    const busy = stickyAction && !stickyAction.hidden
+    const busy = privacy && !privacy.hidden || stickyAction && !stickyAction.hidden
       || document.querySelector('dialog[open], [data-header-mobile][open]');
-    if (field || keyboard || busy || document.hidden || window.innerHeight <= 440) {
-      invitation.hidden = true;
+    const nativeReady = launcher && launcher.getClientRects().length
+      && getComputedStyle(launcher).visibility === 'visible';
+    if (field || keyboard || busy || document.hidden || window.innerHeight <= 440 || !nativeReady || chatIsOpen()) {
+      if (invitationShown) finishInvitation();
+      else invitation.hidden = true;
       return;
     }
-    invitation.hidden = Boolean(chatIsOpen());
+    if (!invitationShown) {
+      chooseInvitation();
+      invitationShown = true;
+      rememberInvitation();
+    }
+    invitation.hidden = false;
   }
 
   function labelChat(root) {
@@ -565,6 +593,22 @@
 
   function prepareChatCopy(root) {
     delivery?.render(root);
+    const panel = root.querySelector('.chat-window');
+    panel?.setAttribute('role', 'dialog');
+    panel?.setAttribute('aria-label', 'Артем · ИИ-консультант VLICO');
+    const name = root.querySelector('.chat-title h3');
+    if (name && name.textContent !== 'Артем') name.textContent = 'Артем';
+    const identity = name?.parentElement?.parentElement;
+    if (identity && avatarUrl && !identity.querySelector('.vlico-chat-avatar')) {
+      const avatar = document.createElement('img');
+      avatar.className = 'vlico-chat-avatar';
+      avatar.src = avatarUrl;
+      avatar.alt = '';
+      avatar.draggable = false;
+      avatar.width = avatar.height = 40;
+      identity.classList.add('vlico-chat-identity');
+      identity.prepend(avatar);
+    }
     const status = root.querySelector('.chat-title .subtitle');
     if (status && !status.querySelector('.vlico-consultant')) {
       const label = document.createElement('span');
@@ -582,7 +626,7 @@
       const title = document.createElement('strong');
       title.textContent = 'Потолки и освещение';
       const description = document.createElement('span');
-      description.textContent = 'Напишите, что хотите обсудить.';
+      description.textContent = 'Напишите вопрос о потолке или свете. Можно начать без телефона.';
       hint.append(title, description);
       emptyIcon.after(hint);
     }
@@ -665,6 +709,17 @@
     sheet.textContent = styles;
     root.append(sheet);
     bindChatClose(root);
+    root.addEventListener('keydown', event => {
+      if (event.key !== 'Tab' || !chatIsOpen() || !matchMedia('(max-width: 768px)').matches) return;
+      const controls = [...root.querySelectorAll('.chat-window :is(button, input, textarea, a[href], [tabindex])')]
+        .filter(element => element.tabIndex >= 0 && !element.disabled && element.getClientRects().length
+          && getComputedStyle(element).visibility !== 'hidden');
+      const first = controls[0], last = controls.at(-1);
+      if (first && (event.shiftKey && root.activeElement === first || !event.shiftKey && root.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus({preventScroll: true});
+      }
+    });
     delivery?.guard(root);
     new MutationObserver(() => prepareChatCopy(root)).observe(root, {childList: true, subtree: true});
     prepareChatCopy(root);
@@ -748,50 +803,69 @@
     document.body.append(invitation);
     const copy = invitation.querySelector('[data-chat-invitation-copy]');
     const defaultCopy = copy.textContent;
+    const variants = [defaultCopy,
+      'Помогу с предварительным расчётом потолка. Расскажите о площади и освещении.',
+      'Треки, световые линии или точечные светильники? Помогу разобраться с освещением.',
+      'Нужен замер в ближайшее время? Соберу пожелания, а время выезда подтвердит Владлен.'];
+    let availableOffer;
+    let selectedOffer;
     let offerExpiry;
+    let offerRefresh;
+    let offerController;
     let refreshingOffer = false;
+    cleanInvitation = () => {
+      window.clearInterval(offerRefresh);
+      window.clearTimeout(offerExpiry);
+      offerController?.abort();
+    };
+    chooseInvitation = () => {
+      if (availableOffer?.end && availableOffer.end <= Date.now()) availableOffer = null;
+      const candidates = availableOffer ? [...variants, availableOffer.text] : variants;
+      const random = crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
+      const index = Math.floor(random * candidates.length);
+      copy.textContent = candidates[index];
+      invitation.dataset.variant = index === variants.length ? 'offer' : ['base', 'estimate', 'lighting', 'measurement'][index];
+      if (index === variants.length) {
+        selectedOffer = availableOffer;
+        if (selectedOffer.end && selectedOffer.end - Date.now() <= 2147483647) {
+          offerExpiry = window.setTimeout(() => finishInvitation(), Math.max(0, selectedOffer.end - Date.now()));
+        }
+        offerRefresh = window.setInterval(refreshOffer, 30000);
+      }
+    };
     async function refreshOffer() {
       if (refreshingOffer || invitationFinished || document.hidden) return;
       refreshingOffer = true;
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 4000);
+      offerController = new AbortController();
+      const timeout = window.setTimeout(() => offerController.abort(), 4000);
       try {
         const response = await fetch(invitation.dataset.offerUrl, {
-          cache: 'no-store', credentials: 'omit', signal: controller.signal,
+          cache: 'no-store', credentials: 'omit', signal: offerController.signal,
         });
         if (!response.ok) throw new Error('Offer unavailable');
         const offer = await response.json();
         const end = offer.expires_at ? Date.parse(offer.expires_at) : null;
         const valid = typeof offer.text === 'string' && offer.text.trim()
           && (end === null || Number.isFinite(end) && end > Date.now());
-        copy.textContent = valid ? offer.text : defaultCopy;
-        window.clearTimeout(offerExpiry);
-        if (valid && end !== null) {
-          // Recheck long-running tabs without overflowing the browser's 32-bit timer.
-          offerExpiry = window.setTimeout(() => {
-            copy.textContent = defaultCopy;
-            refreshOffer();
-          }, Math.min(end - Date.now(), 2147483647));
+        availableOffer = valid ? {text: offer.text, end} : null;
+        if (selectedOffer && (!valid || selectedOffer.text !== offer.text || selectedOffer.end !== end)) {
+          // Retire an obsolete invitation instead of replacing copy while it is being read.
+          finishInvitation();
         }
       } catch {
-        copy.textContent = defaultCopy;
+        availableOffer = null;
+        if (selectedOffer) finishInvitation();
       } finally {
         window.clearTimeout(timeout);
         refreshingOffer = false;
       }
     }
     refreshOffer();
-    const offerRefresh = window.setInterval(() => {
-      if (invitationFinished) {
-        window.clearInterval(offerRefresh);
-        window.clearTimeout(offerExpiry);
-      } else if (!invitation.hidden) refreshOffer();
-    }, 30000);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) refreshOffer();
+      if (!document.hidden && (!invitationShown || selectedOffer)) refreshOffer();
     });
     invitation.querySelector('.vlico-chat-dismiss').addEventListener('click', () => {
-      finishInvitation(true);
+      finishInvitation();
       (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
     });
     invitation.querySelector('.vlico-chat-start').addEventListener('click', event => {
@@ -821,13 +895,14 @@
   new MutationObserver(connectHosts).observe(document.body, { childList: true });
   connectHosts();
   positionLauncher();
-  if (privacy) new ResizeObserver(positionLauncher).observe(privacy);
+  const obstructionObserver = new ResizeObserver(positionLauncher);
+  for (const panel of [privacy, stickyAction]) if (panel) obstructionObserver.observe(panel);
   window.addEventListener('resize', () => { positionLauncher(); updateInvitation(); });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
     if (invitation && !invitation.hidden && invitation.contains(document.activeElement)) {
       event.preventDefault();
-      finishInvitation(true);
+      finishInvitation();
       (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
       return;
     }

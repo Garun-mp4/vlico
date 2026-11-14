@@ -144,6 +144,7 @@ async original => {
       strictEqual(requests, 5, 'continue the conversation after reconnect');
       launches.push({ mobile, requests, historyReads });
     } finally {
+      await Promise.all(context.pages().map(page => page.unrouteAll({behavior: 'wait'})));
       await context.close();
     }
   }

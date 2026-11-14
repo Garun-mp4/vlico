@@ -1,0 +1,187 @@
+{
+  "avatar": {
+    "bytes": 10895,
+    "sha256": "bf09639fb1082af768757d686f6bc13a5dc1d8c13bdb95f85a40dfd75bff6b58",
+    "height": 192,
+    "path": "backend/static/assets/artem-avatar.jpg",
+    "width": 192
+  },
+  "offerSafety": [
+    {
+      "mobile": false,
+      "scenario": "disabled",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "changed",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "expired",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "network",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "plaintext",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "deadline",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "expires-before-show",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": false,
+      "scenario": "unavailable",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "disabled",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "changed",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "expired",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "network",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "plaintext",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "deadline",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "expires-before-show",
+      "passed": true,
+      "sends": 0
+    },
+    {
+      "mobile": true,
+      "scenario": "unavailable",
+      "passed": true,
+      "sends": 0
+    }
+  ],
+  "physicalMobileDevice": false,
+  "environment": "localhost:8000 Docker, actual Eva UI assets with synthetic API fixtures",
+  "deliveryRegression": [
+    {
+      "mobile": false,
+      "requests": 5,
+      "historyReads": 3
+    },
+    {
+      "mobile": true,
+      "requests": 5,
+      "historyReads": 3
+    }
+  ],
+  "djangoTestsPassed": 33,
+  "presentation": [
+    {
+      "mobile": false,
+      "variant": "base",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": false,
+      "variant": "estimate",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": false,
+      "variant": "lighting",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": false,
+      "variant": "measurement",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": false,
+      "variant": "offer",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": true,
+      "variant": "base",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": true,
+      "variant": "estimate",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": true,
+      "variant": "lighting",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": true,
+      "variant": "measurement",
+      "sends": 0,
+      "passed": true
+    },
+    {
+      "mobile": true,
+      "variant": "offer",
+      "sends": 0,
+      "passed": true
+    }
+  ],
+  "realExternalMessages": 0,
+  "evaAiGenerations": 0,
+  "checkedAt": "2026-11-14T14:31:49.5896124Z"
+}

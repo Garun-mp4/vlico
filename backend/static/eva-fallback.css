@@ -71,7 +71,7 @@
   box-sizing: border-box;
   right: max(16px, env(safe-area-inset-right));
   bottom: calc(var(--vlico-chat-bottom, max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px))) + 68px);
-  width: min(316px, calc(100vw - 36px));
+  width: min(336px, calc(100vw - 32px));
   border: 1px solid #d5d3c8;
   border-radius: 4px;
   background: #f2f1e9;
@@ -84,15 +84,18 @@
 .vlico-chat-invitation-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-inline: 14px 4px;
-  min-height: 48px;
+  gap: 12px;
+  padding: 12px 4px 12px 16px;
+  min-height: 64px;
   border-radius: 3px 3px 0 0;
   background: #19191a;
   color: #f2f1e9;
 }
 .vlico-chat-invitation .vlico-chat-heading { font: 700 17px/1.2 Manrope, Arial, sans-serif; }
-.vlico-chat-invitation-body { padding: 12px 14px 4px; }
+.vlico-chat-avatar { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 3px; }
+.vlico-chat-identity { min-width: 0; flex: 1; }
+.vlico-chat-invitation .vlico-chat-byline { margin-top: 5px; font-size: 10px; line-height: 1.4; }
+.vlico-chat-invitation-body { padding: 16px 16px 4px; }
 .vlico-chat-start, .vlico-chat-dismiss {
   cursor: pointer;
   min-height: 44px;
@@ -116,12 +119,18 @@
 }
 .vlico-chat-start span:first-child { text-decoration: underline; text-underline-offset: 4px; }
 .vlico-chat-dismiss {
+  display: grid;
+  place-items: center;
   flex: 0 0 44px;
   width: 44px;
   color: inherit;
-  font: 400 24px/1 system-ui, sans-serif;
 }
-.vlico-chat-invitation :is(button, a):focus-visible { outline: 2px solid #07543b; outline-offset: 2px; }
+.vlico-chat-invitation .vlico-chat-start:focus-visible { outline: 2px solid #075f40; outline-offset: 2px; }
+.vlico-chat-invitation .vlico-chat-dismiss:focus-visible { outline: 2px solid #f2f1e9; outline-offset: -4px; }
+@media(hover: hover) and (pointer: fine) {
+  .vlico-chat-dismiss:hover { background: #ffffff19; }
+  .vlico-chat-start:hover span { text-decoration-thickness: 2px; }
+}
 @keyframes vlico-invitation-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
