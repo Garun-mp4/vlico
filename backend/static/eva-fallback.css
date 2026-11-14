@@ -45,6 +45,7 @@
 .vlico-chat-fallback:focus-visible span { opacity: 1; }
 
 @media (hover: hover) and (pointer: fine) {
+  .vlico-chat-fallback:hover::after { opacity: 1 !important; }
   .vlico-chat-fallback { transition: width 240ms var(--ease-out, ease-out); }
   .vlico-chat-fallback span { transition: opacity 170ms ease-out; }
   .vlico-chat-fallback:hover { width: min(240px, calc(100vw - 32px)); }

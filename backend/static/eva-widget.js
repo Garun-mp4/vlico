@@ -106,6 +106,7 @@
         opacity: 1;
       }
       @media (hover: hover) and (pointer: fine) {
+        #chat-widget.chat-widget--popup .chat-bar:hover::after { opacity: 1 !important; }
         #chat-widget .vlico-chat-label { transition: opacity 170ms ease-out; }
         #chat-widget.chat-widget--popup .chat-bar:hover {
           width: 164px !important;
