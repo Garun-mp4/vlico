@@ -1,5 +1,13 @@
 {% load static %}
 {% if site_config.eva_widget_id %}
+<template id="vlico-chat-invitation">
+  <aside class="vlico-chat-invitation" aria-label="Консультация VLICO" hidden>
+    <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
+    <p class="vlico-chat-heading">Здравствуйте! 👋</p>
+    <p>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
+    <button type="button" class="vlico-chat-start">Получить консультацию <span aria-hidden="true">↗</span></button>
+  </aside>
+</template>
 <script src="{% static 'eva-widget.js' %}" defer></script>
 <script src="https://eva.bz/widget/chat-widget.js?widgetId={{ site_config.eva_widget_id }}&amp;language=ru" defer></script>
 {% endif %}
