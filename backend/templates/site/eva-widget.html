@@ -10,7 +10,7 @@
     <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
     <p class="vlico-chat-heading">Здравствуйте! 👋</p>
     <p>Помогу подобрать потолок и освещение. Бесплатная консультация — прямо сейчас.</p>
-    <button type="button" class="vlico-chat-start">Получить консультацию <span aria-hidden="true">↗</span></button>
+    <a class="vlico-chat-start" href="{% url 'request_form' 'consultation' %}">Получить консультацию <span aria-hidden="true">↗</span></a>
   </aside>
 </template>
 <script src="{% static 'eva-widget.js' %}" defer></script>

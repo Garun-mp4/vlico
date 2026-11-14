@@ -7,15 +7,16 @@
   const stickyAction = document.querySelector('[data-home-sticky-cta]');
   const fallback = document.querySelector('[data-vlico-chat-fallback]');
   const invitationTemplate = document.getElementById('vlico-chat-invitation');
-  const invitationKey = 'vlico-chat-invitation-seen';
-  const narrow = matchMedia('(max-width: 760px)');
+  const invitationKey = 'vlico-chat-invitation-v2-dismissed';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let openingBounds;
+  let closing = false;
   let launcherHost;
   let mobileHost;
   let widget;
   let invitation;
   let launcher;
   let invitationReady = false;
-  let invitationShown = false;
   let invitationFinished = false;
   try {
     invitationFinished = sessionStorage.getItem(invitationKey) === '1';
@@ -115,13 +116,6 @@
           opacity: 1;
         }
       }
-      #chat-widget.chat-widget--chat-open .chat-window.popup {
-        animation: vlico-chat-open 160ms var(--vlico-chat-ease);
-      }
-    }
-    @keyframes vlico-chat-open {
-      from { opacity: .7; transform: translateY(6px); }
-      to { opacity: 1; transform: none; }
     }
     #chat-widget .chat-bar .badge { position: absolute; top: -3px; right: -3px; border-color: #075f40; }
     #chat-widget.chat-widget--chat-open .chat-bar { visibility: hidden; }
@@ -228,61 +222,6 @@
     .chat-window .messages .icon:has(~ .vlico-chat-empty) { display: none; }
     .vlico-chat-empty { color: var(--vlico-chat-ink); padding: 0 6px; }
     .vlico-chat-empty span { display: block; margin-top: 6px; font-size: 13px; color: #4d4c47; }
-    .vlico-chat-invitation[hidden] { display: none !important; }
-    .vlico-chat-invitation {
-      position: fixed;
-      z-index: 99999;
-      pointer-events: auto;
-      box-sizing: border-box;
-      right: max(16px, env(safe-area-inset-right));
-      bottom: calc(var(--vlico-chat-bottom, var(--vlico-chat-gap)) + var(--vlico-chat-size) + 12px);
-      width: min(316px, calc(100vw - 36px));
-      padding: 18px 18px 12px;
-      border: 1px solid #d5d3c8;
-      border-top: 2px solid var(--vlico-chat-green);
-      border-radius: 4px;
-      background: var(--vlico-chat-paper);
-      color: var(--vlico-chat-ink);
-      font: 400 13px/1.55 var(--vlico-chat-mono);
-      transform-origin: bottom right;
-      animation: vlico-invitation-in 170ms var(--vlico-chat-ease) both;
-    }
-    .vlico-chat-invitation p { margin: 0 0 8px; }
-    .vlico-chat-invitation .vlico-chat-heading { padding-right: 40px; font: 700 19px/1.2 var(--vlico-chat-title); }
-    .vlico-chat-start, .vlico-chat-dismiss {
-      cursor: pointer;
-      min-height: 44px;
-      border: 0;
-      background: transparent;
-      font: inherit;
-    }
-    .vlico-chat-start {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0;
-      border-top: 1px solid #d5d3c8;
-      color: var(--vlico-chat-focus);
-      text-align: left;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-      font-weight: 500;
-    }
-    .vlico-chat-dismiss {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 44px;
-      color: #4d4c47;
-      font: 400 24px/1 system-ui, sans-serif;
-    }
-    .vlico-chat-invitation button:focus-visible { outline: 2px solid #07543b; outline-offset: 2px; }
-    @keyframes vlico-invitation-in {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: none; }
-    }
-    @media (max-height: 440px) { .vlico-chat-invitation { display: none; } }
     #chat-widget .chat-bar:focus-visible, .chat-title .close-btn:focus-visible {
       outline: 2px solid #fff;
       outline-offset: -4px;
@@ -292,8 +231,7 @@
       #chat-widget.chat-widget--popup .chat-bar::after,
       #chat-widget .chat-bar .vlico-chat-label,
       #chat-widget.chat-widget--chat-open .chat-window.popup,
-      .chat-window.popup .chat-footer button,
-      .vlico-chat-invitation {
+      .chat-window.popup .chat-footer button {
         transition: none !important;
         animation: none !important;
       }
@@ -302,8 +240,8 @@
   `;
 
   function positionLauncher() {
-    const targets = [launcherHost, fallback];
-    if (privacy && !privacy.hidden && narrow.matches) {
+    const targets = [launcherHost, fallback, invitation];
+    if (privacy && !privacy.hidden) {
       const bottom = window.innerHeight - privacy.getBoundingClientRect().top + 12;
       for (const target of targets) target?.style.setProperty('--vlico-chat-bottom', `${bottom}px`);
     } else {
@@ -330,17 +268,13 @@
     if (!invitation || invitationFinished || !invitationReady) return;
     const field = document.activeElement?.matches('input, textarea, select, [contenteditable="true"]');
     const keyboard = window.visualViewport?.height < window.innerHeight * .72;
-    const busy = privacy && !privacy.hidden || stickyAction && !stickyAction.hidden
+    const busy = stickyAction && !stickyAction.hidden
       || document.querySelector('dialog[open], [data-header-mobile][open]');
     if (field || keyboard || busy || document.hidden || window.innerHeight <= 440) {
-      if (invitationShown) finishInvitation();
+      invitation.hidden = true;
       return;
     }
-    if (!invitationShown && launcher?.getClientRects().length && !chatIsOpen()) {
-      invitation.hidden = false;
-      invitationShown = true;
-      rememberInvitation();
-    }
+    invitation.hidden = Boolean(chatIsOpen());
   }
 
   function labelChat(root) {
@@ -380,6 +314,58 @@
     }
   }
 
+  function animateChat(panel, close = false) {
+    if (!panel || !openingBounds || reducedMotion.matches) return null;
+    const rect = panel.getBoundingClientRect();
+    if (!rect.width || !rect.height || getComputedStyle(panel).visibility === 'hidden') return null;
+    const clamp = (value, size) => Math.min(Math.max(value, 0), size);
+    const width = Math.min(openingBounds.width, rect.width);
+    const height = Math.min(openingBounds.height, rect.height);
+    const left = clamp(openingBounds.left - rect.left, rect.width - width);
+    const top = clamp(openingBounds.top - rect.top, rect.height - height);
+    // Translate the clipped area back to the trigger, including when it is outside the window.
+    const start = {
+      clipPath: `inset(${top}px ${rect.width - left - width}px ${rect.height - top - height}px ${left}px round 4px)`,
+      transform: `translate(${openingBounds.left - rect.left - left}px, ${openingBounds.top - rect.top - top}px)`,
+    };
+    const end = {clipPath: 'inset(0 round 4px)', transform: 'none'};
+    return panel.animate(close ? [end, start] : [start, end], {
+      duration: close ? 210 : 240,
+      easing: 'cubic-bezier(.2,.7,.2,1)',
+      fill: close ? 'forwards' : 'none',
+    });
+  }
+
+  function revealChat(root) {
+    const panel = root.querySelector('.chat-window.popup');
+    animateChat(panel);
+    focusOpenChat(root);
+  }
+
+  function bindChatClose(root) {
+    root.addEventListener('click', event => {
+      const close = event.target.closest('.close-btn');
+      if (!close || close.dataset.vlicoClosing || !chatIsOpen()) return;
+      if (closing) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      const animation = animateChat(close.closest('.chat-window'), true);
+      if (!animation) return;
+      event.stopImmediatePropagation();
+      closing = true;
+      const finish = () => {
+        closing = false;
+        animation.cancel();
+        // Let Eva handle the replayed click without running the transition again.
+        close.dataset.vlicoClosing = 'true';
+        close.click();
+        delete close.dataset.vlicoClosing;
+      };
+      animation.finished.then(finish, finish);
+    }, true);
+  }
+
   function prepareHost(host) {
     const root = host?.shadowRoot;
     if (!root || hosts.has(host)) return;
@@ -387,18 +373,19 @@
     const sheet = document.createElement('style');
     sheet.textContent = styles;
     root.append(sheet);
+    bindChatClose(root);
     new MutationObserver(() => prepareChatCopy(root)).observe(root, {childList: true, subtree: true});
     prepareChatCopy(root);
 
     if (host.id === mobileHostId) {
       mobileHost = host;
       // The vendor adds the mobile window after creating its host.
-      if (labelChat(root)) focusOpenChat(root);
+      if (labelChat(root)) revealChat(root);
       else {
         const init = new MutationObserver(() => {
           if (!labelChat(root)) return;
           init.disconnect();
-          focusOpenChat(root);
+          revealChat(root);
         });
         init.observe(root, { childList: true, subtree: true });
       }
@@ -407,34 +394,15 @@
 
     launcherHost = host;
     positionLauncher();
-    if (invitationTemplate && !invitationFinished) {
-      invitation = invitationTemplate.content.firstElementChild.cloneNode(true);
-      root.append(invitation);
-      invitation.querySelector('.vlico-chat-dismiss').addEventListener('click', () => {
-        finishInvitation();
-        launcher?.focus({preventScroll: true});
-      });
-      invitation.querySelector('.vlico-chat-start').addEventListener('click', () => launcher?.click());
-      window.setTimeout(() => {
-        invitationReady = true;
-        updateInvitation();
-      }, 6000);
-      const observer = new MutationObserver(updateInvitation);
-      observer.observe(document.body, {subtree: true, attributes: true, attributeFilter: ['open']});
-      for (const element of [privacy, stickyAction]) {
-        if (element) observer.observe(element, {attributes: true, attributeFilter: ['hidden']});
-      }
-      document.addEventListener('focusin', updateInvitation);
-      document.addEventListener('focusout', () => requestAnimationFrame(updateInvitation));
-      document.addEventListener('visibilitychange', updateInvitation);
-      window.addEventListener('resize', updateInvitation);
-      window.visualViewport?.addEventListener('resize', updateInvitation);
-    }
     // Eva currently opens the launcher on pointer release, so bridge native
     // keyboard and assistive-technology clicks to that same vendor action.
+    root.addEventListener('pointerdown', event => {
+      if (event.target.closest('.chat-bar')) openingBounds = launcher.getBoundingClientRect();
+    }, true);
     root.addEventListener('click', event => {
       const launcher = event.target.closest('.chat-bar');
       if (!launcher || event.detail !== 0) return;
+      openingBounds = launcher.getBoundingClientRect();
       for (const type of ['pointerdown', 'pointerup']) {
         launcher.dispatchEvent(new PointerEvent(type, { bubbles: true, composed: true, button: 0 }));
       }
@@ -462,11 +430,12 @@
       const open = chatIsOpen();
       launcher.setAttribute('aria-expanded', String(open));
       labelChat(root);
+      updateInvitation();
       if (open === wasOpen) return;
       wasOpen = open;
       if (open) {
         finishInvitation();
-        focusOpenChat(root);
+        revealChat(root);
       }
       else launcher.focus({ preventScroll: true });
     }
@@ -482,18 +451,48 @@
     prepareHost(document.getElementById(mobileHostId));
   }
 
+  if (invitationTemplate && !invitationFinished) {
+    invitation = invitationTemplate.content.firstElementChild.cloneNode(true);
+    document.body.append(invitation);
+    invitation.querySelector('.vlico-chat-dismiss').addEventListener('click', () => {
+      finishInvitation();
+      (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
+    });
+    invitation.querySelector('.vlico-chat-start').addEventListener('click', event => {
+      finishInvitation();
+      if (!fallback?.hidden || !launcher) return;
+      event.preventDefault();
+      launcher.click();
+    });
+    window.setTimeout(() => {
+      invitationReady = true;
+      updateInvitation();
+    }, 6000);
+    const observer = new MutationObserver(() => {
+      positionLauncher();
+      updateInvitation();
+    });
+    observer.observe(document.body, {subtree: true, attributes: true, attributeFilter: ['open']});
+    for (const element of [privacy, stickyAction]) {
+      if (element) observer.observe(element, {attributes: true, attributeFilter: ['hidden']});
+    }
+    document.addEventListener('focusin', updateInvitation);
+    document.addEventListener('focusout', () => requestAnimationFrame(updateInvitation));
+    document.addEventListener('visibilitychange', updateInvitation);
+    window.visualViewport?.addEventListener('resize', updateInvitation);
+  }
+
   new MutationObserver(connectHosts).observe(document.body, { childList: true });
   connectHosts();
   positionLauncher();
   if (privacy) new ResizeObserver(positionLauncher).observe(privacy);
-  narrow.addEventListener('change', positionLauncher);
-  window.addEventListener('resize', positionLauncher);
+  window.addEventListener('resize', () => { positionLauncher(); updateInvitation(); });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
-    if (invitation && !invitation.hidden && invitation.contains(launcherHost?.shadowRoot?.activeElement)) {
+    if (invitation && !invitation.hidden && invitation.contains(document.activeElement)) {
       event.preventDefault();
       finishInvitation();
-      launcher?.focus({preventScroll: true});
+      (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
       return;
     }
     if (!chatIsOpen()) return;
