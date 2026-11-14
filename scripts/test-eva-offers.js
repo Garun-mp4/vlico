@@ -1,8 +1,8 @@
-// Run with playwright-cli run-code --filename=scripts/test-eva-offers.js on localhost:8000.
+// Run with playwright-cli run-code --filename=scripts/test-eva-offers.js on localhost:8000 or vlico39.ru.
 // Synthetic HTTP responses; no messages or requests to the Eva assistant.
 async original => {
   const origin = new URL(original.url()).origin;
-  if (origin !== 'http://localhost:8000') throw Error('Open localhost:8000 first');
+  if (!['http://localhost:8000', 'https://vlico39.ru'].includes(origin)) throw Error('Open the VLICO local or production site first');
   const results = [];
   for (const mobile of [false, true]) {
     const context = await original.context().browser().newContext({

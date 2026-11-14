@@ -52,6 +52,7 @@ class OfferPublication(models.Model):
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
     revision = models.UUIDField(default=uuid.uuid4, editable=False)
     published_revision = models.UUIDField(null=True, blank=True, editable=False)
+    published_offers = models.JSONField(default=list, editable=False)
     fingerprint = models.CharField(max_length=64, blank=True)
     synced_at = models.DateTimeField(null=True, blank=True)
 

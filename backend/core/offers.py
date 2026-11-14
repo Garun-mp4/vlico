@@ -1,12 +1,14 @@
 """One registry supplies both the public invitation and the Eva instruction block."""
 import hashlib
 import json
+from types import SimpleNamespace
 
 from django import forms
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from .eva_delivery import api, EvaError
 from .models import SalesOffer, OfferPublication
@@ -70,6 +72,18 @@ def offer_payload(offers):
     return rows
 
 
+def scheduled_offers(snapshot):
+    """Use the published schedule even while another edit awaits review."""
+    now = timezone.now()
+    result = []
+    for row in snapshot:
+        start = parse_datetime(row["starts_at"]) if row["starts_at"] else None
+        end = parse_datetime(row["ends_at"]) if row["ends_at"] else None
+        if (not start or start <= now) and (not end or now < end):
+            result.append(SimpleNamespace(**{**row, "pk": row["id"], "starts_at": start, "ends_at": end}))
+    return result
+
+
 def fingerprint(offers):
     raw = json.dumps(offer_payload(offers), sort_keys=True, ensure_ascii=False).encode()
     return hashlib.sha256(raw).hexdigest()
@@ -109,12 +123,14 @@ def publish_offers(*, only_changed=False, expected_revision=None, scheduled=Fals
         state = OfferPublication.objects.select_for_update().get(pk=state.pk)
         if expected_revision is not None and str(state.revision) != expected_revision:
             raise EvaError("offer_revision_changed")
-        if scheduled and state.published_revision != state.revision:
-            # A timer may retire scheduled offers, but must never approve pending edits.
+        if scheduled and (not state.published_revision or
+                          not state.published_offers and state.fingerprint != fingerprint([])):
+            # Includes an older deployment awaiting its first snapshot publication.
             return False
-        offers = active_offers()
+        snapshot = state.published_offers if scheduled else offer_payload(SalesOffer.objects.filter(status=SalesOffer.Status.APPROVED))
+        offers = scheduled_offers(snapshot)
         digest = fingerprint(offers)
-        if only_changed and digest == state.fingerprint and state.published_revision == state.revision:
+        if only_changed and digest == state.fingerprint and (scheduled or state.published_revision == state.revision):
             return False
         agent = api("GET", f"users/{settings.EVA_EXECUTOR_ID}")["data"]
         if not isinstance(agent, dict) or not isinstance(agent.get("prompt"), str):
@@ -125,10 +141,12 @@ def publish_offers(*, only_changed=False, expected_revision=None, scheduled=Fals
         if api("GET", f"users/{settings.EVA_EXECUTOR_ID}")["data"]["prompt"] != prompt:
             raise EvaError("offer_readback_mismatch")
         # An expiry during a slow network call must not publish a stale public invitation.
-        if digest != fingerprint(active_offers()):
+        if digest != fingerprint(scheduled_offers(snapshot)):
             raise EvaError("offer_schedule_changed", True)
-        state.fingerprint, state.synced_at, state.published_revision = digest, timezone.now(), state.revision
-        state.save(update_fields=["fingerprint", "synced_at", "published_revision"])
+        state.fingerprint, state.synced_at = digest, timezone.now()
+        if not scheduled:
+            state.published_revision, state.published_offers = state.revision, snapshot
+        state.save(update_fields=["fingerprint", "synced_at", "published_revision", "published_offers"])
         return True
 
 

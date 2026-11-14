@@ -215,6 +215,43 @@ class OffersTests(TestCase):
             self.assertFalse(publish_offers(only_changed=True, scheduled=True))
             api.assert_not_called()
 
+    def test_expiry_still_runs_with_unpublished_edits(self):
+        now = timezone.now()
+        self.offer.permanent = False
+        self.offer.starts_at, self.offer.ends_at = now - timedelta(days=1), now + timedelta(seconds=10)
+        self.offer.save()
+        with patch("core.offers.api", side_effect=self.remote):
+            publish_offers()
+            self.state.refresh_from_db()
+            self.state.revision = uuid.uuid4()
+            self.state.save()
+            self.offer.benefit = "Unpublished gift"
+            self.offer.ends_at = now + timedelta(days=30)
+            self.offer.save()
+            with patch("core.offers.timezone.now", return_value=now + timedelta(seconds=11)):
+                self.assertTrue(publish_offers(only_changed=True, scheduled=True))
+        self.assertNotIn("Unpublished gift", self.remote_prompt)
+        self.assertNotIn("Подбор освещения", self.remote_prompt)
+        self.state.refresh_from_db()
+        self.assertNotEqual(self.state.published_revision, self.state.revision)
+
+    def test_published_future_offer_starts_without_approving_later_edits(self):
+        now = timezone.now()
+        self.offer.starts_at = now + timedelta(seconds=10)
+        self.offer.save()
+        with patch("core.offers.api", side_effect=self.remote):
+            publish_offers()
+            self.assertNotIn(self.offer.benefit, self.remote_prompt)
+            self.offer.benefit = "Unpublished gift"
+            self.offer.save()
+            self.state.refresh_from_db()
+            self.state.revision = uuid.uuid4()
+            self.state.save()
+            with patch("core.offers.timezone.now", return_value=now + timedelta(seconds=11)):
+                publish_offers(only_changed=True, scheduled=True)
+        self.assertIn("Подбор освещения", self.remote_prompt)
+        self.assertNotIn("Unpublished gift", self.remote_prompt)
+
     def test_conflicting_markers_and_oversized_instruction_do_not_overwrite(self):
         for prompt in (BEGIN, END, END + BEGIN, BEGIN + BEGIN + END, "a" * 30000):
             with self.assertRaises(EvaError):
