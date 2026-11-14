@@ -24,12 +24,20 @@
 
   const styles = `
     :host {
-      --vlico-chat-size: 64px;
+      --vlico-chat-size: 56px;
       --vlico-chat-gap: max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+      --vlico-chat-ink: #19191a;
+      --vlico-chat-paper: #f2f1e9;
+      --vlico-chat-sand: #eae8dd;
+      --vlico-chat-rule: #d5d3c8;
+      --vlico-chat-green: #27be82;
+      --vlico-chat-focus: #075f40;
+      --vlico-chat-mono: "IBM Plex Mono", "Cascadia Mono", monospace;
+      --vlico-chat-title: Manrope, Arial, sans-serif;
+      --vlico-chat-ease: var(--ease-out, cubic-bezier(.2, .7, .2, 1));
     }
     @media (max-width: 760px) {
       :host {
-        --vlico-chat-size: 58px;
         --vlico-chat-gap: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
       }
     }
@@ -43,35 +51,38 @@
       gap: 0;
       cursor: pointer;
       touch-action: manipulation;
-      color: #fff;
-      border-radius: calc(var(--vlico-chat-size) / 2);
+      color: var(--vlico-chat-paper);
+      border-radius: 4px;
+      overflow: hidden;
       transition: none;
       transform: none;
     }
     #chat-widget.chat-widget--popup .chat-bar::before {
-      background: #07543b;
-      border-radius: calc(var(--vlico-chat-size) / 2) !important;
-      box-shadow: inset 0 0 0 1px #87c4a480, 0 5px 18px #19191a38;
+      background: var(--vlico-chat-ink);
+      border-radius: 4px !important;
+      box-shadow: none;
       animation: none;
       transform: none;
     }
     @media (hover: hover) {
-      #chat-widget.chat-widget--popup .chat-bar:hover::before { background: #064f36; }
+      #chat-widget.chat-widget--popup .chat-bar:hover::before {
+        box-shadow: inset 0 -2px var(--vlico-chat-green);
+      }
     }
     #chat-widget .chat-bar .text, #chat-widget .chat-bar__close { display: none; }
     #chat-widget .chat-bar .icon { width: 26px; height: 26px; flex: 0 0 26px; }
     #chat-widget .vlico-chat-label {
       position: absolute;
-      inset-inline-start: 57px;
+      inset-inline-start: 50px;
       white-space: nowrap;
-      font: 600 14px/1 system-ui, sans-serif;
+      font: 500 13px/1 var(--vlico-chat-mono);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
     @media (min-width: 761px) {
       #chat-widget.chat-widget--popup .chat-bar {
-        transition: width 200ms ease-in-out;
+        transition: width 160ms var(--vlico-chat-ease);
       }
       #chat-widget.chat-widget--popup .chat-bar:focus-visible {
         width: 164px !important;
@@ -87,11 +98,11 @@
         }
         #chat-widget .chat-bar:hover .vlico-chat-label {
           visibility: visible;
-          animation: vlico-chat-label-in 160ms ease-out both;
+          animation: vlico-chat-label-in 150ms var(--vlico-chat-ease) both;
         }
       }
       #chat-widget.chat-widget--chat-open .chat-window.popup {
-        animation: vlico-chat-open 220ms ease-out both;
+        animation: vlico-chat-open 160ms var(--vlico-chat-ease);
       }
     }
     @keyframes vlico-chat-label-in {
@@ -99,14 +110,114 @@
       to { opacity: 1; transform: none; }
     }
     @keyframes vlico-chat-open {
-      from { opacity: .65; clip-path: inset(88% 0 0 0 round 14px); }
-      to { opacity: 1; clip-path: inset(0 round 14px); }
+      from { opacity: .7; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
     }
     #chat-widget .chat-bar .badge { position: absolute; top: -3px; right: -3px; border-color: #075f40; }
     #chat-widget.chat-widget--chat-open .chat-bar { visibility: hidden; }
     #chat-widget:not(.chat-widget--chat-open) .chat-window.popup { visibility: hidden; }
-    .chat-title .close-btn { width: 44px; height: 44px; }
-    .chat-window .chat-title { background: #07543b; color: #f2f1e9; }
+    .chat-window.popup {
+      --widget-font: var(--vlico-chat-mono);
+      --widget-font-size-message: 14px;
+      --widget-line-height-message: 1.55;
+      --widget-letter-spacing-message: 0;
+      color: var(--vlico-chat-ink);
+      font-family: var(--vlico-chat-mono);
+      border-radius: 4px;
+      box-shadow: 0 8px 28px #19191a24;
+      transition: none;
+    }
+    .chat-window.popup .chat-card, .chat-window.popup .chat-body,
+    .chat-window.popup .chat-footer, .chat-window.popup .chat-compose {
+      background: var(--vlico-chat-paper);
+    }
+    .chat-window.popup .chat-title {
+      background: var(--vlico-chat-ink);
+      color: var(--vlico-chat-paper);
+      border-radius: 0;
+      padding-block: max(10px, env(safe-area-inset-top, 0px)) 10px;
+    }
+    .chat-window .chat-title h3, .vlico-chat-empty strong {
+      font: 700 19px/1.2 var(--vlico-chat-title);
+      letter-spacing: -.02em;
+    }
+    .chat-window .chat-title .subtitle {
+      font: 400 0/1.4 var(--vlico-chat-mono);
+      color: var(--vlico-chat-paper);
+      opacity: 1;
+    }
+    .chat-window .vlico-consultant { font-size: 11px; }
+    .chat-window .chat-title .status-dot { background: var(--vlico-chat-green); }
+    .chat-window .chat-title .close-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 3px;
+      background: transparent;
+    }
+    .chat-window .chat-title .close-btn:hover { background: #ffffff19; }
+    .chat-window.popup .message-bubble {
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 3px;
+      box-shadow: none;
+      overflow-wrap: anywhere;
+    }
+    .chat-window .message.user .message-bubble {
+      background: var(--vlico-chat-ink);
+      color: var(--vlico-chat-paper);
+    }
+    .chat-window .message.bot .message-bubble {
+      background: var(--vlico-chat-sand);
+      color: var(--vlico-chat-ink);
+    }
+    .chat-window .message-text, .chat-window .message-input {
+      font-family: var(--vlico-chat-mono);
+    }
+    .chat-window .chat-body { scrollbar-color: #a6a498 transparent; }
+    .chat-window.popup .chat-footer { border-top: 1px solid var(--vlico-chat-rule); }
+    .chat-window.popup .chat-footer .message-input {
+      min-height: 44px;
+      padding-inline: 0;
+      border: 0;
+      border-bottom: 1px solid #a6a498;
+      border-radius: 0;
+      background: transparent;
+      color: var(--vlico-chat-ink);
+      caret-color: var(--vlico-chat-focus);
+    }
+    .chat-window .message-input::placeholder { color: #68675f; opacity: 1; }
+    .chat-window.popup .message-input:focus {
+      border-color: var(--vlico-chat-focus);
+      box-shadow: none;
+    }
+    .chat-window.popup .chat-footer :is(.attach-btn, .send-btn) {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 3px;
+      transition: background-color 120ms ease, color 120ms ease;
+    }
+    .chat-window.popup .chat-footer .attach-btn {
+      background: transparent;
+      border: 1px solid var(--vlico-chat-rule);
+      color: var(--vlico-chat-ink);
+    }
+    .chat-window.popup .chat-footer .send-btn {
+      background: var(--vlico-chat-ink);
+      color: var(--vlico-chat-paper);
+    }
+    .chat-window.popup .chat-footer .send-btn:hover:not(:disabled) {
+      background: var(--vlico-chat-focus);
+      transform: none;
+    }
+    .chat-window .chat-footer button:focus-visible {
+      outline: 2px solid var(--vlico-chat-focus);
+      outline-offset: 2px;
+    }
+    .chat-window .messages:has(.vlico-chat-empty) > div { padding-top: 0 !important; min-height: 180px; }
+    .chat-window .messages .icon:has(~ .vlico-chat-empty) { display: none; }
+    .vlico-chat-empty { color: var(--vlico-chat-ink); padding: 0 6px; }
+    .vlico-chat-empty span { display: block; margin-top: 6px; font-size: 13px; color: #4d4c47; }
     .vlico-chat-invitation[hidden] { display: none !important; }
     .vlico-chat-invitation {
       position: fixed;
@@ -118,17 +229,16 @@
       width: min(316px, calc(100vw - 36px));
       padding: 18px 18px 12px;
       border: 1px solid #d5d3c8;
-      border-top: 2px solid #07543b;
-      border-radius: 10px;
-      background: #f2f1e9;
-      color: #19191a;
-      box-shadow: 0 8px 26px #19191a26;
-      font: 500 14px/1.48 Manrope, system-ui, sans-serif;
+      border-top: 2px solid var(--vlico-chat-green);
+      border-radius: 4px;
+      background: var(--vlico-chat-paper);
+      color: var(--vlico-chat-ink);
+      font: 400 13px/1.55 var(--vlico-chat-mono);
       transform-origin: bottom right;
-      animation: vlico-invitation-in 220ms ease-out both;
+      animation: vlico-invitation-in 170ms var(--vlico-chat-ease) both;
     }
     .vlico-chat-invitation p { margin: 0 0 8px; }
-    .vlico-chat-invitation .vlico-chat-heading { padding-right: 40px; font-size: 17px; font-weight: 700; }
+    .vlico-chat-invitation .vlico-chat-heading { padding-right: 40px; font: 700 19px/1.2 var(--vlico-chat-title); }
     .vlico-chat-start, .vlico-chat-dismiss {
       cursor: pointer;
       min-height: 44px;
@@ -143,9 +253,11 @@
       width: 100%;
       padding: 0;
       border-top: 1px solid #d5d3c8;
-      color: #07543b;
+      color: var(--vlico-chat-focus);
       text-align: left;
-      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      font-weight: 500;
     }
     .vlico-chat-dismiss {
       position: absolute;
@@ -169,6 +281,7 @@
       #chat-widget.chat-widget--popup .chat-bar,
       #chat-widget .chat-bar .vlico-chat-label,
       #chat-widget.chat-widget--chat-open .chat-window.popup,
+      .chat-window.popup .chat-footer button,
       .vlico-chat-invitation {
         transition: none !important;
         animation: none !important;
@@ -225,6 +338,30 @@
     return close;
   }
 
+  function prepareChatCopy(root) {
+    const status = root.querySelector('.chat-title .subtitle');
+    if (status && !status.querySelector('.vlico-consultant')) {
+      const label = document.createElement('span');
+      label.className = 'vlico-consultant';
+      label.textContent = 'ИИ-консультант VLICO';
+      status.append(label);
+      for (const child of status.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) child.textContent = '';
+      }
+    }
+    const emptyIcon = root.querySelector('.messages svg.icon[width="64"]');
+    if (emptyIcon && !emptyIcon.parentElement.querySelector('.vlico-chat-empty')) {
+      const hint = document.createElement('div');
+      hint.className = 'vlico-chat-empty';
+      const title = document.createElement('strong');
+      title.textContent = 'Потолки и освещение';
+      const description = document.createElement('span');
+      description.textContent = 'Напишите, что хотите обсудить.';
+      hint.append(title, description);
+      emptyIcon.after(hint);
+    }
+  }
+
   function focusOpenChat(root) {
     const close = labelChat(root);
     if (chatIsOpen() && close?.getClientRects().length && getComputedStyle(close).visibility === 'visible') {
@@ -239,6 +376,8 @@
     const sheet = document.createElement('style');
     sheet.textContent = styles;
     root.append(sheet);
+    new MutationObserver(() => prepareChatCopy(root)).observe(root, {childList: true, subtree: true});
+    prepareChatCopy(root);
 
     if (host.id === mobileHostId) {
       mobileHost = host;
@@ -268,7 +407,7 @@
       window.setTimeout(() => {
         invitationReady = true;
         updateInvitation();
-      }, 6500);
+      }, 6000);
       const observer = new MutationObserver(updateInvitation);
       observer.observe(document.body, {subtree: true, attributes: true, attributeFilter: ['open']});
       for (const element of [privacy, stickyAction]) {
