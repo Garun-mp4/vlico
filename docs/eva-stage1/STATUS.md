@@ -13,6 +13,8 @@
 
 - M7. На SpaceWeb выложен `6b2b7cf` с проверенной статикой M6. Пройдены браузерные проверки на рабочем домене и серверная обработка пяти форм с откатом. Сохранены предыдущий релиз, настройки, реестр и инструкции. Подготовлена памятка Владлену. Приёмка открыта до проверки уведомления и подтверждения замера. Новых генераций Eva в M7 не запускали. [Отчёт M7](WIDGET-M7-2026-11-14.md).
 
+- Передача обычных форм в Eva включена по отдельному поручению после публикации обновлённых документов. Пять синтетических форм прошли реальную сверку в Eva с откатом записей на стороне сайта. Подтверждены одиночные касания на тестовые WhatsApp и Telegram Гаруна. Проверка автоматической цепочки и остановки после ответа остаётся открытой. [Формы](FORM-DELIVERY-2026-11-14.md) · [Касания](TOUCHES-AND-CHANNELS.md) · [Памятка по KPI](VLADLEN-CRM-KPI.md).
+
 ## 2026-11-13
 
 Approved scope: stage 1, M0–M7. Work directly on main under the user's explicit Git policy. Preserve existing untracked docs/implementation. No production deployment, trial changes, payment, external test messages or live channel switch authorized.
