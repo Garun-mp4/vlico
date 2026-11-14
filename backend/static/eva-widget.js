@@ -5,6 +5,7 @@
   const hosts = new WeakSet();
   const privacy = document.querySelector('[data-privacy-panel]');
   const stickyAction = document.querySelector('[data-home-sticky-cta]');
+  const fallback = document.querySelector('[data-vlico-chat-fallback]');
   const invitationTemplate = document.getElementById('vlico-chat-invitation');
   const invitationKey = 'vlico-chat-invitation-seen';
   const narrow = matchMedia('(max-width: 760px)');
@@ -291,12 +292,12 @@
   `;
 
   function positionLauncher() {
-    if (!launcherHost) return;
+    const targets = [launcherHost, fallback];
     if (privacy && !privacy.hidden && narrow.matches) {
       const bottom = window.innerHeight - privacy.getBoundingClientRect().top + 12;
-      launcherHost.style.setProperty('--vlico-chat-bottom', `${bottom}px`);
+      for (const target of targets) target?.style.setProperty('--vlico-chat-bottom', `${bottom}px`);
     } else {
-      launcherHost.style.removeProperty('--vlico-chat-bottom');
+      for (const target of targets) target?.style.removeProperty('--vlico-chat-bottom');
     }
   }
 
@@ -432,6 +433,13 @@
     function updateLauncher() {
       widget = root.querySelector('#chat-widget');
       launcher = widget?.querySelector('.chat-bar');
+      if (fallback) {
+        const nativeReady = launcher && getComputedStyle(launcher).visibility === 'visible'
+          && launcher.getClientRects().length > 0;
+        const transferFocus = nativeReady && document.activeElement === fallback;
+        fallback.hidden = Boolean(nativeReady || chatIsOpen());
+        if (transferFocus) launcher.focus({preventScroll: true});
+      }
       if (!launcher) return;
       if (!launcher.querySelector('.vlico-chat-label')) {
         const label = document.createElement('span');
@@ -459,12 +467,14 @@
   }
 
   function connectHosts() {
+    if (fallback && !document.getElementById(launcherHostId)) fallback.hidden = false;
     prepareHost(document.getElementById(launcherHostId));
     prepareHost(document.getElementById(mobileHostId));
   }
 
   new MutationObserver(connectHosts).observe(document.body, { childList: true });
   connectHosts();
+  positionLauncher();
   if (privacy) new ResizeObserver(positionLauncher).observe(privacy);
   narrow.addEventListener('change', positionLauncher);
   window.addEventListener('resize', positionLauncher);

@@ -1,0 +1,41 @@
+.vlico-chat-fallback {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: var(--vlico-chat-bottom, max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px)));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: 56px;
+  height: 56px;
+  padding: 0 16px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ink, #19191a);
+  color: var(--night-ink, #f2f1e9);
+  font: 500 13px/1 "IBM Plex Mono", monospace;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.vlico-chat-fallback[hidden] { display: none; }
+.vlico-chat-fallback svg { flex: none; }
+.vlico-chat-fallback span { visibility: hidden; }
+.vlico-chat-fallback:focus-visible {
+  max-width: calc(100vw - 32px);
+  outline: 2px solid #075f40;
+  outline-offset: 3px;
+}
+.vlico-chat-fallback:focus-visible span { visibility: visible; }
+
+@media (hover: hover) and (pointer: fine) {
+  .vlico-chat-fallback:hover { max-width: calc(100vw - 32px); }
+  .vlico-chat-fallback:hover span { visibility: visible; }
+}
+
+@media (max-width: 760px) {
+  .vlico-chat-fallback {
+    bottom: var(--vlico-chat-bottom, max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)));
+  }
+}

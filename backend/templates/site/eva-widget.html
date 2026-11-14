@@ -1,5 +1,10 @@
 {% load static %}
 {% if site_config.eva_widget_id %}
+<link rel="stylesheet" href="{% static 'eva-fallback.css' %}">
+<a class="vlico-chat-fallback" data-vlico-chat-fallback href="{% url 'request_form' 'consultation' %}" aria-label="Получить консультацию через форму">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h16v12H9l-5 4z"/></svg>
+  <span>Получить консультацию</span>
+</a>
 <template id="vlico-chat-invitation">
   <aside class="vlico-chat-invitation" aria-label="Консультация VLICO" hidden>
     <button type="button" class="vlico-chat-dismiss" aria-label="Закрыть приглашение">×</button>
