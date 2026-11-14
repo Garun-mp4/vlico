@@ -1,5 +1,9 @@
 # VLICO × Eva — execution journal
 
+## Доработки виджета от 14 ноября 2026 года
+
+- M0 завершён. Два живых контрольных диалога дошли до Eva и создали входящие карточки. Воспроизведено ожидание без видимого статуса при HTTP 502. Зафиксированы замеры, ограничения M2 и диагностический сценарий для M1. [Протокол M0](WIDGET-M0-DIAGNOSIS-2026-11-14.md).
+
 ## 2026-11-13
 
 Approved scope: stage 1, M0–M7. Work directly on main under the user's explicit Git policy. Preserve existing untracked docs/implementation. No production deployment, trial changes, payment, external test messages or live channel switch authorized.
