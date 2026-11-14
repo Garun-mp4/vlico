@@ -13,7 +13,11 @@ from .eva_delivery import NoRedirect
 from .lead_service import SubmissionError, throttle
 
 
-ASSETS = {"widget/chat-widget.js": "application/javascript", "widget/style.css": "text/css"}
+ASSETS = {
+    "widget/chat-widget.js": "application/javascript",
+    "widget/style.css": "text/css",
+    "widget/message.mp3": "audio/mpeg",
+}
 UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 SOCKET_ID = re.compile(r"[A-Za-z0-9_-]{1,96}")
 HEX_ID = re.compile(r"[0-9a-f]{64}")
@@ -61,7 +65,6 @@ def relay(request, path):
         return HttpResponse(status=404)
     query, content_type, methods = route
     if request.method not in methods:
-        # Socket.IO can try a WebSocket upgrade, but can continue over polling.
         return HttpResponse(status=405, headers={"Allow": ", ".join(sorted(methods))})
     origin = request.build_absolute_uri("/").rstrip("/")
     if request.headers.get("Sec-Fetch-Site") == "cross-site" or (
