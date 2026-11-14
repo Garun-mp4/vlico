@@ -7,7 +7,7 @@
   const stickyAction = document.querySelector('[data-home-sticky-cta]');
   const fallback = document.querySelector('[data-vlico-chat-fallback]');
   const invitationTemplate = document.getElementById('vlico-chat-invitation');
-  const invitationKey = 'vlico-chat-invitation-v2-dismissed';
+  const invitationKey = 'vlico-chat-invitation-dismissed';
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let openingBounds;
   let closing = false;
@@ -259,10 +259,10 @@
     catch { /* Storage can be unavailable in private or embedded contexts. */ }
   }
 
-  function finishInvitation() {
+  function finishInvitation(dismissed = false) {
     invitationFinished = true;
     if (invitation) invitation.hidden = true;
-    rememberInvitation();
+    if (dismissed) rememberInvitation();
   }
 
   function updateInvitation() {
@@ -466,7 +466,7 @@
     invitation = invitationTemplate.content.firstElementChild.cloneNode(true);
     document.body.append(invitation);
     invitation.querySelector('.vlico-chat-dismiss').addEventListener('click', () => {
-      finishInvitation();
+      finishInvitation(true);
       (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
     });
     invitation.querySelector('.vlico-chat-start').addEventListener('click', event => {
@@ -502,7 +502,7 @@
     if (event.key !== 'Escape') return;
     if (invitation && !invitation.hidden && invitation.contains(document.activeElement)) {
       event.preventDefault();
-      finishInvitation();
+      finishInvitation(true);
       (fallback?.hidden ? launcher : fallback)?.focus({preventScroll: true});
       return;
     }
