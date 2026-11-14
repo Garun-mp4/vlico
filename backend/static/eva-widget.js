@@ -170,9 +170,10 @@
       background: var(--vlico-chat-ink);
       color: var(--vlico-chat-paper);
     }
-    .chat-window .message.bot .message-bubble {
-      background: var(--vlico-chat-sand);
+    .chat-window .message:not(.user) .message-bubble {
+      background: #e9dfcc;
       color: var(--vlico-chat-ink);
+      border: 1px solid #d7c7ad;
     }
     .chat-window .message-text, .chat-window .message-input {
       font-family: var(--vlico-chat-mono);
