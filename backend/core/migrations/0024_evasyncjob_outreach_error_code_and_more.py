@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='evasyncjob',
             name='outreach_error_code',
-            field=models.CharField(blank=True, default='', max_length=64),
+            field=models.CharField(blank=True, db_default='', default='', max_length=64),
         ),
         migrations.AddField(
             model_name='evasyncjob',
             name='outreach_status',
-            field=models.CharField(blank=True, choices=[('', 'Вручную'), ('pending', 'Ожидает постановки в Eva'), ('sending', 'Постановка в Eva'), ('queued', 'В очереди Eva'), ('review', 'Требуется ручная проверка')], default='', max_length=16),
+            field=models.CharField(blank=True, choices=[('', 'Вручную'), ('pending', 'Ожидает постановки в Eva'), ('sending', 'Постановка в Eva'), ('queued', 'В очереди Eva'), ('review', 'Требуется ручная проверка')], db_default='', default='', max_length=16),
         ),
     ]
