@@ -120,7 +120,7 @@ def calculator(request):
 
 
 def _preserved_quick_lead_form(request):
-    names = ("name", "contact", "consent", "project", "interest", "idempotency_key", "submission_token", "legal_version", "website")
+    names = ("name", "contact", "contact_method", "consent", "project", "interest", "idempotency_key", "submission_token", "legal_version", "website")
     initial = {name: request.POST.get(name, "") for name in names if name in request.POST}
     initial["kind"] = "calculator"
     return LeadForm(initial=initial, auto_id="id_quick_%s")

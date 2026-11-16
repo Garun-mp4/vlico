@@ -56,7 +56,7 @@ def save_submission(request, form):
     context = {"interest": data.get("interest", ""), "project_title": project.title if project else "", "service_title": service.title if service else ""}
     if company:
         context["company"] = company
-    if data["kind"] == "partner":
+    if data.get("contact_method"):
         context["contact_method"] = dict(form.fields["contact_method"].choices).get(data.get("contact_method"), "")
     context["consent"] = consent_record()
     payload = {key: str(data.get(key) or "") for key in ("kind", "name", "contact", "comment", "interest", "pricing_version")}
@@ -95,7 +95,10 @@ def save_submission(request, form):
                 attribution=submission_attribution(request), calculation=quote, pricing_version=version, consent_at=timezone.now())
             Delivery.objects.create(lead=lead)
             if settings.EVA_CAPTURE_ENABLED:
-                EvaSyncJob.objects.create(lead=lead)
+                outreach = (settings.EVA_SITE_OUTREACH_TASK_ID and settings.EVA_SITE_OUTREACH_CHANNEL_ID
+                    and lead.kind != "partner" and lead.contact.startswith("+")
+                    and data.get("contact_method") in ("", "whatsapp"))
+                EvaSyncJob.objects.create(lead=lead, outreach_status="pending" if outreach else "")
             if settings.EMAIL_DELIVERY_ENABLED:
                 Delivery.objects.create(lead=lead, channel="email")
             elif lead.kind == "partner":

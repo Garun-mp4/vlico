@@ -10,6 +10,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
+from .eva_site_outreach import TASK_REPLIES, first_message
 from .models import EvaSyncJob
 
 MAX_ATTEMPTS = 5
@@ -133,6 +134,60 @@ def matches_contact(record, reference, contact):
     return record.get("externalId") == reference
 
 
+def queue_site_outreach(item, contact):
+    lead = item.lead
+    task_id = settings.EVA_SITE_OUTREACH_TASK_ID
+    channel_id = settings.EVA_SITE_OUTREACH_CHANNEL_ID
+    if lead.kind not in TASK_REPLIES or lead.context.get("contact_method", "") not in ("", "WhatsApp") or not lead.consent_at:
+        raise EvaError("outreach_not_eligible")
+    if not contact.get("phone") or (contact.get("props") or {}).get("optout"):
+        raise EvaError("outreach_contact_unavailable")
+    if not task_id or not channel_id or settings.EVA_TEST_RECORD:
+        raise EvaError("outreach_not_configured")
+    try:
+        task_id, channel_id = str(uuid.UUID(task_id)), str(uuid.UUID(channel_id))
+    except ValueError:
+        raise EvaError("outreach_not_configured") from None
+    if lead.created_at < timezone.now() - timedelta(hours=1):
+        raise EvaError("outreach_stale")
+    task = api("GET", f"tasks/{task_id}").get("data") or {}
+    channel = api("GET", f"channels/{channel_id}").get("data") or {}
+    if (task.get("userId") != settings.EVA_EXECUTOR_ID or task.get("enabled") is not True
+            or task.get("autoSyncContacts") is not False or task.get("channels") != [channel_id]
+            or task.get("funnelStatusId")
+            or task.get("followUpIn") != 0 or task.get("repeatDays") != 0
+            or channel.get("userId") != settings.EVA_EXECUTOR_ID or channel.get("type") != "whatsApp"
+            or channel.get("status") != "online" or channel.get("enabledMode") != "enabled"):
+        raise EvaError("outreach_task_or_channel_unavailable")
+    sender_phone = str(channel.get("externalAccountId") or "").split("@", 1)[0].lstrip("+")
+    if sender_phone == lead.contact.lstrip("+"):
+        raise EvaError("outreach_recipient_is_sender")
+    lead.refresh_from_db(fields=["status"])
+    if lead.status != "new":
+        raise EvaError("outreach_already_handled")
+    message = first_message(lead)
+    queue_id = uuid.uuid5(uuid.NAMESPACE_URL, f"vlico:site-outreach:{lead.pk}")
+    fields = {"taskId": task_id, "contactId": str(item.contact_id), "status": "queue",
+        "prompt": f"Отправь это сообщение дословно один раз: «{message}»"}
+    ensure_record("taskcontacts", queue_id, fields, lambda record: (
+        record.get("taskId") == task_id and record.get("contactId") == str(item.contact_id)
+        and record.get("prompt") == fields["prompt"]))
+
+
+def process_site_outreach(item, contact):
+    job = EvaSyncJob.objects.filter(pk=item.pk, status="sending", lease_token=item.lease_token)
+    # An expired worker may already have submitted the message. Never repost it blindly.
+    job.filter(outreach_status="sending").update(outreach_status="review", outreach_error_code="write_uncertain")
+    if not job.filter(outreach_status="pending").update(outreach_status="sending"):
+        return
+    try:
+        queue_site_outreach(item, contact)
+    except EvaError as exc:
+        job.update(outreach_status="review", outreach_error_code=exc.code)
+    else:
+        job.update(outreach_status="queued", outreach_error_code="")
+
+
 def deliver_eva_one():
     if not settings.EVA_SYNC_ENABLED:
         return False
@@ -173,7 +228,7 @@ def deliver_eva_one():
             contact["email"] = lead.contact
         else:
             contact["phone"] = lead.contact
-        ensure_record("contacts", item.contact_id, contact, lambda record: matches_contact(record, reference, contact),
+        remote_contact = ensure_record("contacts", item.contact_id, contact, lambda record: matches_contact(record, reference, contact),
             lambda value: remember("contact_id", value), lambda: remember("error_code", "write_in_progress"))
         # Existing calculator snapshots are preserved; never recalculate historical quotes.
         description = json.dumps({"kind": lead.kind, "contact": lead.contact, "comment": lead.comment,
@@ -193,6 +248,7 @@ def deliver_eva_one():
         changes = {"status": state, "error_code": exc.code,
             "next_attempt_at": timezone.now() + timedelta(seconds=(30, 120, 600, 1800, 3600)[item.attempts - 1])}
     else:
+        process_site_outreach(item, remote_contact)
         changes = {"status": "sent", "error_code": "", "sent_at": timezone.now(), "next_attempt_at": None}
     EvaSyncJob.objects.filter(pk=item.pk, status="sending", lease_token=item.lease_token).update(
         **changes, lease_token=None, locked_until=None, updated_at=timezone.now())

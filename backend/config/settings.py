@@ -102,6 +102,8 @@ EVA_TEST_RECORD = APP_ENV == "local" and os.environ.get("EVA_TEST_RECORD", "fals
 EVA_PARTNER_FUNNEL_ID = os.environ.get("EVA_PARTNER_FUNNEL_ID", "")
 EVA_PARTNER_STATUS_ID = os.environ.get("EVA_PARTNER_STATUS_ID", "")
 EVA_PARTNER_EXECUTOR_ID = os.environ.get("EVA_PARTNER_EXECUTOR_ID", "")
+EVA_SITE_OUTREACH_TASK_ID = os.environ.get("EVA_SITE_OUTREACH_TASK_ID", "").strip()
+EVA_SITE_OUTREACH_CHANNEL_ID = os.environ.get("EVA_SITE_OUTREACH_CHANNEL_ID", "").strip()
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_DELIVERY_ENABLED = os.environ.get("TELEGRAM_DELIVERY_ENABLED", "false").lower() == "true"

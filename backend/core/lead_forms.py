@@ -16,7 +16,7 @@ class LeadForm(forms.Form):
     name = forms.CharField(label="Как к вам обращаться", min_length=2, max_length=100, widget=forms.TextInput(attrs={"autocomplete": "name"}))
     contact = forms.CharField(label="Телефон, email или Telegram", max_length=160, widget=forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "+7, email или @username"}))
     company = forms.CharField(label="Компания", required=False, max_length=160, widget=forms.TextInput(attrs={"autocomplete": "organization"}))
-    contact_method = forms.ChoiceField(label="Удобный способ связи", required=False, choices=[("", "Выберите способ связи"), ("phone", "Звонок"), ("telegram", "Telegram"), ("whatsapp", "WhatsApp")])
+    contact_method = forms.ChoiceField(label="Удобный способ связи", required=False, choices=[("", "Любой доступный"), ("phone", "Звонок"), ("telegram", "Telegram"), ("whatsapp", "WhatsApp")])
     service = forms.ModelChoiceField(label="Решение", queryset=Service.objects.all().order_by("position", "pk"), required=False, empty_label="Нужна помощь с выбором")
     comment = forms.CharField(label="Что нужно учесть", max_length=1200, required=False, widget=forms.Textarea(attrs={"rows": 3}))
     consent = forms.BooleanField(label="Согласен на обработку имени, контакта, параметров для ответа на заявку")
@@ -84,6 +84,8 @@ class LeadForm(forms.Form):
             self.add_error(None, "Компания доступна только для заявки о сотрудничестве.")
         if kind == "partner" and not data.get("contact"):
             self.add_error("contact", "Укажите телефон для связи.")
+        if data.get("contact_method") == "whatsapp" and data.get("contact") and not data["contact"].startswith("+"):
+            self.add_error("contact", "Для WhatsApp укажите номер телефона с кодом страны.")
         try:
             signed_key = signing.loads(data.get("submission_token", ""), salt=TOKEN_SALT, max_age=86400)
             if signed_key != str(data.get("idempotency_key")):

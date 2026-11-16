@@ -187,6 +187,12 @@ class EvaSyncJob(Timestamped):
     error_code = models.CharField(max_length=64, blank=True)
     lease_token = models.UUIDField(null=True, blank=True)
     locked_until = models.DateTimeField(null=True, blank=True)
+    outreach_status = models.CharField(max_length=16, blank=True, default="", choices=[
+        ("", "Вручную"), ("pending", "Ожидает постановки в Eva"),
+        ("sending", "Постановка в Eva"), ("queued", "В очереди Eva"),
+        ("review", "Требуется ручная проверка"),
+    ])
+    outreach_error_code = models.CharField(max_length=64, blank=True, default="")
 
     class Meta:
         indexes = [models.Index(fields=["status", "next_attempt_at"], name="eva_sync_due")]

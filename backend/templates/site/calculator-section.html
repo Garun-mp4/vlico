@@ -58,6 +58,11 @@
             <label for="{{ quick_lead_form.contact.id_for_label }}">{{ quick_lead_form.contact.label }}</label>
             {{ quick_lead_form.contact }}{{ quick_lead_form.contact.errors }}
           </div>
+          <div class="quick-calculator__field lead-field">
+            <label for="{{ quick_lead_form.contact_method.id_for_label }}">{{ quick_lead_form.contact_method.label }}</label>
+            {{ quick_lead_form.contact_method }}{{ quick_lead_form.contact_method.errors }}
+            <p class="lead-help">Если оставите телефон и выберете «Любой доступный», можем ответить в WhatsApp.</p>
+          </div>
         </div>
         <label class="lead-consent">
           {{ quick_lead_form.consent }}

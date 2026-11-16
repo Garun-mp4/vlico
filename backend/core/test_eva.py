@@ -41,6 +41,61 @@ class EvaTests(TestCase):
         self.assertEqual(self.client.post(reverse("lead_submit"), payload()).status_code, 201)
         self.assertFalse(EvaSyncJob.objects.exists())
 
+    @override_settings(EVA_SITE_OUTREACH_TASK_ID=str(uuid.uuid4()), EVA_SITE_OUTREACH_CHANNEL_ID=str(uuid.uuid4()))
+    def test_whatsapp_form_queues_personal_message_once(self):
+        from django.conf import settings
+        data = payload("calculator")
+        data.update(contact="+79990010101", contact_method="whatsapp", calculator_schema="quick-v1",
+                    object_type="apartment", area_m2="25.5", solution="designer_light")
+        response = self.client.post(reverse("lead_submit"), data)
+        self.assertEqual(response.status_code, 201, response.content)
+        job = EvaSyncJob.objects.get(lead_id=response.json()["reference"])
+        self.assertEqual(self.client.post(reverse("lead_submit"), data).status_code, 200)
+        self.assertEqual(job.outreach_status, "pending")
+        task_id, channel_id = settings.EVA_SITE_OUTREACH_TASK_ID, settings.EVA_SITE_OUTREACH_CHANNEL_ID
+        records = {
+            f"tasks/{task_id}": {"userId": settings.EVA_EXECUTOR_ID, "enabled": True, "autoSyncContacts": False,
+                "channels": [channel_id], "followUpIn": 0, "repeatDays": 0},
+            f"channels/{channel_id}": {"userId": settings.EVA_EXECUTOR_ID, "type": "whatsApp", "status": "online", "enabledMode": "enabled"},
+        }
+        writes = []
+
+        def remote(method, path, data=None, **kwargs):
+            if method == "GET":
+                return {"code": 200, "data": records[path]} if path in records else None
+            record_id, fields = next(iter(data["data"].items()))
+            record = records[f"{path}/{record_id}"] = {"id": record_id, **fields}
+            writes.append((path, fields))
+            return {"code": 200, "items": [record]}
+
+        with patch("core.eva_delivery.api", side_effect=remote):
+            self.assertTrue(deliver_eva_one())
+            self.assertFalse(deliver_eva_one())
+        self.assertEqual([path for path, _ in writes], ["contacts", "leads", "taskcontacts"])
+        queued = writes[-1][1]
+        self.assertEqual(queued["contactId"], str(job.contact_id))
+        self.assertIn("25,5 м²", queued["prompt"])
+        self.assertIn("Дизайнерское со светом", queued["prompt"])
+        job.refresh_from_db()
+        self.assertEqual((job.status, job.outreach_status), ("sent", "queued"))
+
+    @override_settings(EVA_SITE_OUTREACH_TASK_ID=str(uuid.uuid4()), EVA_SITE_OUTREACH_CHANNEL_ID=str(uuid.uuid4()))
+    def test_respects_requested_channel_and_keeps_partners_out_of_artem_queue(self):
+        for kind, method, contact, expected in (
+            ("consultation", "telegram", "+79990010010", ""),
+            ("measurement", "phone", "+79990010011", ""),
+            ("consultation", "", "qa@example.com", ""),
+            ("consultation", "", "+79990010012", "pending"),
+            ("partner", "whatsapp", "+79990010013", ""),
+        ):
+            with self.subTest(kind=kind, method=method, contact=contact):
+                data = payload(kind)
+                data.update(contact_method=method, contact=contact)
+                response = self.client.post(reverse("lead_submit"), data)
+                self.assertEqual(response.status_code, 201, response.content)
+                job = EvaSyncJob.objects.get(lead_id=response.json()["reference"])
+                self.assertEqual(job.outreach_status, expected)
+
     @override_settings(EVA_SYNC_ENABLED=False)
     @patch("core.eva_delivery.api")
     def test_send_disabled(self, api):
