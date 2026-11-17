@@ -6,6 +6,8 @@ Configure incoming and partner funnel/status/executor UUIDs separately. Store EV
 
 Docker Compose provides the separate `eva-delivery` worker. `deliver_eva --watch` drains the queue continuously. A plain `deliver_eva` invocation claims at most one job and is suitable for the existing SpaceWeb cron adapter. Configure `EVA_RESPONSIBLE_ID` with the human assignee; the funnel executor stays the AI agent. Set `EVA_TEST_RECORD=true` only for an isolated local test run. Keep live delivery disabled until the form consent and the production release are approved.
 
+Run `sync_eva_partners` from the Eva cron schedule after applying migration 0026. Set `EVA_PARTNER_CAMPAIGN_TASKS` to the ordered UUIDs of the three Victoria campaign tasks. The command checks only contacts selected for that campaign and the handoff stages. It leaves a repeat pending until the previous send is confirmed and the contact has no inbound response or opt-out. Configure `PARTNER_NOTIFICATION_EMAIL` for exceptions. Clear the task setting or switch off all three tasks to pause new automated touches. On SpaceWeb the partner command runs under a separate lock from form delivery.
+
 ### Первое сообщение по заявке сайта
 
 В Eva используется отдельная задача «VLICO | Артём: первое сообщение по заявке с сайта». У задачи один канал WhatsApp Артёма. Автодобавление контактов, привязка к этапу, повторы и напоминания выключены. Сайт передаёт в задачу одного получателя после создания контакта и лида в Eva. На каждый принятый запрос используется отдельный ключ записи очереди.

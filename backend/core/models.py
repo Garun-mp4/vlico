@@ -201,6 +201,15 @@ class EvaSyncJob(Timestamped):
         indexes = [models.Index(fields=["status", "next_attempt_at"], name="eva_sync_due")]
 
 
+class EvaPartnerCampaignRun(models.Model):
+    queue_id = models.UUIDField(primary_key=True)
+    contact_id = models.UUIDField(db_index=True)
+    check_at = models.DateTimeField(null=True, db_index=True)
+    alert_status = models.CharField(max_length=12, blank=True, default="")
+    submitted_step = models.PositiveSmallIntegerField(default=0)
+    submitted_at = models.DateTimeField(null=True)
+
+
 class LeadAttachment(Timestamped):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="attachments")
     file = models.FileField(upload_to=attachment_path, storage=PrivateMediaStorage())
