@@ -3,7 +3,7 @@
 <section class="editor-section">
   <h2>Первое сообщение клиенту</h2>
   <p>{{ eva_sync.get_outreach_status_display }}{% if eva_sync.outreach_error_code %} · {{ eva_sync.outreach_error_code }}{% endif %}</p>
-  {% if eva_sync.outreach_status == 'queued' or eva_sync.outreach_status == 'review' %}<p>Перед ручным ответом проверьте очередь и диалог в Eva.</p>{% endif %}
+  {% if eva_sync.outreach_status == 'queued' or eva_sync.outreach_status == 'review' or eva_sync.outreach_status == 'failed' %}<p>Перед ручным ответом проверьте очередь и диалог в Eva.</p>{% endif %}
 </section>
 {% endif %}
 

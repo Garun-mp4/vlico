@@ -72,10 +72,18 @@ def _mark_failure(item, code, *, retryable=False):
     )
 
 
-def deliver_email_one():
+def outreach_alert_body(item):
+    lines = [item.progress["reason"], f"Оставленный контакт: {item.lead.contact}",
+        "Перед ответом проверьте историю в Eva, чтобы клиент не получил дубль.",
+        "Заявка: " + settings.SITE_URL + reverse("cabinet_lead", kwargs={"pk": item.lead_id}),
+        "Контакт в Eva: https://eva.bz/contacts/" + item.progress["eva_contact"]]
+    return "\n".join(lines)
+
+
+def deliver_email_one(channel="email"):
     if not settings.EMAIL_DELIVERY_ENABLED:
         return False
-    item = claim_delivery("email")
+    item = claim_delivery(channel)
     if not item:
         return False
     recipient = settings.PARTNER_NOTIFICATION_EMAIL if item.lead.kind == "partner" else settings.LEAD_NOTIFICATION_EMAIL
@@ -100,12 +108,13 @@ def deliver_email_one():
         reply_to = [contact]
 
     message_id = make_msgid()
+    outreach_alert = channel == "email_outreach"
     message = EmailMessage(
-        subject=f"VLICO — {dict(KINDS).get(item.lead.kind, item.lead.kind)}",
-        body=email_body(item.lead),
+        subject="VLICO — проверьте отправку в WhatsApp" if outreach_alert else f"VLICO — {dict(KINDS).get(item.lead.kind, item.lead.kind)}",
+        body=outreach_alert_body(item) if outreach_alert else email_body(item.lead),
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[recipient],
-        reply_to=reply_to,
+        reply_to=[] if outreach_alert else reply_to,
         headers={"Message-ID": message_id},
     )
     connection = get_connection(fail_silently=False)

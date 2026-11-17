@@ -140,7 +140,9 @@ def queue_site_outreach(item, contact):
     channel_id = settings.EVA_SITE_OUTREACH_CHANNEL_ID
     if lead.kind not in TASK_REPLIES or lead.context.get("contact_method", "") not in ("", "WhatsApp") or not lead.consent_at:
         raise EvaError("outreach_not_eligible")
-    if not contact.get("phone") or (contact.get("props") or {}).get("optout"):
+    if (contact.get("props") or {}).get("optout"):
+        raise EvaError("outreach_opted_out")
+    if not contact.get("phone"):
         raise EvaError("outreach_contact_unavailable")
     if not task_id or not channel_id or settings.EVA_TEST_RECORD:
         raise EvaError("outreach_not_configured")
@@ -169,7 +171,7 @@ def queue_site_outreach(item, contact):
     queue_id = uuid.uuid5(uuid.NAMESPACE_URL, f"vlico:site-outreach:{lead.pk}")
     fields = {"taskId": task_id, "contactId": str(item.contact_id), "status": "queue",
         "prompt": f"Отправь это сообщение дословно один раз: «{message}»"}
-    ensure_record("taskcontacts", queue_id, fields, lambda record: (
+    return ensure_record("taskcontacts", queue_id, fields, lambda record: (
         record.get("taskId") == task_id and record.get("contactId") == str(item.contact_id)
         and record.get("prompt") == fields["prompt"]))
 
@@ -177,15 +179,18 @@ def queue_site_outreach(item, contact):
 def process_site_outreach(item, contact):
     job = EvaSyncJob.objects.filter(pk=item.pk, status="sending", lease_token=item.lease_token)
     # An expired worker may already have submitted the message. Never repost it blindly.
-    job.filter(outreach_status="sending").update(outreach_status="review", outreach_error_code="write_uncertain")
+    job.filter(outreach_status="sending").update(outreach_status="review", outreach_error_code="write_uncertain",
+        outreach_check_at=timezone.now())
     if not job.filter(outreach_status="pending").update(outreach_status="sending"):
         return
     try:
-        queue_site_outreach(item, contact)
+        record = queue_site_outreach(item, contact)
     except EvaError as exc:
-        job.update(outreach_status="review", outreach_error_code=exc.code)
+        job.update(outreach_status="review", outreach_error_code=exc.code,
+            outreach_check_at=None if exc.code in ("outreach_already_handled", "outreach_opted_out") else timezone.now())
     else:
-        job.update(outreach_status="queued", outreach_error_code="")
+        job.update(outreach_status="queued", outreach_error_code="", outreach_queue_id=record["id"],
+            outreach_check_at=timezone.now() + timedelta(minutes=1))
 
 
 def deliver_eva_one():

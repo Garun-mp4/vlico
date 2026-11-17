@@ -190,9 +190,12 @@ class EvaSyncJob(Timestamped):
     outreach_status = models.CharField(max_length=16, blank=True, default="", db_default="", choices=[
         ("", "Вручную"), ("pending", "Ожидает постановки в Eva"),
         ("sending", "Постановка в Eva"), ("queued", "В очереди Eva"),
+        ("sent", "Сообщение принято WhatsApp"), ("failed", "Ошибка отправки WhatsApp"),
         ("review", "Требуется ручная проверка"),
     ])
     outreach_error_code = models.CharField(max_length=64, blank=True, default="", db_default="")
+    outreach_queue_id = models.UUIDField(null=True, blank=True)
+    outreach_check_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
         indexes = [models.Index(fields=["status", "next_attempt_at"], name="eva_sync_due")]
@@ -208,7 +211,8 @@ class LeadAttachment(Timestamped):
 
 class Delivery(Timestamped):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="deliveries")
-    channel = models.CharField(max_length=20, choices=[("telegram", "Telegram"), ("email", "Электронная почта")], default="telegram")
+    channel = models.CharField(max_length=20, choices=[("telegram", "Telegram"), ("email", "Электронная почта"),
+        ("email_outreach", "Электронная почта: сбой WhatsApp")], default="telegram")
     status = models.CharField(max_length=12, choices=[(x, x) for x in ("pending", "sending", "sent", "failed")], default="pending")
     attempts = models.PositiveIntegerField(default=0)
     next_attempt_at = models.DateTimeField(null=True, blank=True)
