@@ -50,11 +50,11 @@ def uuid_value(value):
         raise EvaError("partner_mapping_invalid") from None
 
 
-def records(resource, **query):
+def records(resource, *, page_size=25, **query):
     offset = 0
     while True:
         result = api("GET", resource + "?" + urlencode({
-            **query, "limit": 5 if resource == "messages" else 25, "offset": offset,
+            **query, "limit": 5 if resource == "messages" else page_size, "offset": offset,
             "sort": "asc", "sortColumn": "createdAt",
         }))
         rows = result.get("items")

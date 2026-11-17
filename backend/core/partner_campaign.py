@@ -213,18 +213,25 @@ def capture_statuses(statuses, now):
         if title == INTEREST and entered and settings.EVA_RESPONSIBLE_ID in assigned:
             event(f"handoff:{lead['id']}:{entered.isoformat()}", "handoff", entered, lead["contactId"])
         props = (lead.get("contact") or {}).get("props") or {}
-        raw_checked = str(props.get("partnercheckedat") or "")
-        checked = timestamp(raw_checked)
-        if len(raw_checked) == 10:
-            try:
-                checked = timezone.make_aware(datetime.fromisoformat(raw_checked), KALININGRAD)
-            except ValueError:
-                checked = None
-        if props.get("partnerchecked") is True and checked:
-            event(f"checked:{lead['contactId']}", "checked", checked, lead["contactId"])
         for key, metric in (("partnerproject", "project_request"), ("partnercomplaint", "complaint")):
             if props.get(key) and entered:
                 event(f"flag:{lead['id']}:{key}", metric, entered, lead["contactId"])
+
+
+def capture_checks():
+    for contact in records("contacts", page_size=50):
+        props = contact.get("props") or {}
+        if props.get("partnerchecked") is not True:
+            continue
+        raw = str(props.get("partnercheckedat") or "")
+        checked = timestamp(raw)
+        if len(raw) == 10:
+            try:
+                checked = timezone.make_aware(datetime.fromisoformat(raw), KALININGRAD)
+            except ValueError:
+                checked = None
+        if checked:
+            event(f"checked:{contact['id']}", "checked", checked, contact["id"])
 
 
 def refresh_reports(now):
@@ -274,6 +281,7 @@ def sync_locked(now):
     policy, _ = EvaPartnerCampaign.objects.get_or_create(pk=1)
     if not policy.next_scan_at or policy.next_scan_at <= now:
         capture_statuses(statuses, now)
+        capture_checks()
         policy.next_scan_at = now + timedelta(minutes=15)
         policy.save(update_fields=["next_scan_at"])
     refresh_reports(now)
@@ -294,6 +302,8 @@ def sync_locked(now):
             continue
         if tasks[0]["channels"] != tasks[1]["channels"]:
             raise EvaError("partner_channel_pair_mismatch")
+        if not tasks[0].get("scheduleId") or tasks[1].get("scheduleId") != tasks[0]["scheduleId"]:
+            raise EvaError("partner_schedule_missing")
         connected = record("channels", tasks[0]["channels"][0])
         expected_type = "whatsApp" if channel == "whatsapp" else "telegram"
         if not connected or connected.get("type") != expected_type or connected.get("userId") != settings.EVA_PARTNER_EXECUTOR_ID:

@@ -14,7 +14,7 @@
 <article>
 <h3>{% if report.period == 'daily' %}День{% else %}Неделя с{% endif %} {{ report.day|date:"d.m.Y" }}</h3>
 <dl>
-<dt>Проверено контактов для отправки</dt><dd>{{ report.metrics.checked }}</dd>
+<dt>Проверено контактов</dt><dd>{{ report.metrics.checked }}</dd>
 <dt>Отправлено WhatsApp / Telegram</dt><dd>{{ report.metrics.sent_whatsapp }} / {{ report.metrics.sent_telegram }}</dd>
 <dt>Доставлено на устройство</dt><dd>{{ report.metrics.delivered|default_if_none:"Нет данных провайдера" }}</dd>
 <dt>Ответили / заинтересовались</dt><dd>{{ report.metrics.reply }} / {{ report.metrics.interest }}</dd>
