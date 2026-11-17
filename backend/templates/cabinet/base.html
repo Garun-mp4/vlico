@@ -20,7 +20,7 @@
 </a>
 <nav aria-label="Кабинет">{% if user.is_authenticated %}<a href="{% url 'cabinet_projects' %}">Проекты</a>{% if perms.core.view_projectcategory %}<a href="{% url 'cabinet_categories' %}">Категории</a>{% endif %}{% endif %}
 {% if perms.core.view_article %}<a href="{% url 'cabinet_articles' %}">Статьи</a>{% endif %}
-{% if perms.core.view_lead %}<a href="{% url 'cabinet_leads' %}">Заявки</a>{% endif %}{% if perms.core.view_pricingversion %}<a href="{% url 'cabinet_rates' %}">Тарифы</a>{% endif %}
+{% if perms.core.view_lead %}<a href="{% url 'cabinet_leads' %}">Заявки</a><a href="{% url 'cabinet_partners' %}">Виктория</a>{% endif %}{% if perms.core.view_pricingversion %}<a href="{% url 'cabinet_rates' %}">Тарифы</a>{% endif %}
 <a href="{% url 'home' %}">Открыть сайт</a>
 {% if perms.core.view_salesoffer %}<a href="{% url 'cabinet_offers' %}">Предложения</a>{% endif %}
 {% if user.is_authenticated %}

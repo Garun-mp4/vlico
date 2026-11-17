@@ -4,7 +4,9 @@ from core import views, cabinet, project_views, category_views
 from core import lead_views, lead_cabinet
 from core import article_cabinet, blog, public_site
 from core import offer_cabinet
+from core import partner_cabinet
 urlpatterns = [
+    path("cabinet/partners/", partner_cabinet.index, name="cabinet_partners"),
     re_path(r"^(?P<path>widget/(?:chat-widget\.js|style\.css|message\.mp3)|socket\.io/|api/dashboard/(?:channels/(?:config|hook)/[0-9a-f-]+|messages|widget-message-actions))$", eva_widget_relay.relay, name="eva_widget_relay"),
     path("cabinet/leads/<uuid:pk>/eva/retry/", lead_cabinet.retry_eva, name="cabinet_eva_retry"),
     path("", views.home, name="home"),

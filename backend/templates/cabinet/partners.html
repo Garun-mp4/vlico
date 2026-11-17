@@ -1,0 +1,31 @@
+{% extends 'cabinet/base.html' %}
+{% block title %}Виктория{% endblock %}
+{% block content %}
+<h1>Партнёрская сеть</h1>
+<p>{% if campaign.enabled %}Кампания включена{% else %}Кампания приостановлена{% endif %}. Отправки по рабочим дням с 10:00 до 18:00 по Калининграду, до 20 сообщений в день на канал. Одно повторное касание через три рабочих дня.</p>
+<p><a href="https://eva.bz/tasks">Открыть задачи в Eva</a> · <a href="https://eva.bz/leads">Открыть контакты и воронки</a></p>
+<p>Добавьте получателей в выключенную задачу «VLICO | Партнёры: получатели». Для каждого контакта заполните проверку, согласие, его основание, дату и разрешённый канал. После подключения аккаунтов включите четыре задачи отправки и запустите кампанию здесь.</p>
+{% if perms.core.change_lead %}
+<form method="post">{% csrf_token %}{% if campaign.enabled %}<button class="button danger" name="action" value="pause">Приостановить кампанию</button>{% else %}<button class="button" name="action" value="start">Запустить кампанию</button>{% endif %}</form>
+{% endif %}
+<h2>Отчёты</h2>
+<p>Дневной отчёт формируется после 18:00 по Калининграду, недельный — по завершённой неделе. Принятие сообщения каналом учтено в отправленных. Доставка на устройство получателя показывается при наличии данных провайдера.</p>
+{% for report in reports %}
+<article>
+<h3>{% if report.period == 'daily' %}День{% else %}Неделя с{% endif %} {{ report.day|date:"d.m.Y" }}</h3>
+<dl>
+<dt>Проверено контактов для отправки</dt><dd>{{ report.metrics.checked }}</dd>
+<dt>Отправлено WhatsApp / Telegram</dt><dd>{{ report.metrics.sent_whatsapp }} / {{ report.metrics.sent_telegram }}</dd>
+<dt>Доставлено на устройство</dt><dd>{{ report.metrics.delivered|default_if_none:"Нет данных провайдера" }}</dd>
+<dt>Ответили / заинтересовались</dt><dd>{{ report.metrics.reply }} / {{ report.metrics.interest }}</dd>
+<dt>Запросили расчёт / переданы руководителю</dt><dd>{{ report.metrics.project_request }} / {{ report.metrics.handoff }}</dd>
+<dt>Отказы / жалобы</dt><dd>{{ report.metrics.refusal }} / {{ report.metrics.complaint }}</dd>
+<dt>Переговоры / проекты</dt><dd>{{ report.metrics.negotiation }} / {{ report.metrics.project }}</dd>
+<dt>Переходы на страницу по меткам кампании</dt><dd>{{ report.metrics.click }}</dd>
+<dt>Ошибки отправки</dt><dd>{{ report.metrics.error }}</dd>
+</dl>
+</article>
+{% empty %}<p>Отчёты появятся после первого запуска обработчика.</p>{% endfor %}
+<h2>Требуют проверки</h2>
+{% for item in exceptions %}<p>{{ item.created_at|date:"d.m.Y H:i" }} · {{ item.channel_type }} · {{ item.error_code }} · <a href="https://eva.bz/contacts/{{ item.contact_id }}">Контакт в Eva</a></p>{% empty %}<p>Ошибок отправки нет.</p>{% endfor %}
+{% endblock %}

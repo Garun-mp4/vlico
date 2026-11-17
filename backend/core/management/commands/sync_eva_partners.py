@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from core.eva_delivery import EvaError
-from core.eva_partner_campaign import sync
+from core.partner_campaign import sync
 
 
 class Command(BaseCommand):

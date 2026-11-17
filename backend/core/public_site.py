@@ -112,7 +112,16 @@ def service(request, slug):
 @require_safe
 def partners(request):
     from .lead_views import initial_lead_form
-    return render(request, "site/partners.html", {"lead_form": initial_lead_form(request, "partner"), "request_kind": "partner"})
+    if request.method == "GET" and request.GET.get("utm_campaign") == "partner_network" and request.GET.get("utm_source") in ("telegram", "whatsapp"):
+        from .models import EvaPartnerEvent
+        from django.utils import timezone
+        import uuid
+        EvaPartnerEvent.objects.create(key="click:" + str(uuid.uuid4()), kind="click",
+                                      channel_type=request.GET["utm_source"], occurred_at=timezone.now())
+    return render(request, "site/partners.html", {
+        "lead_form": initial_lead_form(request, "partner"), "request_kind": "partner",
+        "partner_projects": published_projects()[:3],
+    })
 
 
 @require_safe

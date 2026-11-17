@@ -4,6 +4,7 @@ from django.contrib.staticfiles import finders
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils import timezone
 from .storage import PrivateMediaStorage
 
 
@@ -208,6 +209,53 @@ class EvaPartnerCampaignRun(models.Model):
     alert_status = models.CharField(max_length=12, blank=True, default="")
     submitted_step = models.PositiveSmallIntegerField(default=0)
     submitted_at = models.DateTimeField(null=True)
+
+
+class EvaPartnerCampaign(models.Model):
+    enabled = models.BooleanField(default=False)
+    next_scan_at = models.DateTimeField(null=True)
+
+
+class EvaPartnerSend(models.Model):
+    contact_id = models.UUIDField(db_index=True)
+    identity = models.CharField(max_length=64, db_index=True)
+    step = models.PositiveSmallIntegerField(default=0)
+    channel_type = models.CharField(max_length=16)
+    channel_id = models.UUIDField()
+    task_id = models.UUIDField()
+    request_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    queue_id = models.UUIDField(null=True)
+    reserved_day = models.DateField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    check_at = models.DateTimeField(default=timezone.now, db_index=True)
+    sent_at = models.DateTimeField(null=True)
+    status = models.CharField(max_length=16, default="reserved")
+    error_code = models.CharField(max_length=64, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["contact_id", "step"], name="partner_contact_step"),
+            models.UniqueConstraint(fields=["identity", "step"], name="partner_identity_step"),
+        ]
+
+
+class EvaPartnerEvent(models.Model):
+    key = models.CharField(max_length=160, unique=True)
+    kind = models.CharField(max_length=24, db_index=True)
+    contact_id = models.UUIDField(null=True)
+    occurred_at = models.DateTimeField(db_index=True)
+    channel_type = models.CharField(max_length=16, blank=True)
+    details = models.JSONField(default=dict)
+
+
+class EvaPartnerReport(models.Model):
+    period = models.CharField(max_length=8)
+    day = models.DateField()
+    generated_at = models.DateTimeField(auto_now=True)
+    metrics = models.JSONField(default=dict)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["period", "day"], name="partner_report_period")]
 
 
 class LeadAttachment(Timestamped):

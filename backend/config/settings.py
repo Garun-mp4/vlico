@@ -105,6 +105,8 @@ EVA_PARTNER_EXECUTOR_ID = os.environ.get("EVA_PARTNER_EXECUTOR_ID", "")
 EVA_PARTNER_CAMPAIGN_TASKS = tuple(filter(None, (
     value.strip() for value in os.environ.get("EVA_PARTNER_CAMPAIGN_TASKS", "").split(",")
 )))
+EVA_PARTNER_INTAKE_TASK_ID = os.environ.get("EVA_PARTNER_INTAKE_TASK_ID", "").strip()
+EVA_PARTNER_SEND_TASKS = os.environ.get("EVA_PARTNER_SEND_TASKS", "")
 EVA_SITE_OUTREACH_TASK_ID = os.environ.get("EVA_SITE_OUTREACH_TASK_ID", "").strip()
 EVA_SITE_OUTREACH_CHANNEL_ID = os.environ.get("EVA_SITE_OUTREACH_CHANNEL_ID", "").strip()
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
