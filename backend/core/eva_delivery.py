@@ -28,12 +28,12 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 
-def api(method, resource, data=None, *, missing_ok=False):
+def api(method, resource, data=None, *, missing_ok=False, timeout=15):
     request = Request("https://eva.bz/api/dashboard/" + resource,
         data=json.dumps(data).encode() if data is not None else None,
         headers={"Token": settings.EVA_API_KEY, "Content-Type": "application/json", "Accept": "application/json"}, method=method)
     try:
-        with build_opener(NoRedirect).open(request, timeout=15) as response:
+        with build_opener(NoRedirect).open(request, timeout=timeout) as response:
             raw = response.read(262145)
         if len(raw) > 262144:
             raise EvaError("invalid_response", True)

@@ -1,4 +1,5 @@
 """Reconcile Victoria's explicit campaign recipients with their Eva leads."""
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import logging
 import re
@@ -11,7 +12,7 @@ from django.core.mail import EmailMessage, get_connection
 from django.db import connection
 from django.utils import timezone
 
-from .eva_delivery import EvaError, api
+from .eva_delivery import EvaError, api as dashboard_api
 from .eva_outreach_monitor import timestamp
 from .models import EvaPartnerCampaignRun
 
@@ -36,6 +37,10 @@ OPT_OUT = re.compile(
     r"(?:вашей )?(?:базы|рассылки)|отпишите (?:меня|нас)|стоп)[,!.\s]*$",
     re.IGNORECASE,
 )
+
+
+def api(method, resource, data=None, **kwargs):
+    return dashboard_api(method, resource, data, timeout=30, **kwargs)
 
 
 def uuid_value(value):
@@ -398,9 +403,16 @@ def sync():
 
 
 def sync_locked(ids, executor, funnel, owner, now):
-    queues = [task_rows(task_id) for task_id in ids]
-    statuses = {stage["title"]: stage["id"] for stage in records("funnelstatuses", funnelId=funnel)
-                if stage.get("funnelId") == funnel}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        stages = pool.submit(list, records("funnelstatuses", funnelId=funnel))
+        tasks = {row["id"]: row for row in records("tasks", userId=executor)
+                 if row.get("id") in ids and row.get("userId") == executor}
+        if set(tasks) != set(ids):
+            raise EvaError("partner_task_mapping_invalid")
+        pending_queues = [pool.submit(task_rows, task_id) if tasks[task_id].get("totalContacts") else None
+                          for task_id in ids]
+        queues = [query.result() if query else [] for query in pending_queues]
+        statuses = {stage["title"]: stage["id"] for stage in stages.result() if stage.get("funnelId") == funnel}
     if not {NEW, OFFER, SILENT, ANSWER, INTEREST, NEGOTIATIONS, REFUSED} <= statuses.keys():
         raise EvaError("partner_status_mapping_invalid")
     try:
