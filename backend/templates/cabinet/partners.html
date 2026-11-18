@@ -6,7 +6,8 @@
 <p><a href="https://eva.bz/tasks">Открыть задачи в Eva</a> · <a href="https://eva.bz/leads">Открыть контакты и воронки</a></p>
 <p>Добавьте получателей в выключенную задачу «VLICO | Партнёры: получатели». Для каждого контакта заполните проверку, согласие, его основание, дату и разрешённый канал. После подключения аккаунтов включите четыре задачи отправки и запустите кампанию здесь.</p>
 {% if perms.core.change_lead %}
-<form method="post">{% csrf_token %}{% if campaign.enabled %}<button class="button danger" name="action" value="pause">Приостановить кампанию</button>{% else %}<button class="button" name="action" value="start">Запустить кампанию</button>{% endif %}</form>
+{% if not photo_preview_verified %}<p>Кампания на паузе: фотография пока приходит как файл. Запуск станет доступен после проверки фотографии с предпросмотром у получателя.</p>{% endif %}
+<form method="post">{% csrf_token %}{% if campaign.enabled %}<button class="button danger" name="action" value="pause">Приостановить кампанию</button>{% else %}<button class="button" name="action" value="start" {% if not photo_preview_verified %}disabled{% endif %}>Запустить кампанию</button>{% endif %}</form>
 {% endif %}
 <h2>Отчёты</h2>
 <p>Дневной отчёт формируется после 18:00 по Калининграду, недельный — по завершённой неделе. Принятие сообщения каналом учтено в отправленных. Доставка на устройство получателя показывается при наличии данных провайдера.</p>

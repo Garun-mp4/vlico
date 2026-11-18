@@ -1,5 +1,17 @@
 # Eva outbox operation
 
+## 18 November: segmented photo campaign — launch blocked
+
+The two partner imports now have 799 unique CRM contacts classified into 432 designers/architects, 318 builders/crews and 49 profiles requiring clarification. Of the existing 500-recipient audience, 46 require segmentation review. The four sender tasks are bound to the connected channel pairs; all remain disabled. The audience task remains disabled and has no channel bindings.
+
+Runtime `c7f361c` added the two approved caption variants, image-document configuration, immutable send text/media snapshots and migration 0028. Quote requests use the new writable contact attribute `partnerquoterequest`; `partnerproject` now means project availability only. No fixed commission or PDF is added to first contact.
+
+The original image was uploaded as document `385ef9db-085e-4454-b300-19de6d2da0e8` with accessMode `sendToChat`, type `image`, status `complete`. A controlled WhatsApp task sent the agreed caption and image attachment to the user's existing test number. Eva stored text and image/png together with a provider external ID, but the recipient screenshot showed a PNG document followed by separate text. A second test through Eva's native UI reproduced the document presentation. The current WhatsApp conversation advertises `sendFile` and no `sendImage`. Correct rendering is therefore not established by attachment MIME type or the Eva chat thumbnail. API-only checks must not be reported as recipient-side photo acceptance.
+
+The bounded 500-audience pilot was halted: the WhatsApp row was removed while queued; the Telegram row ended in a provider error without a confirmed outgoing message. The corresponding ledger entries remain cancelled/error for review, and must not be blindly replayed. One earlier native audience message was backfilled as sent to prevent duplicate outreach and preserve daily counts. All senders and the controller are paused. The UI upload permission was enabled by the user; it only permits file selection through the browser extension and did not fix provider media presentation.
+
+`EVA_PARTNER_PHOTO_PREVIEW_VERIFIED` defaults to false. This blocks both cabinet launch and new dispatch until the recipient confirms an inline photograph with its caption. Do not enable it merely because a document is an image or a message has an external ID. The photo delivery requirement and the two-segment real-channel acceptance remain blocked on an Eva transport fix or a supported media path. No support message was sent automatically.
+
 The existing submission transaction saves Lead and existing notification deliveries. With EVA_CAPTURE_ENABLED=true, it also saves one EvaSyncJob. EVA_SYNC_ENABLED is independent and false by default. Disabling Eva does not disable local forms or email. No old leads are automatically exported.
 
 Configure incoming and partner funnel/status/executor UUIDs separately. Store EVA_API_KEY only in private server environment. The adapter uses a fixed HTTPS host and rejects redirects to prevent key leakage. Raw remote errors are not logged.

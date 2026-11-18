@@ -139,7 +139,8 @@ class PartnerDispatchTests(TestCase):
             send.save()
         self.assertEqual(campaign.remaining_capacity("whatsapp", self.now), 0)
 
-    @override_settings(EVA_PARTNER_IMAGE_DOCUMENT_ID="00000000-0000-0000-0000-000000000001",
+    @override_settings(EVA_PARTNER_PHOTO_PREVIEW_VERIFIED=True,
+                       EVA_PARTNER_IMAGE_DOCUMENT_ID="00000000-0000-0000-0000-000000000001",
                        EVA_PARTNER_EXECUTOR_ID="victoria")
     def test_first_send_stores_exact_caption_and_image_instruction(self):
         contact = self.contact(11)
@@ -160,7 +161,7 @@ class PartnerDispatchTests(TestCase):
         self.assertIn(saved.message_text, api.call_args.args[2]["data"][str(send.request_id)]["prompt"])
         self.assertEqual(saved.status, "queued")
 
-    @override_settings(EVA_PARTNER_IMAGE_DOCUMENT_ID="image")
+    @override_settings(EVA_PARTNER_PHOTO_PREVIEW_VERIFIED=True, EVA_PARTNER_IMAGE_DOCUMENT_ID="image")
     def test_incomplete_image_blocks_submission(self):
         contact = self.contact(12)
         contact["props"] = {
@@ -174,12 +175,53 @@ class PartnerDispatchTests(TestCase):
         api.assert_not_called()
         self.assertEqual(EvaPartnerSend.objects.get(pk=send.pk).error_code, "partner_photo_not_ready")
 
+    @override_settings(EVA_PARTNER_PHOTO_PREVIEW_VERIFIED=False)
+    def test_unverified_provider_preview_blocks_an_otherwise_eligible_contact(self):
+        contact = self.contact(13)
+        contact["props"] = {
+            "partnerchecked": True, "partnerconsent": True, "partnerconsentchannels": "whatsapp",
+            "partnerchannel": "whatsapp", "partnerconsentat": "2026-11-18", "partnersegment": DESIGNERS,
+            "contactpermissionbasis": "Подтверждение владельца",
+        }
+        send = campaign.reserve(contact, "whatsapp", self.task, 0, self.now)
+        with patch.object(campaign, "record", return_value=contact), patch.object(campaign, "api") as api:
+            campaign.submit(send, contact, self.now)
+        api.assert_not_called()
+        self.assertEqual(EvaPartnerSend.objects.get(pk=send.pk).error_code, "partner_photo_preview_unverified")
+
 
 @override_settings(STORAGES={
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 })
 class PartnerCabinetTests(TestCase):
+    @override_settings(EVA_PARTNER_PHOTO_PREVIEW_VERIFIED=False)
+    def test_launch_cannot_bypass_unverified_photo_preview(self):
+        from django.contrib.auth import get_user_model
+        from .models import EvaPartnerCampaign
+        user = get_user_model().objects.create_superuser("media-owner", "test@example.invalid", "qa-password")
+        self.client.force_login(user)
+        with patch.object(campaign, "record") as read:
+            response = self.client.post("/cabinet/partners/", {"action": "start"})
+        read.assert_not_called()
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(EvaPartnerCampaign.objects.get(pk=1).enabled)
+    @override_settings(EVA_PARTNER_FUNNEL_ID="funnel", EVA_RESPONSIBLE_ID="owner")
+    def test_project_and_quote_request_are_independent_metrics(self):
+        from .models import EvaPartnerEvent
+        lead = {"id": "lead", "contactId": str(uuid.uuid4()), "funnelId": "funnel", "statusId": "new",
+                "enteredAt": "2026-11-18T10:00:00Z", "contact": {"props": {"partnerproject": True}}}
+        now = datetime(2026, 11, 18, 11, tzinfo=timezone.utc)
+        with patch.object(campaign, "records", return_value=[lead]):
+            campaign.capture_statuses({"Новый контакт": "new"}, now)
+        self.assertEqual(EvaPartnerEvent.objects.filter(kind="project_available").count(), 1)
+        self.assertFalse(EvaPartnerEvent.objects.filter(kind="project_request").exists())
+        lead["contact"]["props"]["partnerquoterequest"] = True
+        with patch.object(campaign, "records", return_value=[lead]):
+            campaign.capture_statuses({"Новый контакт": "new"}, now)
+            campaign.capture_statuses({"Новый контакт": "new"}, now)
+        self.assertEqual(EvaPartnerEvent.objects.filter(kind="project_request").count(), 1)
+
     def test_reports_generated_and_visible_to_staff(self):
         from django.contrib.auth import get_user_model
         from .models import EvaPartnerReport

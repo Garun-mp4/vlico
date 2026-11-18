@@ -112,6 +112,10 @@ def submit(send, contact, now):
             send.save(update_fields=["status"])
             return
     content = FOLLOWUP if send.step else first_message(fresh.get("props") or {}, send.channel_type)
+    if not send.step and not settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED:
+        send.status, send.error_code = "error", "partner_photo_preview_unverified"
+        send.save(update_fields=["status", "error_code"])
+        return
     if not send.step and not settings.EVA_PARTNER_IMAGE_DOCUMENT_ID:
         send.status, send.error_code = "error", "partner_photo_not_configured"
         send.save(update_fields=["status", "error_code"])
@@ -158,7 +162,11 @@ def submit_if_running(send, contact, now):
 
 
 def confirmed_photo(history, row, content):
-    """Acceptance requires the caption and one image on the same outgoing message."""
+    """Check Eva's stored attachment; recipient-side preview needs separate verification.
+
+    Eva may store image/png and text together while the provider sends a document
+    followed by text. This API shape alone is not proof of an inline photograph.
+    """
     started = timestamp(row.get("createdAt"))
     return any(
         message.get("senderType") == "assistant" and message.get("externalId")
@@ -339,7 +347,7 @@ def sync_locked(now):
         policy.next_scan_at = now + timedelta(minutes=15)
         policy.save(update_fields=["next_scan_at"])
     refresh_reports(now)
-    if not policy.enabled or not working(now):
+    if not policy.enabled or not working(now) or not settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED:
         return 0
     intake = record("tasks", settings.EVA_PARTNER_INTAKE_TASK_ID)
     if not intake or intake.get("enabled") or intake.get("channels"):
