@@ -76,14 +76,46 @@ def remaining_capacity(channel, now):
     today = now.astimezone(KALININGRAD).date()
     start = timezone.make_aware(datetime.combine(today, time()), KALININGRAD)
     # Pending or ambiguous submissions from earlier days consume a place until reconciled.
-    used = EvaPartnerSend.objects.filter(channel_type=channel).filter(
+    ledger = EvaPartnerSend.objects.filter(channel_type=channel)
+    if settings.EVA_PARTNER_BATCH_CONTACT_IDS:
+        # The separately authorised pilot has its own 20-contact budget. It
+        # cannot expand to other recipients or replenish failures with new people.
+        ledger = ledger.filter(contact_id__in=settings.EVA_PARTNER_BATCH_CONTACT_IDS)
+    used = ledger.filter(
         Q(reserved_day=today) | Q(sent_at__gte=start, sent_at__lt=start + timedelta(days=1))
         | Q(status__in=("reserved", "submitting", "queued", "review")),
     ).exclude(status="cancelled", sent_at__isnull=True).count()
     return max(0, 20 - used)
 
 
+def media_ready():
+    return settings.EVA_PARTNER_MESSAGE_MODE == "text" or (
+        settings.EVA_PARTNER_MESSAGE_MODE == "photo" and settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED)
+
+
+def finish_batch(policy, mapping):
+    ids = set(settings.EVA_PARTNER_BATCH_CONTACT_IDS)
+    if not ids:
+        return False
+    sends = EvaPartnerSend.objects.filter(contact_id__in=ids, step=0)
+    if set(str(v) for v in sends.values_list("contact_id", flat=True)) != ids:
+        return False
+    if sends.exclude(status__in=("sent", "answered", "closed", "error", "cancelled")).exists():
+        return False
+    # Only stop tasks after their final queued rows have been processed.
+    for pair in mapping.values():
+        for task_id in pair:
+            update("tasks", task_id, enabled=False)
+    policy.enabled = False
+    policy.save(update_fields=["enabled"])
+    return True
+
+
 def reserve(contact, channel, task, step, now):
+    if settings.EVA_PARTNER_BATCH_CONTACT_IDS and (
+        str(contact["id"]) not in settings.EVA_PARTNER_BATCH_CONTACT_IDS or step != 0
+    ):
+        return None
     if step not in (0, 1) or not working(now) or not remaining_capacity(channel, now):
         return None
     try:
@@ -112,15 +144,16 @@ def submit(send, contact, now):
             send.save(update_fields=["status"])
             return
     content = FOLLOWUP if send.step else first_message(fresh.get("props") or {}, send.channel_type)
-    if not send.step and not settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED:
+    photo = not send.step and settings.EVA_PARTNER_MESSAGE_MODE == "photo"
+    if not media_ready():
         send.status, send.error_code = "error", "partner_photo_preview_unverified"
         send.save(update_fields=["status", "error_code"])
         return
-    if not send.step and not settings.EVA_PARTNER_IMAGE_DOCUMENT_ID:
+    if photo and not settings.EVA_PARTNER_IMAGE_DOCUMENT_ID:
         send.status, send.error_code = "error", "partner_photo_not_configured"
         send.save(update_fields=["status", "error_code"])
         return
-    if not send.step:
+    if photo:
         document = record("documents", settings.EVA_PARTNER_IMAGE_DOCUMENT_ID)
         if (not document or document.get("type") != "image" or document.get("status") != "complete"
                 or document.get("accessMode") != "sendToChat"
@@ -132,7 +165,9 @@ def submit(send, contact, now):
     send.message_text = content
     send.save(update_fields=["message_text", "media_document_id"])
     prompt = (f"Отправь дословно одно сообщение. Не добавляй приветствий или вопросов. Текст сообщения:\n{content}"
-              if send.step else photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID))
+              if not photo else photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID))
+    if not photo:
+        prompt = "Только текст. Не прикрепляй изображения, документы или другие файлы. " + prompt
     send.status = "submitting"
     send.save(update_fields=["status"])
     try:
@@ -341,18 +376,22 @@ def sync_locked(now):
             next_check = max(now + timedelta(minutes=15), due)
         EvaPartnerSend.objects.filter(pk=send.pk).update(check_at=next_check)
     policy, _ = EvaPartnerCampaign.objects.get_or_create(pk=1)
+    if policy.enabled and finish_batch(policy, mapping):
+        return 0
     if not policy.next_scan_at or policy.next_scan_at <= now:
         capture_statuses(statuses, now)
         capture_checks()
         policy.next_scan_at = now + timedelta(minutes=15)
         policy.save(update_fields=["next_scan_at"])
     refresh_reports(now)
-    if not policy.enabled or not working(now) or not settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED:
+    if not policy.enabled or not working(now) or not media_ready():
         return 0
     intake = record("tasks", settings.EVA_PARTNER_INTAKE_TASK_ID)
     if not intake or intake.get("enabled") or intake.get("channels"):
         raise EvaError("partner_intake_must_stay_disabled")
     candidates = task_rows(settings.EVA_PARTNER_INTAKE_TASK_ID)
+    if settings.EVA_PARTNER_BATCH_CONTACT_IDS:
+        candidates = [row for row in candidates if row["contactId"] in settings.EVA_PARTNER_BATCH_CONTACT_IDS]
     count = 0
     for channel, ids in mapping.items():
         if not remaining_capacity(channel, now):
@@ -376,7 +415,7 @@ def sync_locked(now):
             continue
         source_ids = {row["contactId"] for row in candidates if row.get("status") == "queue"}
         originals = EvaPartnerSend.objects.filter(channel_type=channel, step=0, status="sent", contact_id__in=source_ids)
-        due = next((s for s in originals if s.sent_at and now >= business_day_after(s.sent_at, 3)
+        due = None if settings.EVA_PARTNER_BATCH_CONTACT_IDS else next((s for s in originals if s.sent_at and now >= business_day_after(s.sent_at, 3)
                     and not EvaPartnerSend.objects.filter(contact_id=s.contact_id, step=1).exists()), None)
         if due:
             contact = record("contacts", str(due.contact_id))

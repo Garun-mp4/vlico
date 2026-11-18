@@ -80,6 +80,38 @@ class PartnerRulesTests(SimpleTestCase):
 
 
 class PartnerDispatchTests(TestCase):
+    @override_settings(EVA_PARTNER_MESSAGE_MODE="text", EVA_PARTNER_PHOTO_PREVIEW_VERIFIED=False)
+    def test_text_mode_never_reads_or_attaches_an_image(self):
+        contact = self.contact(25)
+        contact["props"] = {"partnerchecked": True, "partnerconsent": True,
+            "partnerconsentchannels": "whatsapp", "partnerchannel": "whatsapp",
+            "partnerconsentat": "2026-11-18", "partnersegment": DESIGNERS,
+            "contactpermissionbasis": "Подтверждение владельца"}
+        send = campaign.reserve(contact, "whatsapp", self.task, 0, self.now)
+        with patch.object(campaign, "record", return_value=contact) as read, patch.object(campaign, "api") as api:
+            api.return_value = {"items": [{"id": str(uuid.uuid4()), "contactId": contact["id"]}]}
+            campaign.submit(send, contact, self.now)
+        read.assert_called_once_with("contacts", contact["id"])
+        send.refresh_from_db()
+        self.assertIsNone(send.media_document_id)
+        self.assertEqual(send.status, "queued")
+        self.assertIn("Только текст", api.call_args.args[2]["data"][str(send.request_id)]["prompt"])
+
+    def test_fixed_batch_excludes_other_contacts_followups_and_stops(self):
+        from .models import EvaPartnerCampaign
+        contact = self.contact(26)
+        with override_settings(EVA_PARTNER_BATCH_CONTACT_IDS=(contact["id"],)):
+            self.assertIsNone(campaign.reserve(self.contact(27), "whatsapp", self.task, 0, self.now))
+            self.assertIsNone(campaign.reserve(contact, "whatsapp", self.task, 1, self.now))
+            send = campaign.reserve(contact, "whatsapp", self.task, 0, self.now)
+            policy = EvaPartnerCampaign.objects.create(pk=1, enabled=True)
+            with patch.object(campaign, "update") as update:
+                self.assertFalse(campaign.finish_batch(policy, {"whatsapp": ["first", "repeat"]}))
+                update.assert_not_called()
+                send.status = "sent";send.save()
+                self.assertTrue(campaign.finish_batch(policy, {"whatsapp": ["first", "repeat"]}))
+            policy.refresh_from_db();self.assertFalse(policy.enabled)
+
     now = datetime(2026, 11, 18, 10, tzinfo=timezone.utc)
 
     def setUp(self):

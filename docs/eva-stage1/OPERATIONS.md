@@ -1,5 +1,9 @@
 # Eva outbox operation
 
+## Authorised text-only pilot, 18 November 2026
+
+The user subsequently authorised 20 new Telegram recipients and 20 new WhatsApp recipients without images. `EVA_PARTNER_MESSAGE_MODE=text` permits text dispatch while photo preview verification stays false. `EVA_PARTNER_BATCH_CONTACT_IDS` fixes the exact 40 recipients in the private server environment; contacts outside this list and follow-ups are excluded even on later days. The separately authorised pilot has its own maximum 20 first-contact reservations per channel, with no replacement of failed recipients. Native repeats and auto-add remain off. The controller disables all sender tasks and pauses when all selected attempts reach a terminal result. Provider errors are reported separately and do not count as successful delivery. Removing the fixed audience or enabling photos requires a later operator decision.
+
 ## 18 November: segmented photo campaign — launch blocked
 
 The two partner imports now have 799 unique CRM contacts classified into 432 designers/architects, 318 builders/crews and 49 profiles requiring clarification. Of the existing 500-recipient audience, 46 require segmentation review. The four sender tasks are bound to the connected channel pairs; all remain disabled. The audience task remains disabled and has no channel bindings.

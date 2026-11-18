@@ -33,7 +33,8 @@ def index(request):
             except EvaError:
                 messages.error(request, "Кампания приостановлена. Отключите задачи в Eva и сверьте оставшуюся очередь.")
         elif request.POST.get("action") == "start":
-            if not settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED:
+            from .partner_campaign import media_ready
+            if not media_ready():
                 EvaPartnerCampaign.objects.filter(pk=1).update(enabled=False)
                 messages.error(request, "Кампания остаётся на паузе: фотография пока приходит файлом. Нужна проверка отображения у получателя.")
                 return redirect("cabinet_partners")
@@ -55,6 +56,7 @@ def index(request):
         return redirect("cabinet_partners")
     return render(request, "cabinet/partners.html", {
         "campaign": campaign, "reports": EvaPartnerReport.objects.order_by("-day", "period")[:32],
-        "photo_preview_verified": settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED,
+        "photo_preview_verified": settings.EVA_PARTNER_MESSAGE_MODE == "text" or settings.EVA_PARTNER_PHOTO_PREVIEW_VERIFIED,
+        "text_only": settings.EVA_PARTNER_MESSAGE_MODE == "text",
         "exceptions": EvaPartnerSend.objects.filter(status__in=("review", "error")).order_by("-created_at")[:30],
     })
