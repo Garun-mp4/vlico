@@ -20,7 +20,8 @@
 <dt>Ответили / заинтересовались</dt><dd>{{ report.metrics.reply }} / {{ report.metrics.interest }}</dd>
 <dt>Запросили расчёт / переданы руководителю</dt><dd>{{ report.metrics.project_request }} / {{ report.metrics.handoff }}</dd>
 <dt>Отказы / жалобы</dt><dd>{{ report.metrics.refusal }} / {{ report.metrics.complaint }}</dd>
-<dt>Переговоры / проекты</dt><dd>{{ report.metrics.negotiation }} / {{ report.metrics.project }}</dd>
+<dt>Партнёры с текущим проектом</dt><dd>{{ report.metrics.project_available|default:0 }}</dd>
+<dt>Переговоры / первый объект</dt><dd>{{ report.metrics.negotiation }} / {{ report.metrics.project }}</dd>
 <dt>Переходы на страницу по меткам кампании</dt><dd>{{ report.metrics.click }}</dd>
 <dt>Ошибки отправки</dt><dd>{{ report.metrics.error }}</dd>
 </dl>

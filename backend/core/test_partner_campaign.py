@@ -7,7 +7,8 @@ from django.utils import timezone as django_time
 
 from . import partner_campaign as campaign
 from .models import EvaPartnerSend
-from .partner_content import first_message
+from .partner_content import first_message, photo_prompt
+from .partner_segments import classify, DESIGNERS, BUILDERS, REVIEW
 
 
 class PartnerRulesTests(SimpleTestCase):
@@ -38,7 +39,44 @@ class PartnerRulesTests(SimpleTestCase):
                 message = first_message({"partnersegment": segment}, channel)
                 self.assertIn("utm_source=" + channel, message)
                 self.assertNotIn("%", message.replace("%D", ""))
-                self.assertIn("виртуальный менеджер", message)
+                self.assertIn("менеджер по партнёрствам", message)
+                self.assertLessEqual(len(message.encode("utf-16-le")) // 2, 1024)
+
+    def test_source_categories_do_not_guess_ambiguous_profiles(self):
+        self.assertEqual(classify("Архитектурное бюро"), DESIGNERS)
+        self.assertEqual(classify("Частная строительная бригада"), BUILDERS)
+        self.assertEqual(classify("Ремонт и отделка"), BUILDERS)
+        for value in ("Проектная организация", "Дизайн / строительство", "Дизайн / интерьер (уточнить профиль)", ""):
+            self.assertEqual(classify(value), REVIEW)
+        self.assertEqual(classify("", designer_directory=True), DESIGNERS)
+
+    def test_personalization_changes_the_offer_and_question(self):
+        designer = first_message({"partnersegment": DESIGNERS}, "whatsapp")
+        builder = first_message({"partnersegment": BUILDERS}, "telegram")
+        self.assertIn("эстетику проекта", designer)
+        self.assertIn("согласование узлов", builder)
+        self.assertNotIn("эстетику проекта", builder)
+        with self.assertRaises(ValueError):
+            first_message({"partnersegment": REVIEW}, "whatsapp")
+
+    def test_photo_prompt_requires_caption_and_no_pdf(self):
+        prompt = photo_prompt("Утверждённый текст", "document-id")
+        self.assertIn("sendToChat", prompt)
+        self.assertIn("одним сообщением", prompt)
+        self.assertIn("Не отправляй PDF", prompt)
+        self.assertTrue(prompt.endswith("Утверждённый текст"))
+
+    def test_plain_text_and_split_attachment_are_not_accepted_as_photo_caption(self):
+        now = datetime(2026, 11, 18, 10, tzinfo=timezone.utc)
+        row = {"taskId": "task", "createdAt": now.isoformat()}
+        text = {"senderType": "assistant", "externalId": "provider-1", "text": "Подпись", "attachments": []}
+        history = [({"taskId": "task"}, [(now, text)])]
+        self.assertFalse(campaign.confirmed_photo(history, row, "Подпись"))
+        text["attachments"] = [{"mimeType": "application/pdf"}]
+        self.assertFalse(campaign.confirmed_photo(history, row, "Подпись"))
+        text["attachments"] = [{"mimeType": "image/png"}]
+        self.assertTrue(campaign.confirmed_photo(history, row, "Подпись"))
+        self.assertFalse(campaign.confirmed_photo(history, row, "Другой текст"))
 
 
 class PartnerDispatchTests(TestCase):
@@ -100,6 +138,41 @@ class PartnerDispatchTests(TestCase):
             send.status, send.sent_at = "cancelled", self.now
             send.save()
         self.assertEqual(campaign.remaining_capacity("whatsapp", self.now), 0)
+
+    @override_settings(EVA_PARTNER_IMAGE_DOCUMENT_ID="00000000-0000-0000-0000-000000000001",
+                       EVA_PARTNER_EXECUTOR_ID="victoria")
+    def test_first_send_stores_exact_caption_and_image_instruction(self):
+        contact = self.contact(11)
+        contact["props"] = {
+            "partnerchecked": True, "partnerconsent": True, "partnerconsentchannels": "whatsapp",
+            "partnerchannel": "whatsapp", "partnerconsentat": "2026-11-18", "partnersegment": DESIGNERS,
+            "contactpermissionbasis": "Подтверждение владельца",
+        }
+        send = campaign.reserve(contact, "whatsapp", self.task, 0, self.now)
+        image = {"id": "00000000-0000-0000-0000-000000000001", "userId": "victoria",
+                 "type": "image", "status": "complete", "accessMode": "sendToChat"}
+        with patch.object(campaign, "record", side_effect=[contact, image]), patch.object(campaign, "api") as api:
+            api.return_value = {"items": [{"id": str(uuid.uuid4()), "contactId": contact["id"]}]}
+            campaign.submit(send, contact, self.now)
+        saved = EvaPartnerSend.objects.get(pk=send.pk)
+        self.assertEqual(saved.message_text, first_message(contact["props"], "whatsapp"))
+        self.assertEqual(str(saved.media_document_id), image["id"])
+        self.assertIn(saved.message_text, api.call_args.args[2]["data"][str(send.request_id)]["prompt"])
+        self.assertEqual(saved.status, "queued")
+
+    @override_settings(EVA_PARTNER_IMAGE_DOCUMENT_ID="image")
+    def test_incomplete_image_blocks_submission(self):
+        contact = self.contact(12)
+        contact["props"] = {
+            "partnerchecked": True, "partnerconsent": True, "partnerconsentchannels": "whatsapp",
+            "partnerchannel": "whatsapp", "partnerconsentat": "2026-11-18", "partnersegment": BUILDERS,
+            "contactpermissionbasis": "Подтверждение владельца",
+        }
+        send = campaign.reserve(contact, "whatsapp", self.task, 0, self.now)
+        with patch.object(campaign, "record", side_effect=[contact, {"type": "image", "status": "queue"}]), patch.object(campaign, "api") as api:
+            campaign.submit(send, contact, self.now)
+        api.assert_not_called()
+        self.assertEqual(EvaPartnerSend.objects.get(pk=send.pk).error_code, "partner_photo_not_ready")
 
 
 @override_settings(STORAGES={

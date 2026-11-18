@@ -229,6 +229,8 @@ class EvaPartnerSend(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     check_at = models.DateTimeField(default=timezone.now, db_index=True)
     sent_at = models.DateTimeField(null=True)
+    message_text = models.TextField(blank=True)
+    media_document_id = models.UUIDField(null=True)
     status = models.CharField(max_length=16, default="reserved")
     error_code = models.CharField(max_length=64, blank=True)
 

@@ -15,7 +15,8 @@ from .eva_partner_campaign import (
     ensure_lead, active_lead, move, KALININGRAD, OPT_OUT, NEW, OFFER, SILENT, INTEREST, REFUSED,
 )
 from .models import EvaPartnerCampaign, EvaPartnerSend, EvaPartnerEvent, EvaPartnerReport
-from .partner_content import first_message, FOLLOWUP
+from .partner_content import first_message, photo_prompt, FOLLOWUP
+from .partner_segments import segment_group
 
 
 def business_day_after(sent, days):
@@ -51,7 +52,7 @@ def eligible(contact, channel):
         props.get("partnerchecked") is True and props.get("partnerconsent") is True
         and bool(props.get("contactpermissionbasis")) and bool(props.get("partnerconsentat"))
         and channel in permitted and not props.get("optout") and not props.get("testrecord")
-        and bool(props.get("partnersegment")) and props.get("partnerchannel") == channel
+        and segment_group(props.get("partnersegment")) is not None and props.get("partnerchannel") == channel
     )
 
 
@@ -111,12 +112,29 @@ def submit(send, contact, now):
             send.save(update_fields=["status"])
             return
     content = FOLLOWUP if send.step else first_message(fresh.get("props") or {}, send.channel_type)
+    if not send.step and not settings.EVA_PARTNER_IMAGE_DOCUMENT_ID:
+        send.status, send.error_code = "error", "partner_photo_not_configured"
+        send.save(update_fields=["status", "error_code"])
+        return
+    if not send.step:
+        document = record("documents", settings.EVA_PARTNER_IMAGE_DOCUMENT_ID)
+        if (not document or document.get("type") != "image" or document.get("status") != "complete"
+                or document.get("accessMode") != "sendToChat"
+                or document.get("userId") != settings.EVA_PARTNER_EXECUTOR_ID):
+            send.status, send.error_code = "error", "partner_photo_not_ready"
+            send.save(update_fields=["status", "error_code"])
+            return
+        send.media_document_id = document["id"]
+    send.message_text = content
+    send.save(update_fields=["message_text", "media_document_id"])
+    prompt = (f"Отправь дословно одно сообщение. Не добавляй приветствий или вопросов. Текст сообщения:\n{content}"
+              if send.step else photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID))
     send.status = "submitting"
     send.save(update_fields=["status"])
     try:
         response = api("POST", "taskcontacts", {"data": {str(send.request_id): {
             "taskId": str(send.task_id), "contactId": str(send.contact_id), "status": "queue",
-            "prompt": f"Отправь дословно одно сообщение. Не добавляй приветствий или вопросов. Текст сообщения:\n{content}",
+            "prompt": prompt,
         }}})
         items = response.get("items") or []
         if len(items) != 1 or items[0].get("contactId") != str(send.contact_id):
@@ -137,6 +155,19 @@ def submit_if_running(send, contact, now):
         else:
             send.status = "cancelled"
             send.save(update_fields=["status"])
+
+
+def confirmed_photo(history, row, content):
+    """Acceptance requires the caption and one image on the same outgoing message."""
+    started = timestamp(row.get("createdAt"))
+    return any(
+        message.get("senderType") == "assistant" and message.get("externalId")
+        and message.get("text", "").strip() == content.strip()
+        and len(message.get("attachments") or []) == 1
+        and str(message["attachments"][0].get("mimeType", "")).startswith("image/")
+        for chat, messages in history if chat.get("taskId") == row["taskId"]
+        for when, message in messages if started and when >= started
+    )
 
 
 def reconcile(send, statuses, now):
@@ -191,7 +222,17 @@ def reconcile(send, statuses, now):
         if lead:
             update("leads", lead["id"], props={"nextaction": "Ошибка исходящего сообщения. Проверить историю и связаться вручную."})
         return
+    if sent and send.media_document_id and not confirmed_photo(
+        history, row, send.message_text,
+    ):
+        send.status, send.error_code = "review", "partner_photo_or_caption_unconfirmed"
+        send.save(update_fields=["status", "error_code"])
+        event(f"media-review:{send.pk}", "error", now, send.contact_id, send.channel_type)
+        return
     if lead and send.step == 0 and sent:
+        if send.error_code == "partner_photo_or_caption_unconfirmed":
+            send.status, send.error_code = "sent", ""
+            send.save(update_fields=["status", "error_code"])
         move(lead, statuses, (NEW,), OFFER)
     if row and row.get("status") == "complete" and not sent:
         completed = timestamp(row.get("completeAt"))
@@ -221,7 +262,8 @@ def capture_statuses(statuses, now):
         if title == INTEREST and entered and settings.EVA_RESPONSIBLE_ID in assigned:
             event(f"handoff:{lead['id']}:{entered.isoformat()}", "handoff", entered, lead["contactId"])
         props = (lead.get("contact") or {}).get("props") or {}
-        for key, metric in (("partnerproject", "project_request"), ("partnercomplaint", "complaint")):
+        for key, metric in (("partnerproject", "project_available"), ("partnerquoterequest", "project_request"),
+                            ("partnercomplaint", "complaint")):
             if props.get(key) and entered:
                 event(f"flag:{lead['id']}:{key}", metric, entered, lead["contactId"])
 
@@ -251,7 +293,7 @@ def refresh_reports(now):
         metrics = {}
         items = EvaPartnerEvent.objects.filter(occurred_at__gte=start, occurred_at__lt=start + timedelta(days=days))
         for kind in ("checked", "sent", "reply", "interest", "project_request", "handoff",
-                     "refusal", "complaint", "negotiation", "project", "partner", "click", "error"):
+                     "refusal", "complaint", "negotiation", "project", "project_available", "partner", "click", "error"):
             subset = items.filter(kind=kind)
             metrics[kind] = subset.values("contact_id").distinct().count() if kind in {
                 "checked", "reply", "interest", "handoff", "refusal", "project_request", "project", "partner",
