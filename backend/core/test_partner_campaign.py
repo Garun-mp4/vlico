@@ -66,6 +66,16 @@ class PartnerRulesTests(SimpleTestCase):
         self.assertIn("Не отправляй PDF", prompt)
         self.assertTrue(prompt.endswith("Утверждённый текст"))
 
+    def test_owner_audience_and_four_bold_spans_are_channel_specific(self):
+        for channel, marker in (("whatsapp", "*"), ("telegram", "**")):
+            for segment in (DESIGNERS, BUILDERS):
+                text = first_message({"partnersegment": segment}, channel)
+                self.assertNotIn("архитекторам", text)
+                for phrase in ("VLICO", "дизайнерам и строительным компаниям",
+                               "Берём на себя техническую проработку и монтаж",
+                               "Бесплатно разберём потолочные решения по вашему плану или визуализации"):
+                    self.assertIn(marker + phrase + marker, text)
+
     def test_plain_text_and_split_attachment_are_not_accepted_as_photo_caption(self):
         now = datetime(2026, 11, 18, 10, tzinfo=timezone.utc)
         row = {"taskId": "task", "createdAt": now.isoformat()}
