@@ -94,6 +94,13 @@ class PartnerDispatchTests(TestCase):
             send.save()
         self.assertIsNone(campaign.reserve(self.contact(50), "whatsapp", self.task, 0, self.now))
 
+    def test_optout_after_send_does_not_restore_daily_capacity(self):
+        for number in range(20):
+            send = campaign.reserve(self.contact(number), "whatsapp", self.task, 0, self.now)
+            send.status, send.sent_at = "cancelled", self.now
+            send.save()
+        self.assertEqual(campaign.remaining_capacity("whatsapp", self.now), 0)
+
 
 @override_settings(STORAGES={
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},

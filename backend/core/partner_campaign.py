@@ -71,23 +71,26 @@ def event(key, kind, when, contact_id=None, channel="", **details):
     })
 
 
-def reserve(contact, channel, task, step, now):
+def remaining_capacity(channel, now):
     today = now.astimezone(KALININGRAD).date()
-    if step not in (0, 1):
-        return None
     start = timezone.make_aware(datetime.combine(today, time()), KALININGRAD)
     # Pending or ambiguous submissions from earlier days consume a place until reconciled.
     used = EvaPartnerSend.objects.filter(channel_type=channel).filter(
         Q(reserved_day=today) | Q(sent_at__gte=start, sent_at__lt=start + timedelta(days=1))
         | Q(status__in=("reserved", "submitting", "queued", "review")),
-    ).exclude(status="cancelled").count()
-    if used >= 20 or not working(now):
+    ).exclude(status="cancelled", sent_at__isnull=True).count()
+    return max(0, 20 - used)
+
+
+def reserve(contact, channel, task, step, now):
+    if step not in (0, 1) or not working(now) or not remaining_capacity(channel, now):
         return None
     try:
         with transaction.atomic():
             return EvaPartnerSend.objects.create(
                 contact_id=contact["id"], identity=identity(contact), channel_type=channel,
-                channel_id=task["channels"][0], task_id=task["id"], step=step, reserved_day=today,
+                channel_id=task["channels"][0], task_id=task["id"], step=step,
+                reserved_day=now.astimezone(KALININGRAD).date(),
             )
     except IntegrityError:
         return None
@@ -177,6 +180,9 @@ def reconcile(send, statuses, now):
             event("reply:" + message["id"], "reply", when, send.contact_id, send.channel_type)
         if forbidden and lead:
             move(lead, statuses, (NEW, OFFER, "Ответ", SILENT, INTEREST), REFUSED)
+        if send.sent_at:
+            send.status = "answered" if incoming and not forbidden else "cancelled"
+            send.save(update_fields=["status"])
         return
     if row and row.get("status") == "error" and not sent:
         send.status, send.error_code = "error", "provider_error"
@@ -194,6 +200,8 @@ def reconcile(send, statuses, now):
             send.save(update_fields=["status", "error_code"])
     if lead and send.step == 1 and send.sent_at and now >= business_day_after(send.sent_at, 5):
         move(lead, statuses, (OFFER,), SILENT)
+        send.status = "closed"
+        send.save(update_fields=["status"])
 
 
 def capture_statuses(statuses, now):
@@ -273,11 +281,15 @@ def sync_locked(now):
     if not {NEW, OFFER, INTEREST, SILENT, REFUSED} <= statuses.keys():
         raise EvaError("partner_stages_invalid")
     # Reconcile active submissions regardless of launch state, so replies still cancel pending sends.
-    for send in EvaPartnerSend.objects.exclude(status__in=("error", "cancelled")).filter(
+    for send in EvaPartnerSend.objects.exclude(status__in=("error", "cancelled", "answered", "closed")).filter(
         created_at__gte=now - timedelta(days=45), check_at__lte=now,
     ).order_by("check_at")[:20]:
         reconcile(send, statuses, now)
-        EvaPartnerSend.objects.filter(pk=send.pk).update(check_at=now + timedelta(minutes=2))
+        next_check = now + timedelta(minutes=2)
+        if send.status == "sent" and send.sent_at:
+            due = business_day_after(send.sent_at, 3 if send.step == 0 else 5)
+            next_check = max(now + timedelta(minutes=15), due)
+        EvaPartnerSend.objects.filter(pk=send.pk).update(check_at=next_check)
     policy, _ = EvaPartnerCampaign.objects.get_or_create(pk=1)
     if not policy.next_scan_at or policy.next_scan_at <= now:
         capture_statuses(statuses, now)
@@ -293,6 +305,8 @@ def sync_locked(now):
     candidates = task_rows(settings.EVA_PARTNER_INTAKE_TASK_ID)
     count = 0
     for channel, ids in mapping.items():
+        if not remaining_capacity(channel, now):
+            continue
         # Keep only one in-flight submission per channel to avoid unattended backlog.
         if EvaPartnerSend.objects.filter(channel_type=channel, status__in=("reserved", "submitting", "queued", "review")).exists():
             continue
