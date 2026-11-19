@@ -134,7 +134,8 @@ def dispatch_lane(eva, lane, manifest, state, commit, tasks, contacts, aliases, 
                     return reason
         return "queued_or_in_progress"
 
-    if not channel_ready(eva, lane, manifest["worker"], manifest.get("document"), tasks, now):
+    document = lane.get("document", manifest.get("document"))
+    if not channel_ready(eva, lane, manifest["worker"], document, tasks, now):
         return "outside_channel_slot"
     for other in tasks.values():
         if (other["id"] != task_id and other["enabled"] and lane["channel"] in other["channels"]

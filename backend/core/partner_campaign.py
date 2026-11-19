@@ -164,7 +164,10 @@ def submit(send, contact, now):
         send.media_document_id = document["id"]
     send.message_text = content
     send.save(update_fields=["message_text", "media_document_id"])
-    prompt = photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID) if photo else text_prompt(content)
+    prompt = photo_prompt(
+        content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID,
+        allow_text_fallback=send.channel_type != "whatsapp",
+    ) if photo else text_prompt(content)
     send.status = "submitting"
     send.save(update_fields=["status"])
     try:

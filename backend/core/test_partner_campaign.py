@@ -76,6 +76,15 @@ class PartnerRulesTests(SimpleTestCase):
         self.assertIn("Клиенту можно отправлять только утверждённый текст", prompt)
         self.assertIn("Не прикрепляй файлы", prompt)
 
+    def test_strict_whatsapp_photo_has_no_text_fallback(self):
+        approved = "Фото и подпись с *VLICO*"
+        prompt = photo_prompt(approved, "image-id", allow_text_fallback=False)
+        self.assertTrue(prompt.endswith(approved))
+        self.assertIn("image-id", prompt)
+        self.assertIn("Текст без фото и файл без подписи отправлять нельзя", prompt)
+        self.assertIn("причины сбоев и пояснения клиенту не отправляй", prompt)
+        self.assertNotIn("отправь этот же текст одним сообщением без вложений", prompt)
+
     def test_owner_audience_and_four_bold_spans_are_channel_specific(self):
         for channel, marker in (("whatsapp", "*"), ("telegram", "**")):
             for segment in (DESIGNERS, BUILDERS):

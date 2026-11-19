@@ -25,9 +25,12 @@ reconcile its task queue and chat before making another request.
 On 19 November, a photo task sent its error explanation to a recipient as
 ordinary chat text. The pending pilot rows and the protected audience were
 converted to the approved text-only copy. A null `document` in the private
-manifest selects that mode. The photo copy retained for testing allows one
-text-only fallback before any successful or uncertain send, and explicitly
-keeps diagnostics out of customer messages.
+manifest selects that mode unless a channel has its own document. On
+19 November the WhatsApp queues were set to strict photo plus caption based
+on the recipient-approved format from the operator chat. If that format is
+unavailable, the WhatsApp sender instruction ends the task without sending
+anything. Keep the queues paused until the ordinary task format is verified.
+Telegram can retain a separate text-only configuration.
 
 ## Authorised text-only pilot, 18 November 2026
 

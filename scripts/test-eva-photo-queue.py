@@ -99,6 +99,16 @@ class PhotoQueueTest(unittest.TestCase):
         ))
         self.assertNotIn("documents", [call.args[0] for call in self.eva.record.call_args_list])
 
+    def test_channel_can_require_its_own_document_in_text_manifest(self):
+        self.lane["document"] = "configured-png"
+        with unittest.mock.patch.object(guard, "channel_ready", return_value=False) as readiness:
+            guard.dispatch_lane(
+                self.eva, self.lane, {"worker": "victoria", "document": None},
+                self.state, self.commit, {"task": self.task}, self.contacts, self.aliases, self.now,
+            )
+        self.assertEqual(readiness.call_args.args[3], "configured-png")
+        self.eva.api.assert_not_called()
+
     def test_pending_recipient_who_replied_is_removed(self):
         row = {"id": "row", "contactId": "one", "status": "queue"}
         self.eva.task_rows.return_value = [row]
