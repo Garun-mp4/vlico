@@ -1,5 +1,27 @@
 # Eva outbox operation
 
+## Partner photos — protected release
+
+The SpaceWeb Eva cron adapter runs `scripts/eva-photo-queue.py` for the two
+photo tasks. The approved audience and original task rows are kept in a
+private snapshot. Each Eva task shows the contacts already released, with at
+most one waiting or in progress. Use the task's «Остановить» button to pause.
+Do not add contacts directly to these queues. The worker stops a task when it
+detects a direct addition.
+
+Before releasing a greeting, the worker checks the contact and conversations
+for that contact and any contacts sharing the phone number. A conversation
+with messages, an opt-out, loss of eligibility, or a previous attempt excludes
+the recipient. An empty error chat does not count as a conversation. The worker
+waits for the shared channel slot and earlier queued tasks, and releases up to
+20 contacts per channel per working day. It rechecks a waiting row on subsequent
+runs until Eva starts processing it. The history check and Eva's delivery are
+separate operations.
+
+The production manifest, progress and rollback snapshot stay outside
+`public_html` under `~/.vlico-ops`. If a submission has an unknown outcome,
+reconcile its task queue and chat before making another request.
+
 ## Authorised text-only pilot, 18 November 2026
 
 Recipient-side formatting acceptance: the user subsequently confirmed that the formatted test message did display bold text correctly in the messenger. This supersedes the earlier unverified-preview status for that tested message/channel. No further own-number tests are needed for that result. Do not infer a separate visual acceptance of the other messenger from this confirmation. The failed direct Dashboard POST must not itself be described as a successful send; the user's visual confirmation is the acceptance evidence.
