@@ -89,6 +89,16 @@ class PhotoQueueTest(unittest.TestCase):
         self.eva.api.assert_not_called()
         self.assertEqual(self.state["telegram"], {})
 
+    def test_text_dispatch_does_not_require_photo_document(self):
+        original_record = self.record
+        self.eva.record.side_effect = lambda resource, uid: (
+            None if resource == "documents" else original_record(resource, uid)
+        )
+        self.assertTrue(guard.channel_ready(
+            self.eva, self.lane, "victoria", None, {"task": self.task}, self.now,
+        ))
+        self.assertNotIn("documents", [call.args[0] for call in self.eva.record.call_args_list])
+
     def test_pending_recipient_who_replied_is_removed(self):
         row = {"id": "row", "contactId": "one", "status": "queue"}
         self.eva.task_rows.return_value = [row]

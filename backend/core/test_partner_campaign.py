@@ -7,7 +7,7 @@ from django.utils import timezone as django_time
 
 from . import partner_campaign as campaign
 from .models import EvaPartnerSend
-from .partner_content import first_message, photo_prompt
+from .partner_content import first_message, photo_prompt, text_prompt
 from .partner_segments import classify, DESIGNERS, BUILDERS, REVIEW
 
 
@@ -64,7 +64,17 @@ class PartnerRulesTests(SimpleTestCase):
         self.assertIn("sendToChat", prompt)
         self.assertIn("одним сообщением", prompt)
         self.assertIn("Не отправляй PDF", prompt)
+        self.assertIn("отправь этот же текст одним сообщением без вложений", prompt)
+        self.assertIn("причины сбоев и пояснения клиенту не отправляй", prompt)
+        self.assertNotIn("сообщи об ошибке", prompt)
         self.assertTrue(prompt.endswith("Утверждённый текст"))
+
+    def test_text_prompt_only_allows_approved_copy(self):
+        approved = "Здравствуйте!\n\n**VLICO**"
+        prompt = text_prompt(approved)
+        self.assertTrue(prompt.endswith(approved))
+        self.assertIn("Клиенту можно отправлять только утверждённый текст", prompt)
+        self.assertIn("Не прикрепляй файлы", prompt)
 
     def test_owner_audience_and_four_bold_spans_are_channel_specific(self):
         for channel, marker in (("whatsapp", "*"), ("telegram", "**")):

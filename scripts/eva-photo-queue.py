@@ -1,4 +1,4 @@
-"""Release the approved Eva photo audience one verified contact per sender."""
+"""Release the approved Eva partner audience one verified contact per sender."""
 
 import json
 import os
@@ -80,6 +80,8 @@ def channel_ready(eva, lane, worker, document, tasks, now):
     # The cron check and Eva's channel clock do not tick at the same instant.
     if available_at and available_at > now + timedelta(seconds=75):
         return False
+    if document is None:
+        return True
     asset = eva.record("documents", document)
     return bool(asset and asset.get("userId") == worker and asset.get("status") == "complete"
                 and asset.get("type") == "image" and asset.get("accessMode") == "sendToChat")
@@ -132,7 +134,7 @@ def dispatch_lane(eva, lane, manifest, state, commit, tasks, contacts, aliases, 
                     return reason
         return "queued_or_in_progress"
 
-    if not channel_ready(eva, lane, manifest["worker"], manifest["document"], tasks, now):
+    if not channel_ready(eva, lane, manifest["worker"], manifest.get("document"), tasks, now):
         return "outside_channel_slot"
     for other in tasks.values():
         if (other["id"] != task_id and other["enabled"] and lane["channel"] in other["channels"]

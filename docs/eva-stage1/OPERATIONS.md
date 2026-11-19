@@ -1,9 +1,9 @@
 # Eva outbox operation
 
-## Partner photos — protected release
+## Partner greetings — protected release
 
 The SpaceWeb Eva cron adapter runs `scripts/eva-photo-queue.py` for the two
-photo tasks. The approved audience and original task rows are kept in a
+large partner tasks. The approved audience and original task rows are kept in a
 private snapshot. Each Eva task shows the contacts already released, with at
 most one waiting or in progress. Use the task's «Остановить» button to pause.
 Do not add contacts directly to these queues. The worker stops a task when it
@@ -21,6 +21,13 @@ separate operations.
 The production manifest, progress and rollback snapshot stay outside
 `public_html` under `~/.vlico-ops`. If a submission has an unknown outcome,
 reconcile its task queue and chat before making another request.
+
+On 19 November, a photo task sent its error explanation to a recipient as
+ordinary chat text. The pending pilot rows and the protected audience were
+converted to the approved text-only copy. A null `document` in the private
+manifest selects that mode. The photo copy retained for testing allows one
+text-only fallback before any successful or uncertain send, and explicitly
+keeps diagnostics out of customer messages.
 
 ## Authorised text-only pilot, 18 November 2026
 

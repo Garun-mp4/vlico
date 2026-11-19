@@ -15,7 +15,7 @@ from .eva_partner_campaign import (
     ensure_lead, active_lead, move, KALININGRAD, OPT_OUT, NEW, OFFER, SILENT, INTEREST, REFUSED,
 )
 from .models import EvaPartnerCampaign, EvaPartnerSend, EvaPartnerEvent, EvaPartnerReport
-from .partner_content import first_message, photo_prompt, FOLLOWUP
+from .partner_content import first_message, photo_prompt, text_prompt, FOLLOWUP
 from .partner_segments import segment_group
 
 
@@ -164,10 +164,7 @@ def submit(send, contact, now):
         send.media_document_id = document["id"]
     send.message_text = content
     send.save(update_fields=["message_text", "media_document_id"])
-    prompt = (f"Отправь дословно одно сообщение. Не добавляй приветствий или вопросов. Текст сообщения:\n{content}"
-              if not photo else photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID))
-    if not photo:
-        prompt = "Только текст. Не прикрепляй изображения, документы или другие файлы. " + prompt
+    prompt = photo_prompt(content, settings.EVA_PARTNER_IMAGE_DOCUMENT_ID) if photo else text_prompt(content)
     send.status = "submitting"
     send.save(update_fields=["status"])
     try:
