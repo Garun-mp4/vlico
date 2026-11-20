@@ -32,6 +32,12 @@ unavailable, the WhatsApp sender instruction ends the task without sending
 anything. Keep the queues paused until the ordinary task format is verified.
 Telegram can retain a separate text-only configuration.
 
+The copy approved on 20 November is the same for both verified segments.
+`partner_content.first_message` renders the three bold spans and the
+channel-specific UTM. Apply revisions to the pending Eva rows and the private
+manifest before resuming the large tasks. Leave previously processed rows and
+the history check in place.
+
 ## Authorised text-only pilot, 18 November 2026
 
 Recipient-side formatting acceptance: the user subsequently confirmed that the formatted test message did display bold text correctly in the messenger. This supersedes the earlier unverified-preview status for that tested message/channel. No further own-number tests are needed for that result. Do not infer a separate visual acceptance of the other messenger from this confirmation. The failed direct Dashboard POST must not itself be described as a successful send; the user's visual confirmation is the acceptance evidence.

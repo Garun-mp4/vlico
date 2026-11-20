@@ -39,7 +39,7 @@ class PartnerRulesTests(SimpleTestCase):
                 message = first_message({"partnersegment": segment}, channel)
                 self.assertIn("utm_source=" + channel, message)
                 self.assertNotIn("%", message.replace("%D", ""))
-                self.assertIn("менеджер по партнёрствам", message)
+                self.assertIn("студия потолочных решений", message)
                 self.assertLessEqual(len(message.encode("utf-16-le")) // 2, 1024)
 
     def test_source_categories_do_not_guess_ambiguous_profiles(self):
@@ -50,12 +50,10 @@ class PartnerRulesTests(SimpleTestCase):
             self.assertEqual(classify(value), REVIEW)
         self.assertEqual(classify("", designer_directory=True), DESIGNERS)
 
-    def test_personalization_changes_the_offer_and_question(self):
+    def test_both_segments_use_the_same_approved_first_message(self):
         designer = first_message({"partnersegment": DESIGNERS}, "whatsapp")
-        builder = first_message({"partnersegment": BUILDERS}, "telegram")
-        self.assertIn("эстетику проекта", designer)
-        self.assertIn("согласование узлов", builder)
-        self.assertNotIn("эстетику проекта", builder)
+        builder = first_message({"partnersegment": BUILDERS}, "whatsapp")
+        self.assertEqual(designer, builder)
         with self.assertRaises(ValueError):
             first_message({"partnersegment": REVIEW}, "whatsapp")
 
@@ -85,15 +83,24 @@ class PartnerRulesTests(SimpleTestCase):
         self.assertIn("причины сбоев и пояснения клиенту не отправляй", prompt)
         self.assertNotIn("отправь этот же текст одним сообщением без вложений", prompt)
 
-    def test_owner_audience_and_four_bold_spans_are_channel_specific(self):
-        for channel, marker in (("whatsapp", "*"), ("telegram", "**")):
-            for segment in (DESIGNERS, BUILDERS):
-                text = first_message({"partnersegment": segment}, channel)
-                self.assertNotIn("архитекторам", text)
-                for phrase in ("VLICO", "дизайнерам и строительным компаниям",
-                               "Берём на себя техническую проработку и монтаж",
-                               "Бесплатно разберём потолочные решения по вашему плану или визуализации"):
-                    self.assertIn(marker + phrase + marker, text)
+    def test_first_message_matches_owner_copy_and_three_bold_spans(self):
+        expected = (
+            "Здравствуйте! 👋\n\n"
+            "Я Виктория, студия потолочных решений *VLICO*, Калининград.\n\n"
+            "Мы подключаемся к проектам дизайнеров и строительных компаний, когда нужны "
+            "*сложные потолочные решения, встроенное освещение и грамотный монтаж*.\n\n"
+            "Можем бесплатно посмотреть ваш проект, предложить технические решения "
+            "и помочь избежать ошибок при реализации.\n\n"
+            "Примеры наших работ:\n"
+            "https://vlico39.ru/partners/?utm_source=whatsapp&utm_medium=messenger&utm_campaign=partner_network\n\n"
+            "*Подскажите, у вас сейчас есть проекты, где могла бы пригодиться наша помощь?*"
+        )
+        props = {"partnersegment": DESIGNERS}
+        self.assertEqual(first_message(props, "whatsapp"), expected)
+        self.assertEqual(
+            first_message(props, "telegram"),
+            expected.replace("*", "**").replace("utm_source=whatsapp", "utm_source=telegram"),
+        )
 
     def test_plain_text_and_split_attachment_are_not_accepted_as_photo_caption(self):
         now = datetime(2026, 11, 18, 10, tzinfo=timezone.utc)
